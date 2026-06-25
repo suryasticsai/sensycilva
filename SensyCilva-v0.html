@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SensyCilva Radio</title>
+    <!-- Favicon (logo.png) -->
+    <link rel="icon" href="logo.png" type="image/png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0b0d11;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 20px;
+        }
+        .radio-station {
+            background: linear-gradient(145deg, #1a1e26, #101318);
+            border-radius: 48px;
+            padding: 32px 28px;
+            max-width: 680px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid #2a2f3a;
+        }
+        .station-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .station-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .station-header .brand img {
+            height: 36px;
+            width: auto;
+            border-radius: 8px;
+        }
+        .station-header .brand span {
+            color: #b7e1fa;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .station-header .power-led {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #7e8a9b;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2a3a2a;
+            transition: 0.3s;
+        }
+        .led.on {
+            background: #4cd964;
+            box-shadow: 0 0 12px #4cd96488;
+        }
+        .led.ai-thinking {
+            background: #ff9500;
+            animation: pulse 0.5s infinite;
+        }
+        .led.ai-speaking {
+            background: #5ac8fa;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .station-name {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #b7e1fa;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px #4a8fb544;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #1a212a;
+        }
+        .station-name span {
+            color: #ff9500;
+        }
+        .station-name .sub {
+            font-size: 14px;
+            color: #5a7a8a;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        .frequency-display {
+            background: #0a0c10;
+            border-radius: 80px;
+            padding: 14px 24px;
+            margin-bottom: 16px;
+            border: 1px solid #252b34;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .freq-number {
+            font-family: 'Courier New', monospace;
+            font-size: 30px;
+            font-weight: 700;
+            color: #b7e1fa;
+        }
+        .freq-unit {
+            color: #5a6a7a;
+            font-size: 14px;
+        }
+
+        .ai-section {
+            background: #0f141c;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #1f2732;
+        }
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .ai-header h3 {
+            color: #ff9500;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-header h3 .icon {
+            font-size: 20px;
+        }
+        .ai-status {
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #1a1f2a;
+            color: #6a7a8a;
+            border: 1px solid #252e3a;
+        }
+        .ai-status.active {
+            color: #ff9500;
+            border-color: #ff950055;
+            animation: blink 1s infinite;
+        }
+        .ai-status.thinking {
+            color: #5ac8fa;
+            border-color: #5ac8fa55;
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .subtitles {
+            background: #080b10;
+            border-radius: 12px;
+            padding: 14px 16px;
+            min-height: 70px;
+            color: #b7e1fa;
+            font-size: 20px;
+            line-height: 1.5;
+            border: 1px solid #1a212a;
+            margin-top: 8px;
+            text-align: center;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .subtitles .speaking {
+            color: #ff9500;
+        }
+        .subtitles .idle {
+            color: #4a5a6a;
+            font-size: 15px;
+            font-weight: 400;
+            font-style: italic;
+        }
+        .subtitles .thinking {
+            color: #5ac8fa;
+        }
+
+        .transcript {
+            background: #080b10;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-top: 8px;
+            max-height: 80px;
+            overflow-y: auto;
+            border: 1px solid #1a212a;
+            color: #6a8a9a;
+            font-size: 13px;
+            line-height: 1.6;
+            scrollbar-width: thin;
+            scrollbar-color: #2a3a4a transparent;
+        }
+        .transcript::-webkit-scrollbar {
+            width: 4px;
+        }
+        .transcript::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 8px;
+        }
+        .transcript .line {
+            border-bottom: 1px solid #1a212a;
+            padding: 2px 0;
+        }
+        .transcript .line:last-child {
+            border-bottom: none;
+        }
+        .transcript .timestamp {
+            color: #4a5a6a;
+            font-size: 10px;
+            margin-right: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .controls button {
+            background: #1a212a;
+            border: 1px solid #2a323e;
+            color: #8a9aaa;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .controls button:hover {
+            background: #252f3d;
+            border-color: #4a6a8a;
+            color: #c0d8ee;
+        }
+        .controls button.primary {
+            background: #1a3348;
+            border-color: #4a8fc0;
+            color: #b7e1fa;
+        }
+        .controls button.primary:hover {
+            background: #234a66;
+            box-shadow: 0 0 20px #2a6f9a44;
+        }
+        .controls button.danger {
+            border-color: #8a3a3a;
+            color: #ff6a5a;
+        }
+        .controls button.danger:hover {
+            background: #2a1a1a;
+            border-color: #ff4a3a;
+        }
+        .controls button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .voice-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0 4px;
+            flex-wrap: wrap;
+        }
+        .voice-selector label {
+            color: #7e8a9b;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .voice-selector select {
+            flex: 1;
+            min-width: 100px;
+            background: #0a0c10;
+            border: 1px solid #252e3a;
+            border-radius: 30px;
+            padding: 6px 14px;
+            color: #c0d8ee;
+            font-size: 12px;
+            font-family: 'Segoe UI', sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+        .voice-selector select:focus {
+            border-color: #3a7aaa;
+        }
+        .voice-selector .voice-status {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: #1a1f2a;
+            color: #4cd964;
+            border: 1px solid #4cd96455;
+            white-space: nowrap;
+        }
+
+        .status-badge {
+            background: #11171f;
+            border: 1px solid #252e3a;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #6a7e92;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .station-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #1a212a;
+            color: #4a5a6a;
+            font-size: 11px;
+        }
+        .station-footer .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .station-footer .footer-brand img {
+            height: 24px;
+            width: auto;
+            border-radius: 4px;
+        }
+        .station-footer .footer-brand span {
+            color: #6a8a9a;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .station-footer .footer-credit {
+            color: #3a4a5a;
+        }
+
+        @media (max-width: 460px) {
+            .radio-station {
+                padding: 16px 12px;
+                border-radius: 32px;
+            }
+            .station-name {
+                font-size: 20px;
+            }
+            .freq-number {
+                font-size: 24px;
+            }
+            .subtitles {
+                font-size: 16px;
+                min-height: 56px;
+                padding: 10px 12px;
+            }
+            .station-header .brand img {
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="radio-station">
+
+        <!-- HEADER with Logo -->
+        <div class="station-header">
+            <div class="brand">
+                <img src="logo.png" alt="SensyCilva" />
+                <span id="stationName">SensyCilva</span>
+            </div>
+            <div class="power-led">
+                <span class="led on" id="powerLed"></span>
+                <span id="stationStatus">Standby</span>
+            </div>
+        </div>
+
+        <div class="station-name">
+            🎙️ <span>SensyCilva</span> <span class="sub">Radio</span>
+        </div>
+
+        <div class="frequency-display">
+            <span class="freq-number" id="freqDisplay">101.5</span>
+            <span class="freq-unit">MHz</span>
+        </div>
+
+        <!-- AI Section -->
+        <div class="ai-section">
+            <div class="ai-header">
+                <h3><span class="icon">🧠</span> AI Jockey</h3>
+                <span class="ai-status" id="aiStatus">● Idle</span>
+            </div>
+
+            <!-- Subtitles -->
+            <div class="subtitles" id="subtitles">
+                <span class="idle">🎧 Choose a voice and press "Start Show"</span>
+            </div>
+
+            <!-- Transcript -->
+            <div class="transcript" id="transcript">
+                <div class="line"><span class="timestamp">[System]</span> Welcome to SensyCilva Radio.</div>
+            </div>
+
+            <!-- Voice Selector -->
+            <div class="voice-selector">
+                <label for="voiceSelect">🎤 Voice</label>
+                <select id="voiceSelect">
+                    <option value="browser">🧠 Browser TTS</option>
+                    <option value="alloy" selected>🐝 Alloy</option>
+                    <option value="echo">🐝 Echo</option>
+                    <option value="fable">🐝 Fable</option>
+                    <option value="onyx">🐝 Onyx</option>
+                    <option value="nova">🐝 Nova</option>
+                    <option value="shimmer">🐝 Shimmer</option>
+                </select>
+                <span class="voice-status" id="voiceStatus">✅ Ready</span>
+            </div>
+
+            <div class="controls">
+                <button class="primary" id="startBtn">▶ Start Show</button>
+                <button class="danger" id="stopBtn">⏹ Stop</button>
+                <button id="testBtn">🔊 Test Voice</button>
+                <button id="shoutoutBtn">💬 Shoutout</button>
+                <button id="newsBtn">📰 News</button>
+                <button id="clearTranscriptBtn">🧹 Clear</button>
+            </div>
+        </div>
+
+        <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+            <span class="status-badge" id="statusBadge">● Idle</span>
+            <span style="color:#6a7a8a;font-size:11px;">⚡ Free · Pollinations AI</span>
+        </div>
+
+        <!-- FOOTER with Logo -->
+        <div class="station-footer">
+            <div class="footer-brand">
+                <img src="logo.png" alt="SensyCilva" />
+                <span id="footerStationName">SensyCilva</span>
+            </div>
+            <div class="footer-credit">
+                © 2026 · SensyCilva Radio
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ---- DOM refs ----
+            const powerLed = document.getElementById('powerLed');
+            const stationStatus = document.getElementById('stationStatus');
+            const stationName = document.getElementById('stationName');
+            const footerStationName = document.getElementById('footerStationName');
+            const freqDisplay = document.getElementById('freqDisplay');
+            const subtitles = document.getElementById('subtitles');
+            const transcript = document.getElementById('transcript');
+            const aiStatus = document.getElementById('aiStatus');
+            const statusBadge = document.getElementById('statusBadge');
+            const voiceSelect = document.getElementById('voiceSelect');
+            const voiceStatus = document.getElementById('voiceStatus');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const testBtn = document.getElementById('testBtn');
+            const shoutoutBtn = document.getElementById('shoutoutBtn');
+            const newsBtn = document.getElementById('newsBtn');
+            const clearTranscriptBtn = document.getElementById('clearTranscriptBtn');
+
+            // ---- State ----
+            let aiRunning = false;
+            let aiQueue = [];
+            let isSpeaking = false;
+            let currentUtterance = null;
+            let aiTimer = null;
+            let isGenerating = false;
+
+            // ---- Song Library ----
+            const songLibrary = [
+                { title: "Midnight Dreams", artist: "The Starlighters" },
+                { title: "Sunset Boulevard", artist: "Coastal Waves" },
+                { title: "Electric Heart", artist: "Neon Pulse" },
+                { title: "Golden Hour", artist: "Amber Sky" },
+                { title: "Ocean Drive", artist: "Night Riders" },
+                { title: "Velvet Sky", artist: "Lunar Echo" },
+                { title: "Neon Lights", artist: "City Synths" },
+                { title: "Palm Trees", artist: "Tropical Vibes" },
+                { title: "Starlight", artist: "Cosmic Dust" },
+                { title: "Cafe Noir", artist: "Jazz Collective" }
+            ];
+            let currentSongIndex = 0;
+
+            // ---- Fallback content (if Pollinations fails) ----
+            const fallback = {
+                greetings: [
+                    "Hey there, night owls! Welcome to SensyCilva Radio.",
+                    "Good evening, music lovers! You're tuned into the best vibes on SensyCilva.",
+                    "What's up, listeners? Ready for some killer tracks?",
+                    "Hello, hello! You've found the coolest frequency in town – SensyCilva.",
+                    "Welcome back, friends! Hope you're having an amazing day."
+                ],
+                intros: [
+                    "🎵 Coming up next, we've got {title} by {artist}!",
+                    "🎶 Let's keep the energy going with {title} by {artist}!",
+                    "🎧 Here's a fresh track for you: {title} from {artist}.",
+                    "🎵 This one's a classic: {title} by {artist}. Enjoy!",
+                    "🎶 Get ready for {title} by {artist}!",
+                    "🎵 Up next on the dial: {title} by {artist}!"
+                ],
+                shoutouts: [
+                    "🎉 Shoutout to all our amazing listeners! You're the best!",
+                    "🎉 Big love to everyone tuning in tonight!",
+                    "🎉 We see you out there! Thanks for keeping us company!",
+                    "🎉 Shoutout to the night owls! You make this show special!"
+                ],
+                news: [
+                    "📰 Vinyl records are making a huge comeback this year.",
+                    "📰 A new study shows listening to music reduces stress by 65%.",
+                    "📰 Music festivals are drawing record crowds this summer.",
+                    "📰 Streaming services now account for 85% of music industry revenue.",
+                    "📰 A local band just signed their first major label deal!"
+                ],
+                jokes: [
+                    "Why do musicians love computers? Because they've got the best beats!",
+                    "What did the DJ say to the vinyl? You spin me right round!",
+                    "Why did the radio go to school? To improve its frequency!",
+                    "What's a musician's favorite snack? A jam sandwich!",
+                    "Why did the guitar get arrested? For fingering a minor!"
+                ],
+                signoffs: [
+                    "That's all for now, folks! Keep it locked, keep it loud on SensyCilva.",
+                    "Thanks for hanging out with me tonight. Stay groovy!",
+                    "Time to sign off. Remember: life's a playlist, make it a good one!",
+                    "Until next time, keep the music playing in your hearts.",
+                    "Peace, love, and good tunes. See you on the airwaves!"
+                ]
+            };
+
+            function getFallback(type, song) {
+                if (type === 'intro' && song) {
+                    const template = fallback.intros[Math.floor(Math.random() * fallback.intros.length)];
+                    return template.replace('{title}', song.title).replace('{artist}', song.artist);
+                }
+                if (type === 'greeting') return fallback.greetings[Math.floor(Math.random() * fallback.greetings.length)];
+                if (type === 'shoutout') return fallback.shoutouts[Math.floor(Math.random() * fallback.shoutouts.length)];
+                if (type === 'news') return fallback.news[Math.floor(Math.random() * fallback.news.length)];
+                if (type === 'joke') return fallback.jokes[Math.floor(Math.random() * fallback.jokes.length)];
+                if (type === 'signoff') return fallback.signoffs[Math.floor(Math.random() * fallback.signoffs.length)];
+                return "🎵 Enjoy the music, everyone!";
+            }
+
+            // ---- Pollinations Text Generation (free, no token) ----
+            async function generateWithPollinations(prompt) {
+                try {
+                    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Pollinations API error');
+                    const data = await response.json();
+                    // The response might be an object with a 'text' field or direct string
+                    let text = data.text || data.response || data || '';
+                    if (typeof text === 'string' && text.startsWith(prompt)) {
+                        text = text.substring(prompt.length).trim();
+                    }
+                    return text || null;
+                } catch (err) {
+                    console.warn('Pollinations text generation failed:', err);
+                    return null;
+                }
+            }
+
+            // ---- Generate segments (Pollinations or fallback) ----
+            async function generateGreeting() {
+                const result = await generateWithPollinations(
+                    "Write a warm 1-sentence radio greeting for a late-night show on SensyCilva Radio."
+                );
+                return result || getFallback('greeting');
+            }
+
+            async function generateSongIntro() {
+                const song = songLibrary[currentSongIndex % songLibrary.length];
+                currentSongIndex++;
+                const result = await generateWithPollinations(
+                    `Write a creative 1-sentence radio intro for the song "${song.title}" by ${song.artist}. Make it fun.`
+                );
+                return result || getFallback('intro', song);
+            }
+
+            async function generateShoutout() {
+                const result = await generateWithPollinations(
+                    "Write a warm 1-sentence radio shoutout for our amazing listeners on SensyCilva Radio."
+                );
+                return result || getFallback('shoutout');
+            }
+
+            async function generateNews() {
+                const result = await generateWithPollinations(
+                    "Write a short 1-sentence music news headline for a radio show."
+                );
+                return result || getFallback('news');
+            }
+
+            async function generateJoke() {
+                const result = await generateWithPollinations(
+                    "Tell a short 1-sentence music-related joke."
+                );
+                return result || getFallback('joke');
+            }
+
+            async function generateSignoff() {
+                const result = await generateWithPollinations(
+                    "Write a short 1-sentence radio signoff for SensyCilva Radio."
+                );
+                return result || getFallback('signoff');
+            }
+
+            // ---- TTS Engine: Browser TTS ----
+            function speakWithBrowserTTS(text) {
+                return new Promise((resolve) => {
+                    if (!window.speechSynthesis) {
+                        console.warn('No speech synthesis');
+                        resolve();
+                        return;
+                    }
+                    const synth = window.speechSynthesis;
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.85;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1;
+
+                    const voices = synth.getVoices();
+                    const preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                        voices.find(v => v.lang === 'en-US') ||
+                        voices[0];
+                    if (preferred) utterance.voice = preferred;
+
+                    utterance.onstart = () => {
+                        isSpeaking = true;
+                        aiStatus.textContent = '● Speaking';
+                        aiStatus.className = 'ai-status active';
+                        powerLed.className = 'led ai-speaking';
+                        statusBadge.textContent = '● Speaking';
+                    };
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Idle';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Idle';
+                        resolve();
+                    };
+                    utterance.onerror = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Error';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Error';
+                        resolve();
+                    };
+                    currentUtterance = utterance;
+                    synth.speak(utterance);
+                });
+            }
+
+            // ---- TTS Engine: Pollinations ----
+            function speakWithPollinations(text, voice) {
+                return new Promise((resolve) => {
+                    const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Pollinations TTS failed');
+                            return response.blob();
+                        })
+                        .then(blob => {
+                            const audioUrl = URL.createObjectURL(blob);
+                            const audio = new Audio(audioUrl);
+                            audio.onplay = () => {
+                                isSpeaking = true;
+                                aiStatus.textContent = '● Speaking';
+                                aiStatus.className = 'ai-status active';
+                                powerLed.className = 'led ai-speaking';
+                                statusBadge.textContent = '● Speaking';
+                            };
+                            audio.onended = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                isSpeaking = false;
+                                aiStatus.textContent = '● Idle';
+                                aiStatus.className = 'ai-status';
+                                powerLed.className = 'led on';
+                                statusBadge.textContent = '● Idle';
+                                resolve();
+                            };
+                            audio.onerror = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                speakWithBrowserTTS(text).then(resolve);
+                            };
+                            audio.play().catch(() => {
+                                speakWithBrowserTTS(text).then(resolve);
+                            });
+                        })
+                        .catch(() => {
+                            speakWithBrowserTTS(text).then(resolve);
+                        });
+                });
+            }
+
+            // ---- Main speak ----
+            function speakText(text) {
+                updateSubtitlesAndTranscript(text);
+                const voice = voiceSelect.value;
+                if (voice === 'browser') {
+                    return speakWithBrowserTTS(text);
+                } else {
+                    return speakWithPollinations(text, voice);
+                }
+            }
+
+            // ---- Update subtitles ----
+            function updateSubtitlesAndTranscript(text) {
+                subtitles.innerHTML = `<span class="speaking">🗣️ ${text}</span>`;
+                const time = new Date().toLocaleTimeString();
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = `<span class="timestamp">[${time}]</span> ${text}`;
+                transcript.appendChild(line);
+                while (transcript.children.length > 15) {
+                    transcript.removeChild(transcript.firstChild);
+                }
+                transcript.scrollTop = transcript.scrollHeight;
+            }
+
+            // ---- AI Show Runner ----
+            async function runAIShow() {
+                if (!aiRunning || isSpeaking || isGenerating) return;
+
+                if (aiQueue.length === 0) {
+                    isGenerating = true;
+                    aiStatus.textContent = '● Thinking...';
+                    aiStatus.className = 'ai-status thinking';
+                    powerLed.className = 'led ai-thinking';
+                    subtitles.innerHTML = '<span class="thinking">🧠 Generating next segment...</span>';
+
+                    try {
+                        const segments = [];
+                        if (Math.random() > 0.3) segments.push(await generateGreeting());
+                        for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
+                            segments.push(await generateSongIntro());
+                        }
+                        if (Math.random() > 0.5) segments.push(await generateJoke());
+                        if (Math.random() > 0.5) segments.push(await generateNews());
+                        if (Math.random() > 0.3) segments.push(await generateSignoff());
+                        aiQueue = segments.filter(s => s && s.length > 0);
+                        if (aiQueue.length === 0) aiQueue = ['🎵 Enjoy the music, everyone!'];
+                    } catch (err) {
+                        aiQueue = ['🎵 Enjoy the music, everyone!'];
+                    }
+
+                    isGenerating = false;
+                    aiStatus.textContent = '● Idle';
+                    aiStatus.className = 'ai-status';
+                    powerLed.className = 'led on';
+                }
+
+                const nextLine = aiQueue.shift();
+                if (nextLine) {
+                    await speakText(nextLine);
+                    const delay = 1500 + Math.random() * 2500;
+                    aiTimer = setTimeout(runAIShow, delay);
+                } else {
+                    runAIShow();
+                }
+            }
+
+            // ---- Controls ----
+            startBtn.addEventListener('click', async () => {
+                if (aiRunning) return;
+                if (!('speechSynthesis' in window) && voiceSelect.value === 'browser') {
+                    subtitles.innerHTML = '❌ Browser TTS not supported.';
+                    return;
+                }
+                if (voiceSelect.value === 'browser') {
+                    window.speechSynthesis.getVoices();
+                    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+                }
+
+                aiRunning = true;
+                aiQueue = [];
+                aiStatus.textContent = '● Starting...';
+                aiStatus.className = 'ai-status active';
+                stationStatus.textContent = 'On Air';
+                statusBadge.textContent = '● Running';
+                startBtn.textContent = '⏳ Running...';
+                startBtn.disabled = true;
+                subtitles.innerHTML = '🎙️ Show starting...';
+                setTimeout(() => { if (aiRunning) runAIShow(); }, 1000);
+            });
+
+            stopBtn.addEventListener('click', () => {
+                aiRunning = false;
+                if (aiTimer) clearTimeout(aiTimer);
+                if (currentUtterance) {
+                    if (window.speechSynthesis) window.speechSynthesis.cancel();
+                }
+                isSpeaking = false;
+                isGenerating = false;
+                aiStatus.textContent = '● Stopped';
+                aiStatus.className = 'ai-status';
+                powerLed.className = 'led on';
+                stationStatus.textContent = 'Standby';
+                statusBadge.textContent = '● Idle';
+                startBtn.textContent = '▶ Start Show';
+                startBtn.disabled = false;
+                subtitles.innerHTML = '⏹ Show stopped. Press "Start Show" to begin again.';
+                document.querySelectorAll('audio').forEach(a => a.pause());
+            });
+
+            // ---- Test Voice ----
+            testBtn.addEventListener('click', async () => {
+                const phrase = "Hello, this is SensyCilva Radio. Testing your voice model.";
+                subtitles.innerHTML = '<span class="thinking">🔊 Testing voice...</span>';
+                aiStatus.textContent = '● Testing';
+                aiStatus.className = 'ai-status thinking';
+                powerLed.className = 'led ai-thinking';
+                await speakText(phrase);
+                subtitles.innerHTML = `✅ Voice test complete. <span style="color:#5ac8fa;">"${phrase}"</span>`;
+                aiStatus.textContent = '● Idle';
+                aiStatus.className = 'ai-status';
+                powerLed.className = 'led on';
+            });
+
+            // ---- Shoutout ----
+            shoutoutBtn.addEventListener('click', async () => {
+                const name = prompt("Enter a name for the shoutout:") || 'our amazing listeners';
+                let msg = await generateWithPollinations(
+                    `Write a warm 1-sentence radio shoutout for ${name} on SensyCilva Radio.`
+                );
+                if (!msg) msg = `🎉 Shoutout to ${name}! You're the best!`;
+                subtitles.innerHTML = `📢 "${msg}"`;
+                if (!aiRunning) {
+                    await speakText(msg);
+                } else {
+                    aiQueue.push(msg);
+                }
+            });
+
+            // ---- News ----
+            newsBtn.addEventListener('click', async () => {
+                let news = await generateNews();
+                if (!news) news = getFallback('news');
+                subtitles.innerHTML = `📰 "${news}"`;
+                if (!aiRunning) {
+                    await speakText(news);
+                } else {
+                    aiQueue.push(news);
+                }
+            });
+
+            // ---- Clear Transcript ----
+            clearTranscriptBtn.addEventListener('click', () => {
+                transcript.innerHTML = '';
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = `<span class="timestamp">[System]</span> Transcript cleared.`;
+                transcript.appendChild(line);
+            });
+
+            // ---- Voice Selector ----
+            voiceSelect.addEventListener('change', () => {
+                const voice = voiceSelect.value;
+                if (voice === 'browser') {
+                    voiceStatus.textContent = '🧠 Browser';
+                    voiceStatus.style.color = '#5ac8fa';
+                    voiceStatus.style.borderColor = '#5ac8fa55';
+                } else {
+                    voiceStatus.textContent = '🐝 ' + voice.charAt(0).toUpperCase() + voice.slice(1);
+                    voiceStatus.style.color = '#4cd964';
+                    voiceStatus.style.borderColor = '#4cd96455';
+                }
+                statusBadge.textContent = `● Voice: ${voice}`;
+            });
+            voiceSelect.dispatchEvent(new Event('change'));
+
+            // ---- Init ----
+            stationStatus.textContent = 'Standby';
+            statusBadge.textContent = '● Idle';
+            powerLed.className = 'led on';
+            freqDisplay.textContent = '101.5';
+            const name = 'SensyCilva';
+            stationName.textContent = name;
+            footerStationName.textContent = name;
+
+            console.log('🎙️ SensyCilva Radio loaded!');
+            console.log('🧠 Using Pollinations.ai for both text generation and TTS.');
+            console.log('🔒 No API keys or tokens required – fully secure!');
+        })();
+    </script>
+
+</body>
+</html>

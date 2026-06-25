@@ -30,8 +30,6 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             border: 1px solid #2a2f3a;
         }
-
-        /* Header with Logo */
         .station-header {
             display: flex;
             justify-content: space-between;
@@ -81,13 +79,8 @@
             background: #5ac8fa;
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.4;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
         .station-name {
@@ -175,16 +168,10 @@
             animation: blink 0.5s infinite;
         }
         @keyframes blink {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.3;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
 
-        /* Subtitles (large, centered) */
         .subtitles {
             background: #080b10;
             border-radius: 12px;
@@ -212,8 +199,10 @@
             font-weight: 400;
             font-style: italic;
         }
+        .subtitles .thinking {
+            color: #5ac8fa;
+        }
 
-        /* Transcript history */
         .transcript {
             background: #080b10;
             border-radius: 12px;
@@ -248,7 +237,6 @@
             margin-right: 8px;
         }
 
-        /* Controls */
         .controls {
             display: flex;
             gap: 8px;
@@ -346,7 +334,6 @@
             display: inline-block;
         }
 
-        /* Footer with Logo */
         .station-footer {
             display: flex;
             justify-content: space-between;
@@ -402,7 +389,7 @@
 
     <div class="radio-station">
 
-        <!-- === HEADER with Logo === -->
+        <!-- HEADER with Logo -->
         <div class="station-header">
             <div class="brand">
                 <img src="logo.png" alt="SensyCilva" />
@@ -423,24 +410,24 @@
             <span class="freq-unit">MHz</span>
         </div>
 
-        <!-- === AI Section === -->
+        <!-- AI Section -->
         <div class="ai-section">
             <div class="ai-header">
                 <h3><span class="icon">🧠</span> AI Jockey</h3>
                 <span class="ai-status" id="aiStatus">● Idle</span>
             </div>
 
-            <!-- Subtitles (live) -->
+            <!-- Subtitles -->
             <div class="subtitles" id="subtitles">
                 <span class="idle">🎧 Choose a voice and press "Start Show"</span>
             </div>
 
-            <!-- Transcript history -->
+            <!-- Transcript -->
             <div class="transcript" id="transcript">
-                <div class="line"><span class="timestamp">[System]</span> Welcome to SensyCilva Radio – your multi-model station.</div>
+                <div class="line"><span class="timestamp">[System]</span> Welcome to SensyCilva Radio.</div>
             </div>
 
-            <!-- Voice Selector (no token visible) -->
+            <!-- Voice Selector -->
             <div class="voice-selector">
                 <label for="voiceSelect">🎤 Voice</label>
                 <select id="voiceSelect">
@@ -467,10 +454,10 @@
 
         <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
             <span class="status-badge" id="statusBadge">● Idle</span>
-            <span style="color:#6a7a8a;font-size:11px;">⚡ Free · Open Models</span>
+            <span style="color:#6a7a8a;font-size:11px;">⚡ Free · Pollinations AI</span>
         </div>
 
-        <!-- === FOOTER with Logo === -->
+        <!-- FOOTER with Logo -->
         <div class="station-footer">
             <div class="footer-brand">
                 <img src="logo.png" alt="SensyCilva" />
@@ -505,10 +492,6 @@
             const newsBtn = document.getElementById('newsBtn');
             const clearTranscriptBtn = document.getElementById('clearTranscriptBtn');
 
-            // ---- HARDCODED HuggingFace Token (never shown in UI) ----
-            const HF_TOKEN = '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';
-            const HF_API_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1';
-
             // ---- State ----
             let aiRunning = false;
             let aiQueue = [];
@@ -516,7 +499,6 @@
             let currentUtterance = null;
             let aiTimer = null;
             let isGenerating = false;
-            let currentVoice = 'alloy';
 
             // ---- Song Library ----
             const songLibrary = [
@@ -533,7 +515,7 @@
             ];
             let currentSongIndex = 0;
 
-            // ---- Rich fallback content (human-like) ----
+            // ---- Fallback content (if Pollinations fails) ----
             const fallback = {
                 greetings: [
                     "Hey there, night owls! Welcome to SensyCilva Radio.",
@@ -592,88 +574,71 @@
                 return "🎵 Enjoy the music, everyone!";
             }
 
-            // ---- AI Script Generator (HuggingFace) ----
-            async function generateAIScript(prompt) {
+            // ---- Pollinations Text Generation (free, no token) ----
+            async function generateWithPollinations(prompt) {
                 try {
-                    const response = await fetch(HF_API_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${HF_TOKEN}`
-                        },
-                        body: JSON.stringify({
-                            inputs: prompt,
-                            parameters: {
-                                max_new_tokens: 80,
-                                temperature: 0.7,
-                                top_p: 0.9,
-                                do_sample: true,
-                            }
-                        })
-                    });
-                    if (!response.ok) {
-                        console.warn('HF API error:', response.status);
-                        return null;
-                    }
+                    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Pollinations API error');
                     const data = await response.json();
-                    if (data.error) {
-                        console.warn('HF API error:', data.error);
-                        return null;
+                    // The response might be an object with a 'text' field or direct string
+                    let text = data.text || data.response || data || '';
+                    if (typeof text === 'string' && text.startsWith(prompt)) {
+                        text = text.substring(prompt.length).trim();
                     }
-                    let text = data[0]?.generated_text || '';
-                    if (text.startsWith(prompt)) text = text.substring(prompt.length).trim();
                     return text || null;
                 } catch (err) {
-                    console.warn('HF fetch error:', err);
+                    console.warn('Pollinations text generation failed:', err);
                     return null;
                 }
             }
 
-            // ---- Generate segments with AI or fallback ----
+            // ---- Generate segments (Pollinations or fallback) ----
             async function generateGreeting() {
-                const prompt = "Write a warm 1-sentence radio greeting for a late-night show on SensyCilva Radio.";
-                const result = await generateAIScript(prompt);
+                const result = await generateWithPollinations(
+                    "Write a warm 1-sentence radio greeting for a late-night show on SensyCilva Radio."
+                );
                 return result || getFallback('greeting');
             }
 
             async function generateSongIntro() {
                 const song = songLibrary[currentSongIndex % songLibrary.length];
                 currentSongIndex++;
-                const prompts = [
-                    `Write a creative 1-sentence radio intro for the song "${song.title}" by ${song.artist}. Make it fun.`,
-                    `As a radio host, give a short 1-sentence intro for "${song.title}" by ${song.artist}.`,
-                    `Introduce the song "${song.title}" by ${song.artist} in 1 sentence for a radio show.`
-                ];
-                const prompt = prompts[Math.floor(Math.random() * prompts.length)];
-                const result = await generateAIScript(prompt);
+                const result = await generateWithPollinations(
+                    `Write a creative 1-sentence radio intro for the song "${song.title}" by ${song.artist}. Make it fun.`
+                );
                 return result || getFallback('intro', song);
             }
 
             async function generateShoutout() {
-                const prompt = "Write a warm 1-sentence radio shoutout for our amazing listeners on SensyCilva Radio.";
-                const result = await generateAIScript(prompt);
+                const result = await generateWithPollinations(
+                    "Write a warm 1-sentence radio shoutout for our amazing listeners on SensyCilva Radio."
+                );
                 return result || getFallback('shoutout');
             }
 
             async function generateNews() {
-                const prompt = "Write a short 1-sentence music news headline for a radio show.";
-                const result = await generateAIScript(prompt);
+                const result = await generateWithPollinations(
+                    "Write a short 1-sentence music news headline for a radio show."
+                );
                 return result || getFallback('news');
             }
 
             async function generateJoke() {
-                const prompt = "Tell a short 1-sentence music-related joke.";
-                const result = await generateAIScript(prompt);
+                const result = await generateWithPollinations(
+                    "Tell a short 1-sentence music-related joke."
+                );
                 return result || getFallback('joke');
             }
 
             async function generateSignoff() {
-                const prompt = "Write a short 1-sentence radio signoff for SensyCilva Radio.";
-                const result = await generateAIScript(prompt);
+                const result = await generateWithPollinations(
+                    "Write a short 1-sentence radio signoff for SensyCilva Radio."
+                );
                 return result || getFallback('signoff');
             }
 
-            // ---- TTS Engine: Browser TTS (human-like settings) ----
+            // ---- TTS Engine: Browser TTS ----
             function speakWithBrowserTTS(text) {
                 return new Promise((resolve) => {
                     if (!window.speechSynthesis) {
@@ -684,11 +649,10 @@
                     const synth = window.speechSynthesis;
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = 'en-US';
-                    utterance.rate = 0.85; // slower = more natural
+                    utterance.rate = 0.85;
                     utterance.pitch = 1.0;
                     utterance.volume = 1;
 
-                    // pick a good voice
                     const voices = synth.getVoices();
                     const preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
                         voices.find(v => v.lang === 'en-US') ||
@@ -701,7 +665,6 @@
                         aiStatus.className = 'ai-status active';
                         powerLed.className = 'led ai-speaking';
                         statusBadge.textContent = '● Speaking';
-                        // subtitle update happens before speak
                     };
                     utterance.onend = () => {
                         isSpeaking = false;
@@ -724,7 +687,7 @@
                 });
             }
 
-            // ---- TTS Engine: Pollinations (free, realistic) ----
+            // ---- TTS Engine: Pollinations ----
             function speakWithPollinations(text, voice) {
                 return new Promise((resolve) => {
                     const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
@@ -754,7 +717,6 @@
                             };
                             audio.onerror = () => {
                                 URL.revokeObjectURL(audioUrl);
-                                console.warn('Pollinations audio error, falling back to browser TTS');
                                 speakWithBrowserTTS(text).then(resolve);
                             };
                             audio.play().catch(() => {
@@ -767,11 +729,9 @@
                 });
             }
 
-            // ---- Main speak function ----
+            // ---- Main speak ----
             function speakText(text) {
-                // Update subtitles and transcript BEFORE speaking
                 updateSubtitlesAndTranscript(text);
-
                 const voice = voiceSelect.value;
                 if (voice === 'browser') {
                     return speakWithBrowserTTS(text);
@@ -780,18 +740,14 @@
                 }
             }
 
-            // ---- Update subtitles and transcript ----
+            // ---- Update subtitles ----
             function updateSubtitlesAndTranscript(text) {
-                // Subtitles
                 subtitles.innerHTML = `<span class="speaking">🗣️ ${text}</span>`;
-
-                // Transcript
                 const time = new Date().toLocaleTimeString();
                 const line = document.createElement('div');
                 line.className = 'line';
                 line.innerHTML = `<span class="timestamp">[${time}]</span> ${text}`;
                 transcript.appendChild(line);
-                // Keep only last 15 lines
                 while (transcript.children.length > 15) {
                     transcript.removeChild(transcript.firstChild);
                 }
@@ -847,7 +803,6 @@
                     subtitles.innerHTML = '❌ Browser TTS not supported.';
                     return;
                 }
-                // Preload voices for browser TTS
                 if (voiceSelect.value === 'browser') {
                     window.speechSynthesis.getVoices();
                     window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
@@ -881,7 +836,6 @@
                 startBtn.textContent = '▶ Start Show';
                 startBtn.disabled = false;
                 subtitles.innerHTML = '⏹ Show stopped. Press "Start Show" to begin again.';
-                // Stop any playing audio (pollinations)
                 document.querySelectorAll('audio').forEach(a => a.pause());
             });
 
@@ -902,14 +856,15 @@
             // ---- Shoutout ----
             shoutoutBtn.addEventListener('click', async () => {
                 const name = prompt("Enter a name for the shoutout:") || 'our amazing listeners';
-                const customPrompt = `Write a warm 1-sentence radio shoutout for ${name} on SensyCilva Radio.`;
-                let aiMsg = await generateAIScript(customPrompt);
-                if (!aiMsg) aiMsg = `🎉 Shoutout to ${name}! You're the best!`;
-                subtitles.innerHTML = `📢 "${aiMsg}"`;
+                let msg = await generateWithPollinations(
+                    `Write a warm 1-sentence radio shoutout for ${name} on SensyCilva Radio.`
+                );
+                if (!msg) msg = `🎉 Shoutout to ${name}! You're the best!`;
+                subtitles.innerHTML = `📢 "${msg}"`;
                 if (!aiRunning) {
-                    await speakText(aiMsg);
+                    await speakText(msg);
                 } else {
-                    aiQueue.push(aiMsg);
+                    aiQueue.push(msg);
                 }
             });
 
@@ -934,7 +889,7 @@
                 transcript.appendChild(line);
             });
 
-            // ---- Voice Selector change ----
+            // ---- Voice Selector ----
             voiceSelect.addEventListener('change', () => {
                 const voice = voiceSelect.value;
                 if (voice === 'browser') {
@@ -955,15 +910,13 @@
             statusBadge.textContent = '● Idle';
             powerLed.className = 'led on';
             freqDisplay.textContent = '101.5';
-            // Set station name
             const name = 'SensyCilva';
             stationName.textContent = name;
             footerStationName.textContent = name;
 
             console.log('🎙️ SensyCilva Radio loaded!');
-            console.log('🧠 Using HuggingFace for script generation.');
-            console.log('🐝 Voice models: Browser TTS or Pollination (Alloy, Echo, Fable, Onyx, Nova, Shimmer)');
-            console.log('🔒 Token is hidden and secure.');
+            console.log('🧠 Using Pollinations.ai for both text generation and TTS.');
+            console.log('🔒 No API keys or tokens required – fully secure!');
         })();
     </script>
 

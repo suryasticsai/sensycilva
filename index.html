@@ -3,922 +3,452 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensyCilva Radio</title>
-    <!-- Favicon (logo.png) -->
-    <link rel="icon" href="logo.png" type="image/png" />
+    <title>🎙️ Sansy's Anime Hour – Hinglish RJ</title>
     <style>
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
         body {
-            background: #0b0d11;
+            background: linear-gradient(135deg, #0b0e1a, #1a1040);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             padding: 20px;
         }
-        .radio-station {
-            background: linear-gradient(145deg, #1a1e26, #101318);
-            border-radius: 48px;
-            padding: 32px 28px;
-            max-width: 680px;
+        .container {
+            max-width: 860px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            border: 1px solid #2a2f3a;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            padding: 32px 28px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
         }
-        .station-header {
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 2px;
+        }
+        .header h1 {
+            color: #f5eaff;
+            font-weight: 700;
+            font-size: 2rem;
+            letter-spacing: -0.5px;
+        }
+        .header .badge {
+            background: rgba(167, 139, 250, 0.25);
+            color: #c4b5fd;
+            padding: 4px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(167, 139, 250, 0.2);
+        }
+        .sub {
+            color: #a89fc8;
+            font-size: 0.95rem;
+            margin-bottom: 22px;
+            border-left: 3px solid #a78bfa;
+            padding-left: 16px;
+            opacity: 0.85;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
+            flex-wrap: wrap;
         }
-        .station-header .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .station-header .brand img {
-            height: 36px;
-            width: auto;
-            border-radius: 8px;
-        }
-        .station-header .brand span {
-            color: #b7e1fa;
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-        .station-header .power-led {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #7e8a9b;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-        .led {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #2a3a2a;
-            transition: 0.3s;
-        }
-        .led.on {
-            background: #4cd964;
-            box-shadow: 0 0 12px #4cd96488;
-        }
-        .led.ai-thinking {
-            background: #ff9500;
-            animation: pulse 0.5s infinite;
-        }
-        .led.ai-speaking {
-            background: #5ac8fa;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        .station-name {
-            text-align: center;
-            font-size: 24px;
-            font-weight: 700;
-            color: #b7e1fa;
-            letter-spacing: 3px;
-            text-shadow: 0 0 30px #4a8fb544;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #1a212a;
-        }
-        .station-name span {
-            color: #ff9500;
-        }
-        .station-name .sub {
-            font-size: 14px;
-            color: #5a7a8a;
-            font-weight: 400;
-            letter-spacing: 1px;
-        }
-
-        .frequency-display {
-            background: #0a0c10;
-            border-radius: 80px;
-            padding: 14px 24px;
-            margin-bottom: 16px;
-            border: 1px solid #252b34;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .freq-number {
-            font-family: 'Courier New', monospace;
-            font-size: 30px;
-            font-weight: 700;
-            color: #b7e1fa;
-        }
-        .freq-unit {
-            color: #5a6a7a;
-            font-size: 14px;
-        }
-
-        .ai-section {
-            background: #0f141c;
+        .sub span {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 14px;
             border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #1f2732;
+            font-size: 0.75rem;
+            color: #c4b5fd;
         }
-        .ai-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .ai-header h3 {
-            color: #ff9500;
-            font-size: 14px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .ai-header h3 .icon {
-            font-size: 20px;
-        }
-        .ai-status {
-            font-size: 11px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            background: #1a1f2a;
-            color: #6a7a8a;
-            border: 1px solid #252e3a;
-        }
-        .ai-status.active {
-            color: #ff9500;
-            border-color: #ff950055;
-            animation: blink 1s infinite;
-        }
-        .ai-status.thinking {
-            color: #5ac8fa;
-            border-color: #5ac8fa55;
-            animation: blink 0.5s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .subtitles {
-            background: #080b10;
-            border-radius: 12px;
-            padding: 14px 16px;
-            min-height: 70px;
-            color: #b7e1fa;
-            font-size: 20px;
-            line-height: 1.5;
-            border: 1px solid #1a212a;
-            margin-top: 8px;
-            text-align: center;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .subtitles .speaking {
-            color: #ff9500;
-        }
-        .subtitles .idle {
-            color: #4a5a6a;
-            font-size: 15px;
-            font-weight: 400;
-            font-style: italic;
-        }
-        .subtitles .thinking {
-            color: #5ac8fa;
-        }
-
-        .transcript {
-            background: #080b10;
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-top: 8px;
-            max-height: 80px;
-            overflow-y: auto;
-            border: 1px solid #1a212a;
-            color: #6a8a9a;
-            font-size: 13px;
-            line-height: 1.6;
-            scrollbar-width: thin;
-            scrollbar-color: #2a3a4a transparent;
-        }
-        .transcript::-webkit-scrollbar {
-            width: 4px;
-        }
-        .transcript::-webkit-scrollbar-thumb {
-            background: #2a3a4a;
-            border-radius: 8px;
-        }
-        .transcript .line {
-            border-bottom: 1px solid #1a212a;
-            padding: 2px 0;
-        }
-        .transcript .line:last-child {
-            border-bottom: none;
-        }
-        .transcript .timestamp {
-            color: #4a5a6a;
-            font-size: 10px;
-            margin-right: 8px;
-        }
-
         .controls {
             display: flex;
-            gap: 8px;
-            margin-top: 12px;
             flex-wrap: wrap;
+            gap: 12px 16px;
+            margin-bottom: 20px;
         }
         .controls button {
-            background: #1a212a;
-            border: 1px solid #2a323e;
-            color: #8a9aaa;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .controls button:hover {
-            background: #252f3d;
-            border-color: #4a6a8a;
-            color: #c0d8ee;
-        }
-        .controls button.primary {
-            background: #1a3348;
-            border-color: #4a8fc0;
-            color: #b7e1fa;
-        }
-        .controls button.primary:hover {
-            background: #234a66;
-            box-shadow: 0 0 20px #2a6f9a44;
-        }
-        .controls button.danger {
-            border-color: #8a3a3a;
-            color: #ff6a5a;
-        }
-        .controls button.danger:hover {
-            background: #2a1a1a;
-            border-color: #ff4a3a;
-        }
-        .controls button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .voice-selector {
+            transition: 0.2s all;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin: 8px 0 4px;
+        }
+        .btn-generate {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+        }
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(124, 58, 237, 0.55);
+        }
+        .btn-generate:disabled {
+            opacity: 0.5;
+            transform: none;
+            pointer-events: none;
+        }
+        .btn-speak {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0d9f5;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .btn-speak:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+        .btn-speak:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .sliders {
+            display: flex;
             flex-wrap: wrap;
+            align-items: center;
+            gap: 18px 28px;
+            margin: 6px 0 18px 0;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 12px 20px;
+            border-radius: 40px;
         }
-        .voice-selector label {
-            color: #7e8a9b;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .sliders label {
+            color: #cac4e0;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
         }
-        .voice-selector select {
-            flex: 1;
-            min-width: 100px;
-            background: #0a0c10;
-            border: 1px solid #252e3a;
-            border-radius: 30px;
-            padding: 6px 14px;
-            color: #c0d8ee;
-            font-size: 12px;
-            font-family: 'Segoe UI', sans-serif;
-            outline: none;
+        .sliders input[type="range"] {
+            width: 100px;
+            accent-color: #a78bfa;
+            background: transparent;
             cursor: pointer;
         }
-        .voice-selector select:focus {
-            border-color: #3a7aaa;
+        .script-box {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            padding: 20px 24px;
+            min-height: 320px;
+            max-height: 480px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin: 12px 0 18px 0;
+            color: #e6defa;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
         }
-        .voice-selector .voice-status {
-            font-size: 10px;
-            padding: 2px 10px;
+        .script-box:empty::before {
+            content: "📻 Press 'Generate Spontaneous Script' to start the show...";
+            color: #5f5580;
+            font-style: italic;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .script-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        .script-box::-webkit-scrollbar-thumb {
+            background: #4a3f6b;
             border-radius: 20px;
-            background: #1a1f2a;
-            color: #4cd964;
-            border: 1px solid #4cd96455;
-            white-space: nowrap;
         }
-
-        .status-badge {
-            background: #11171f;
-            border: 1px solid #252e3a;
-            border-radius: 40px;
-            padding: 6px 16px;
-            font-size: 11px;
-            font-weight: 500;
-            color: #6a7e92;
+        .status {
             text-align: center;
-            display: inline-block;
+            color: #a89fc8;
+            font-size: 0.9rem;
+            min-height: 28px;
+            margin-top: 4px;
         }
-
-        .station-footer {
+        .footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #1a212a;
-            color: #4a5a6a;
-            font-size: 11px;
+            margin-top: 14px;
+            font-size: 0.7rem;
+            color: #4f4670;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 14px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
-        .station-footer .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .word-count {
+            background: rgba(167, 139, 250, 0.12);
+            padding: 2px 16px;
+            border-radius: 40px;
+            color: #b8aee0;
         }
-        .station-footer .footer-brand img {
-            height: 24px;
-            width: auto;
-            border-radius: 4px;
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid #a78bfa;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
         }
-        .station-footer .footer-brand span {
-            color: #6a8a9a;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        .station-footer .footer-credit {
-            color: #3a4a5a;
-        }
-
-        @media (max-width: 460px) {
-            .radio-station {
-                padding: 16px 12px;
-                border-radius: 32px;
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
             }
-            .station-name {
-                font-size: 20px;
+        }
+        .warning {
+            color: #fbbf24;
+            font-size: 0.8rem;
+            background: rgba(251, 191, 36, 0.1);
+            padding: 4px 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(251, 191, 36, 0.15);
+        }
+        @media (max-width: 550px) {
+            .container {
+                padding: 20px 16px;
             }
-            .freq-number {
-                font-size: 24px;
+            .header h1 {
+                font-size: 1.5rem;
             }
-            .subtitles {
-                font-size: 16px;
-                min-height: 56px;
-                padding: 10px 12px;
+            .sliders {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
             }
-            .station-header .brand img {
-                height: 28px;
+            .controls button {
+                flex: 1;
+                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="radio-station">
-
-        <!-- HEADER with Logo -->
-        <div class="station-header">
-            <div class="brand">
-                <img src="logo.png" alt="SensyCilva" />
-                <span id="stationName">SensyCilva</span>
-            </div>
-            <div class="power-led">
-                <span class="led on" id="powerLed"></span>
-                <span id="stationStatus">Standby</span>
-            </div>
-        </div>
-
-        <div class="station-name">
-            🎙️ <span>SensyCilva</span> <span class="sub">Radio</span>
-        </div>
-
-        <div class="frequency-display">
-            <span class="freq-number" id="freqDisplay">101.5</span>
-            <span class="freq-unit">MHz</span>
-        </div>
-
-        <!-- AI Section -->
-        <div class="ai-section">
-            <div class="ai-header">
-                <h3><span class="icon">🧠</span> AI Jockey</h3>
-                <span class="ai-status" id="aiStatus">● Idle</span>
-            </div>
-
-            <!-- Subtitles -->
-            <div class="subtitles" id="subtitles">
-                <span class="idle">🎧 Choose a voice and press "Start Show"</span>
-            </div>
-
-            <!-- Transcript -->
-            <div class="transcript" id="transcript">
-                <div class="line"><span class="timestamp">[System]</span> Welcome to SensyCilva Radio.</div>
-            </div>
-
-            <!-- Voice Selector -->
-            <div class="voice-selector">
-                <label for="voiceSelect">🎤 Voice</label>
-                <select id="voiceSelect">
-                    <option value="browser">🧠 Browser TTS</option>
-                    <option value="alloy" selected>🐝 Alloy</option>
-                    <option value="echo">🐝 Echo</option>
-                    <option value="fable">🐝 Fable</option>
-                    <option value="onyx">🐝 Onyx</option>
-                    <option value="nova">🐝 Nova</option>
-                    <option value="shimmer">🐝 Shimmer</option>
-                </select>
-                <span class="voice-status" id="voiceStatus">✅ Ready</span>
-            </div>
-
-            <div class="controls">
-                <button class="primary" id="startBtn">▶ Start Show</button>
-                <button class="danger" id="stopBtn">⏹ Stop</button>
-                <button id="testBtn">🔊 Test Voice</button>
-                <button id="shoutoutBtn">💬 Shoutout</button>
-                <button id="newsBtn">📰 News</button>
-                <button id="clearTranscriptBtn">🧹 Clear</button>
-            </div>
-        </div>
-
-        <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
-            <span class="status-badge" id="statusBadge">● Idle</span>
-            <span style="color:#6a7a8a;font-size:11px;">⚡ Free · Pollinations AI</span>
-        </div>
-
-        <!-- FOOTER with Logo -->
-        <div class="station-footer">
-            <div class="footer-brand">
-                <img src="logo.png" alt="SensyCilva" />
-                <span id="footerStationName">SensyCilva</span>
-            </div>
-            <div class="footer-credit">
-                © 2026 · SensyCilva Radio
-            </div>
-        </div>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🎙️ Sansy's Anime Hour</h1>
+        <span class="badge">🇮🇳 Hinglish RJ · 16</span>
+    </div>
+    <div class="sub">
+        <span>✨ Spontaneous AI · 600+ words · Romanized Hinglish</span>
+        <span class="warning">⚡ No hardcoded lines – pure AI every time!</span>
     </div>
 
-    <script>
-        (function() {
-            'use strict';
+    <!-- Controls -->
+    <div class="controls">
+        <button class="btn-generate" id="generateBtn">🔄 Generate Spontaneous Script</button>
+        <button class="btn-speak" id="speakBtn" disabled>🔊 Speak in Hinglish</button>
+    </div>
 
-            // ---- DOM refs ----
-            const powerLed = document.getElementById('powerLed');
-            const stationStatus = document.getElementById('stationStatus');
-            const stationName = document.getElementById('stationName');
-            const footerStationName = document.getElementById('footerStationName');
-            const freqDisplay = document.getElementById('freqDisplay');
-            const subtitles = document.getElementById('subtitles');
-            const transcript = document.getElementById('transcript');
-            const aiStatus = document.getElementById('aiStatus');
-            const statusBadge = document.getElementById('statusBadge');
-            const voiceSelect = document.getElementById('voiceSelect');
-            const voiceStatus = document.getElementById('voiceStatus');
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const testBtn = document.getElementById('testBtn');
-            const shoutoutBtn = document.getElementById('shoutoutBtn');
-            const newsBtn = document.getElementById('newsBtn');
-            const clearTranscriptBtn = document.getElementById('clearTranscriptBtn');
+    <!-- Sliders -->
+    <div class="sliders">
+        <label>🐢 Speed <input type="range" id="speedSlider" min="0.7" max="1.6" step="0.05" value="1.15" /> 🐇</label>
+        <label>🎵 Pitch <input type="range" id="pitchSlider" min="0.85" max="1.35" step="0.05" value="1.1" /> 🔼</label>
+        <span style="color:#6a5f8a; font-size:0.8rem;">(Teen energy = faster + higher pitch)</span>
+    </div>
 
-            // ---- State ----
-            let aiRunning = false;
-            let aiQueue = [];
-            let isSpeaking = false;
-            let currentUtterance = null;
-            let aiTimer = null;
-            let isGenerating = false;
+    <!-- Script Display -->
+    <div class="script-box" id="scriptDisplay"></div>
 
-            // ---- Song Library ----
-            const songLibrary = [
-                { title: "Midnight Dreams", artist: "The Starlighters" },
-                { title: "Sunset Boulevard", artist: "Coastal Waves" },
-                { title: "Electric Heart", artist: "Neon Pulse" },
-                { title: "Golden Hour", artist: "Amber Sky" },
-                { title: "Ocean Drive", artist: "Night Riders" },
-                { title: "Velvet Sky", artist: "Lunar Echo" },
-                { title: "Neon Lights", artist: "City Synths" },
-                { title: "Palm Trees", artist: "Tropical Vibes" },
-                { title: "Starlight", artist: "Cosmic Dust" },
-                { title: "Cafe Noir", artist: "Jazz Collective" }
-            ];
-            let currentSongIndex = 0;
+    <!-- Status & Word Count -->
+    <div class="status" id="statusMsg">💬 Press "Generate" for a brand new Hinglish show!</div>
+    <div class="footer">
+        <span class="word-count" id="wordCount">📝 0 words</span>
+        <span style="color:#3d3557;">🗣️ Voice: Neerja (en-IN) reads Hinglish naturally</span>
+    </div>
+</div>
 
-            // ---- Fallback content (if Pollinations fails) ----
-            const fallback = {
-                greetings: [
-                    "Hey there, night owls! Welcome to SensyCilva Radio.",
-                    "Good evening, music lovers! You're tuned into the best vibes on SensyCilva.",
-                    "What's up, listeners? Ready for some killer tracks?",
-                    "Hello, hello! You've found the coolest frequency in town – SensyCilva.",
-                    "Welcome back, friends! Hope you're having an amazing day."
-                ],
-                intros: [
-                    "🎵 Coming up next, we've got {title} by {artist}!",
-                    "🎶 Let's keep the energy going with {title} by {artist}!",
-                    "🎧 Here's a fresh track for you: {title} from {artist}.",
-                    "🎵 This one's a classic: {title} by {artist}. Enjoy!",
-                    "🎶 Get ready for {title} by {artist}!",
-                    "🎵 Up next on the dial: {title} by {artist}!"
-                ],
-                shoutouts: [
-                    "🎉 Shoutout to all our amazing listeners! You're the best!",
-                    "🎉 Big love to everyone tuning in tonight!",
-                    "🎉 We see you out there! Thanks for keeping us company!",
-                    "🎉 Shoutout to the night owls! You make this show special!"
-                ],
-                news: [
-                    "📰 Vinyl records are making a huge comeback this year.",
-                    "📰 A new study shows listening to music reduces stress by 65%.",
-                    "📰 Music festivals are drawing record crowds this summer.",
-                    "📰 Streaming services now account for 85% of music industry revenue.",
-                    "📰 A local band just signed their first major label deal!"
-                ],
-                jokes: [
-                    "Why do musicians love computers? Because they've got the best beats!",
-                    "What did the DJ say to the vinyl? You spin me right round!",
-                    "Why did the radio go to school? To improve its frequency!",
-                    "What's a musician's favorite snack? A jam sandwich!",
-                    "Why did the guitar get arrested? For fingering a minor!"
-                ],
-                signoffs: [
-                    "That's all for now, folks! Keep it locked, keep it loud on SensyCilva.",
-                    "Thanks for hanging out with me tonight. Stay groovy!",
-                    "Time to sign off. Remember: life's a playlist, make it a good one!",
-                    "Until next time, keep the music playing in your hearts.",
-                    "Peace, love, and good tunes. See you on the airwaves!"
-                ]
+<script>
+    // ─── DOM Refs ──────────────────────────────────────────────
+    const generateBtn = document.getElementById('generateBtn');
+    const speakBtn = document.getElementById('speakBtn');
+    const scriptDisplay = document.getElementById('scriptDisplay');
+    const statusMsg = document.getElementById('statusMsg');
+    const wordCount = document.getElementById('wordCount');
+    const speedSlider = document.getElementById('speedSlider');
+    const pitchSlider = document.getElementById('pitchSlider');
+
+    let currentScript = '';
+    let audioCtx = null;
+
+    // ─── AI Script Generation (Pollinations – free, NO hardcoded fallback) ───
+    async function generateScript() {
+        generateBtn.disabled = true;
+        speakBtn.disabled = true;
+        scriptDisplay.textContent = '⏳ Sansy is writing in Hinglish... (15–25 seconds)';
+        statusMsg.innerHTML = '<span class="spinner"></span> Generating spontaneous script...';
+
+        // ─── Prompt: Forces Romanized Hinglish, 600+ words, no hardcoded lines ───
+        const prompt = `
+You are Sansy, a 16-year-old Indian female radio jockey. You speak in HINGLISH (Romanized Hindi mixed with English, written in English script). For example: "Namaste doston! Kya haal hai? Aaj hum baat karenge anime ke baare mein!"
+
+Your show is "Sansy's Anime Hour". Write a FRESH, SPONTANEOUS radio script that is AT LEAST 600 WORDS long. Follow this structure:
+
+1. **Intro**: Welcome in Hinglish, introduce yourself, play with sound effects [Music, Applause, Cheers].
+2. **Anime News**: Share 2-3 trending anime news (new seasons, movies, manga updates) in Hinglish.
+3. **Featured Anime**: Pick ONE popular anime (Demon Slayer, Jujutsu Kaisen, Attack on Titan, One Piece, Spy x Family, etc.) and do a deep dive. Talk about the plot, characters, your favourite moments, and why it's awesome – ALL IN HINGLISH.
+4. **Listener Interaction**: Pretend to read messages from fans. Use Indian slang like "yaar", "awesome", "mast", "maza aa gaya", "kya baat hai", "super cool", "boss".
+5. **Outro**: Sign off in a fun Hinglish way, tease the next episode, play outro music.
+
+Tone: Super energetic, emotional, dramatic, fun. Use lots of exclamation marks, questions, and sound effect cues like [Dramatic pause], [Laughter], [Music swells].
+
+CRITICAL: Write ONLY the script in Roman script (English letters). No Devanagari. No extra commentary outside the script. Start directly with "🎙️ [Music fades in]...". Make it feel like a real Indian radio show.
+        `.trim();
+
+        try {
+            const encoded = encodeURIComponent(prompt);
+            const url = `https://text.pollinations.ai/prompt/${encoded}`;
+            const response = await fetch(url);
+
+            if (!response.ok) throw new Error(`Pollinations API error: ${response.status}`);
+
+            let text = await response.text();
+            // Clean up quotes / markdown
+            text = text.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n').trim();
+
+            if (!text || text.length < 100) {
+                throw new Error('Generated text too short or empty');
+            }
+
+            currentScript = text;
+            scriptDisplay.textContent = currentScript;
+            updateWordCount(currentScript);
+            statusMsg.textContent = '✅ Fresh script ready! Press "Speak" to hear Sansy in Hinglish.';
+            speakBtn.disabled = false;
+
+        } catch (err) {
+            console.error('Generation error:', err);
+            // ─── NO HARDCORDED FALLBACK ──────────────────────────
+            // We explicitly show the error so the user knows it's truly spontaneous AI.
+            scriptDisplay.textContent = `❌ AI generation failed: ${err.message || 'Unknown error'}.\n\nPlease check your internet connection and try again. This proves there is NO hardcoded script – it's always live AI!`;
+            statusMsg.textContent = '❌ Failed to generate. Retry!';
+            speakBtn.disabled = true;
+        } finally {
+            generateBtn.disabled = false;
+        }
+    }
+
+    // ─── Word Counter ──────────────────────────────────────────
+    function updateWordCount(text) {
+        const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+        wordCount.textContent = `📝 ${words.length} words`;
+    }
+
+    // ─── TTS – Indian Teen Voice (Neerja) reads Hinglish ──────
+    async function speakScript() {
+        if (!currentScript || currentScript.length < 20) {
+            statusMsg.textContent = '❌ No script! Generate one first.';
+            return;
+        }
+
+        speakBtn.disabled = true;
+        statusMsg.innerHTML = '<span class="spinner"></span> Sansy is speaking Hinglish...';
+
+        const speed = parseFloat(speedSlider.value) || 1.15;
+        const pitch = parseFloat(pitchSlider.value) || 1.1;
+
+        try {
+            // 1. Edge TTS proxy (Neerja en-IN handles Romanized Hinglish perfectly)
+            const url = `https://edge-tts.vercel.app/api/tts?text=${encodeURIComponent(currentScript)}&voice=en-IN-NeerjaNeural`;
+            const response = await fetch(url);
+
+            if (!response.ok) throw new Error(`Edge proxy error: ${response.status}`);
+
+            const arrayBuffer = await response.arrayBuffer();
+
+            if (!audioCtx) {
+                audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+
+            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            const source = audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.playbackRate.value = speed;
+            source.detune.value = (pitch - 1.0) * 100;
+
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0.9;
+            source.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            source.onended = () => {
+                statusMsg.textContent = '✅ Show finished! Sansy says: "Accha, phir milte hain!" 🎙️';
+                speakBtn.disabled = false;
             };
 
-            function getFallback(type, song) {
-                if (type === 'intro' && song) {
-                    const template = fallback.intros[Math.floor(Math.random() * fallback.intros.length)];
-                    return template.replace('{title}', song.title).replace('{artist}', song.artist);
-                }
-                if (type === 'greeting') return fallback.greetings[Math.floor(Math.random() * fallback.greetings.length)];
-                if (type === 'shoutout') return fallback.shoutouts[Math.floor(Math.random() * fallback.shoutouts.length)];
-                if (type === 'news') return fallback.news[Math.floor(Math.random() * fallback.news.length)];
-                if (type === 'joke') return fallback.jokes[Math.floor(Math.random() * fallback.jokes.length)];
-                if (type === 'signoff') return fallback.signoffs[Math.floor(Math.random() * fallback.signoffs.length)];
-                return "🎵 Enjoy the music, everyone!";
-            }
+            source.start(0);
 
-            // ---- Pollinations Text Generation (free, no token) ----
-            async function generateWithPollinations(prompt) {
-                try {
-                    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error('Pollinations API error');
-                    const data = await response.json();
-                    // The response might be an object with a 'text' field or direct string
-                    let text = data.text || data.response || data || '';
-                    if (typeof text === 'string' && text.startsWith(prompt)) {
-                        text = text.substring(prompt.length).trim();
-                    }
-                    return text || null;
-                } catch (err) {
-                    console.warn('Pollinations text generation failed:', err);
-                    return null;
-                }
-            }
+        } catch (err) {
+            console.warn('Edge proxy failed, using fallback Web Speech API:', err);
 
-            // ---- Generate segments (Pollinations or fallback) ----
-            async function generateGreeting() {
-                const result = await generateWithPollinations(
-                    "Write a warm 1-sentence radio greeting for a late-night show on SensyCilva Radio."
-                );
-                return result || getFallback('greeting');
-            }
+            // 2. Fallback: Browser's built-in TTS (still reads Hinglish with Indian accent)
+            try {
+                const utterance = new SpeechSynthesisUtterance(currentScript);
+                const voices = speechSynthesis.getVoices();
+                let indianVoice = voices.find(v => v.lang === 'en-IN' && v.name.includes('Neerja')) ||
+                    voices.find(v => v.lang === 'en-IN') ||
+                    voices.find(v => v.lang.startsWith('en'));
+                if (indianVoice) utterance.voice = indianVoice;
+                utterance.rate = Math.min(1.5, Math.max(0.5, speed));
+                utterance.pitch = Math.min(1.5, Math.max(0.5, pitch));
+                utterance.volume = 1;
 
-            async function generateSongIntro() {
-                const song = songLibrary[currentSongIndex % songLibrary.length];
-                currentSongIndex++;
-                const result = await generateWithPollinations(
-                    `Write a creative 1-sentence radio intro for the song "${song.title}" by ${song.artist}. Make it fun.`
-                );
-                return result || getFallback('intro', song);
-            }
+                utterance.onstart = () => statusMsg.textContent = '🔊 Sansy speaking (fallback TTS)...';
+                utterance.onend = () => {
+                    statusMsg.textContent = '✅ Done (fallback).';
+                    speakBtn.disabled = false;
+                };
+                utterance.onerror = () => {
+                    statusMsg.textContent = '❌ TTS error – try Chrome or Edge.';
+                    speakBtn.disabled = false;
+                };
 
-            async function generateShoutout() {
-                const result = await generateWithPollinations(
-                    "Write a warm 1-sentence radio shoutout for our amazing listeners on SensyCilva Radio."
-                );
-                return result || getFallback('shoutout');
-            }
+                speechSynthesis.speak(utterance);
 
-            async function generateNews() {
-                const result = await generateWithPollinations(
-                    "Write a short 1-sentence music news headline for a radio show."
-                );
-                return result || getFallback('news');
-            }
-
-            async function generateJoke() {
-                const result = await generateWithPollinations(
-                    "Tell a short 1-sentence music-related joke."
-                );
-                return result || getFallback('joke');
-            }
-
-            async function generateSignoff() {
-                const result = await generateWithPollinations(
-                    "Write a short 1-sentence radio signoff for SensyCilva Radio."
-                );
-                return result || getFallback('signoff');
-            }
-
-            // ---- TTS Engine: Browser TTS ----
-            function speakWithBrowserTTS(text) {
-                return new Promise((resolve) => {
-                    if (!window.speechSynthesis) {
-                        console.warn('No speech synthesis');
-                        resolve();
-                        return;
-                    }
-                    const synth = window.speechSynthesis;
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'en-US';
-                    utterance.rate = 0.85;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1;
-
-                    const voices = synth.getVoices();
-                    const preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
-                        voices.find(v => v.lang === 'en-US') ||
-                        voices[0];
-                    if (preferred) utterance.voice = preferred;
-
-                    utterance.onstart = () => {
-                        isSpeaking = true;
-                        aiStatus.textContent = '● Speaking';
-                        aiStatus.className = 'ai-status active';
-                        powerLed.className = 'led ai-speaking';
-                        statusBadge.textContent = '● Speaking';
+                if (!indianVoice && voices.length === 0) {
+                    speechSynthesis.onvoiceschanged = () => {
+                        const newVoices = speechSynthesis.getVoices();
+                        const newIndian = newVoices.find(v => v.lang === 'en-IN');
+                        if (newIndian) utterance.voice = newIndian;
+                        speechSynthesis.speak(utterance);
                     };
-                    utterance.onend = () => {
-                        isSpeaking = false;
-                        aiStatus.textContent = '● Idle';
-                        aiStatus.className = 'ai-status';
-                        powerLed.className = 'led on';
-                        statusBadge.textContent = '● Idle';
-                        resolve();
-                    };
-                    utterance.onerror = () => {
-                        isSpeaking = false;
-                        aiStatus.textContent = '● Error';
-                        aiStatus.className = 'ai-status';
-                        powerLed.className = 'led on';
-                        statusBadge.textContent = '● Error';
-                        resolve();
-                    };
-                    currentUtterance = utterance;
-                    synth.speak(utterance);
-                });
+                }
+            } catch (fallbackErr) {
+                statusMsg.textContent = '❌ No voice available. Use Chrome/Edge.';
+                speakBtn.disabled = false;
             }
+        }
+    }
 
-            // ---- TTS Engine: Pollinations ----
-            function speakWithPollinations(text, voice) {
-                return new Promise((resolve) => {
-                    const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
-                    fetch(url)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Pollinations TTS failed');
-                            return response.blob();
-                        })
-                        .then(blob => {
-                            const audioUrl = URL.createObjectURL(blob);
-                            const audio = new Audio(audioUrl);
-                            audio.onplay = () => {
-                                isSpeaking = true;
-                                aiStatus.textContent = '● Speaking';
-                                aiStatus.className = 'ai-status active';
-                                powerLed.className = 'led ai-speaking';
-                                statusBadge.textContent = '● Speaking';
-                            };
-                            audio.onended = () => {
-                                URL.revokeObjectURL(audioUrl);
-                                isSpeaking = false;
-                                aiStatus.textContent = '● Idle';
-                                aiStatus.className = 'ai-status';
-                                powerLed.className = 'led on';
-                                statusBadge.textContent = '● Idle';
-                                resolve();
-                            };
-                            audio.onerror = () => {
-                                URL.revokeObjectURL(audioUrl);
-                                speakWithBrowserTTS(text).then(resolve);
-                            };
-                            audio.play().catch(() => {
-                                speakWithBrowserTTS(text).then(resolve);
-                            });
-                        })
-                        .catch(() => {
-                            speakWithBrowserTTS(text).then(resolve);
-                        });
-                });
-            }
+    // ─── Event Listeners ──────────────────────────────────────
+    generateBtn.addEventListener('click', generateScript);
+    speakBtn.addEventListener('click', speakScript);
 
-            // ---- Main speak ----
-            function speakText(text) {
-                updateSubtitlesAndTranscript(text);
-                const voice = voiceSelect.value;
-                if (voice === 'browser') {
-                    return speakWithBrowserTTS(text);
-                } else {
-                    return speakWithPollinations(text, voice);
-                }
-            }
+    if ('speechSynthesis' in window) {
+        speechSynthesis.getVoices();
+        speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+    }
 
-            // ---- Update subtitles ----
-            function updateSubtitlesAndTranscript(text) {
-                subtitles.innerHTML = `<span class="speaking">🗣️ ${text}</span>`;
-                const time = new Date().toLocaleTimeString();
-                const line = document.createElement('div');
-                line.className = 'line';
-                line.innerHTML = `<span class="timestamp">[${time}]</span> ${text}`;
-                transcript.appendChild(line);
-                while (transcript.children.length > 15) {
-                    transcript.removeChild(transcript.firstChild);
-                }
-                transcript.scrollTop = transcript.scrollHeight;
-            }
+    // ─── Initial state ────────────────────────────────────────
+    window.addEventListener('load', () => {
+        scriptDisplay.textContent = '🎙️ Press "Generate Spontaneous Script" to create a brand new Hinglish anime show. Every time is different – no hardcoded lines! \n\nSansy will talk about anime news, deep dives, and listener messages in full Hinglish.';
+        statusMsg.textContent = '💬 Ready! Hit Generate for a fresh AI-written script.';
+    });
 
-            // ---- AI Show Runner ----
-            async function runAIShow() {
-                if (!aiRunning || isSpeaking || isGenerating) return;
-
-                if (aiQueue.length === 0) {
-                    isGenerating = true;
-                    aiStatus.textContent = '● Thinking...';
-                    aiStatus.className = 'ai-status thinking';
-                    powerLed.className = 'led ai-thinking';
-                    subtitles.innerHTML = '<span class="thinking">🧠 Generating next segment...</span>';
-
-                    try {
-                        const segments = [];
-                        if (Math.random() > 0.3) segments.push(await generateGreeting());
-                        for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
-                            segments.push(await generateSongIntro());
-                        }
-                        if (Math.random() > 0.5) segments.push(await generateJoke());
-                        if (Math.random() > 0.5) segments.push(await generateNews());
-                        if (Math.random() > 0.3) segments.push(await generateSignoff());
-                        aiQueue = segments.filter(s => s && s.length > 0);
-                        if (aiQueue.length === 0) aiQueue = ['🎵 Enjoy the music, everyone!'];
-                    } catch (err) {
-                        aiQueue = ['🎵 Enjoy the music, everyone!'];
-                    }
-
-                    isGenerating = false;
-                    aiStatus.textContent = '● Idle';
-                    aiStatus.className = 'ai-status';
-                    powerLed.className = 'led on';
-                }
-
-                const nextLine = aiQueue.shift();
-                if (nextLine) {
-                    await speakText(nextLine);
-                    const delay = 1500 + Math.random() * 2500;
-                    aiTimer = setTimeout(runAIShow, delay);
-                } else {
-                    runAIShow();
-                }
-            }
-
-            // ---- Controls ----
-            startBtn.addEventListener('click', async () => {
-                if (aiRunning) return;
-                if (!('speechSynthesis' in window) && voiceSelect.value === 'browser') {
-                    subtitles.innerHTML = '❌ Browser TTS not supported.';
-                    return;
-                }
-                if (voiceSelect.value === 'browser') {
-                    window.speechSynthesis.getVoices();
-                    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-                }
-
-                aiRunning = true;
-                aiQueue = [];
-                aiStatus.textContent = '● Starting...';
-                aiStatus.className = 'ai-status active';
-                stationStatus.textContent = 'On Air';
-                statusBadge.textContent = '● Running';
-                startBtn.textContent = '⏳ Running...';
-                startBtn.disabled = true;
-                subtitles.innerHTML = '🎙️ Show starting...';
-                setTimeout(() => { if (aiRunning) runAIShow(); }, 1000);
-            });
-
-            stopBtn.addEventListener('click', () => {
-                aiRunning = false;
-                if (aiTimer) clearTimeout(aiTimer);
-                if (currentUtterance) {
-                    if (window.speechSynthesis) window.speechSynthesis.cancel();
-                }
-                isSpeaking = false;
-                isGenerating = false;
-                aiStatus.textContent = '● Stopped';
-                aiStatus.className = 'ai-status';
-                powerLed.className = 'led on';
-                stationStatus.textContent = 'Standby';
-                statusBadge.textContent = '● Idle';
-                startBtn.textContent = '▶ Start Show';
-                startBtn.disabled = false;
-                subtitles.innerHTML = '⏹ Show stopped. Press "Start Show" to begin again.';
-                document.querySelectorAll('audio').forEach(a => a.pause());
-            });
-
-            // ---- Test Voice ----
-            testBtn.addEventListener('click', async () => {
-                const phrase = "Hello, this is SensyCilva Radio. Testing your voice model.";
-                subtitles.innerHTML = '<span class="thinking">🔊 Testing voice...</span>';
-                aiStatus.textContent = '● Testing';
-                aiStatus.className = 'ai-status thinking';
-                powerLed.className = 'led ai-thinking';
-                await speakText(phrase);
-                subtitles.innerHTML = `✅ Voice test complete. <span style="color:#5ac8fa;">"${phrase}"</span>`;
-                aiStatus.textContent = '● Idle';
-                aiStatus.className = 'ai-status';
-                powerLed.className = 'led on';
-            });
-
-            // ---- Shoutout ----
-            shoutoutBtn.addEventListener('click', async () => {
-                const name = prompt("Enter a name for the shoutout:") || 'our amazing listeners';
-                let msg = await generateWithPollinations(
-                    `Write a warm 1-sentence radio shoutout for ${name} on SensyCilva Radio.`
-                );
-                if (!msg) msg = `🎉 Shoutout to ${name}! You're the best!`;
-                subtitles.innerHTML = `📢 "${msg}"`;
-                if (!aiRunning) {
-                    await speakText(msg);
-                } else {
-                    aiQueue.push(msg);
-                }
-            });
-
-            // ---- News ----
-            newsBtn.addEventListener('click', async () => {
-                let news = await generateNews();
-                if (!news) news = getFallback('news');
-                subtitles.innerHTML = `📰 "${news}"`;
-                if (!aiRunning) {
-                    await speakText(news);
-                } else {
-                    aiQueue.push(news);
-                }
-            });
-
-            // ---- Clear Transcript ----
-            clearTranscriptBtn.addEventListener('click', () => {
-                transcript.innerHTML = '';
-                const line = document.createElement('div');
-                line.className = 'line';
-                line.innerHTML = `<span class="timestamp">[System]</span> Transcript cleared.`;
-                transcript.appendChild(line);
-            });
-
-            // ---- Voice Selector ----
-            voiceSelect.addEventListener('change', () => {
-                const voice = voiceSelect.value;
-                if (voice === 'browser') {
-                    voiceStatus.textContent = '🧠 Browser';
-                    voiceStatus.style.color = '#5ac8fa';
-                    voiceStatus.style.borderColor = '#5ac8fa55';
-                } else {
-                    voiceStatus.textContent = '🐝 ' + voice.charAt(0).toUpperCase() + voice.slice(1);
-                    voiceStatus.style.color = '#4cd964';
-                    voiceStatus.style.borderColor = '#4cd96455';
-                }
-                statusBadge.textContent = `● Voice: ${voice}`;
-            });
-            voiceSelect.dispatchEvent(new Event('change'));
-
-            // ---- Init ----
-            stationStatus.textContent = 'Standby';
-            statusBadge.textContent = '● Idle';
-            powerLed.className = 'led on';
-            freqDisplay.textContent = '101.5';
-            const name = 'SensyCilva';
-            stationName.textContent = name;
-            footerStationName.textContent = name;
-
-            console.log('🎙️ SensyCilva Radio loaded!');
-            console.log('🧠 Using Pollinations.ai for both text generation and TTS.');
-            console.log('🔒 No API keys or tokens required – fully secure!');
-        })();
-    </script>
-
+    console.log('🇮🇳 Sansy Hinglish mode loaded – pure spontaneous AI, zero hardcoding.');
+</script>
 </body>
 </html>

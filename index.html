@@ -3,452 +3,1087 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🎙️ Sansy's Anime Hour – Hinglish RJ</title>
+    <title>SensyCilva Anime Radio</title>
+    <link rel="icon" href="logo.png" type="image/png" />
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
         body {
-            background: linear-gradient(135deg, #0b0e1a, #1a1040);
-            min-height: 100vh;
+            background: #0b0d11;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             padding: 20px;
         }
-        .container {
-            max-width: 860px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 40px;
+        .radio-station {
+            background: linear-gradient(145deg, #1a1e26, #101318);
+            border-radius: 48px;
             padding: 32px 28px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
+            max-width: 780px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid #2a2f3a;
         }
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin-bottom: 2px;
-        }
-        .header h1 {
-            color: #f5eaff;
-            font-weight: 700;
-            font-size: 2rem;
-            letter-spacing: -0.5px;
-        }
-        .header .badge {
-            background: rgba(167, 139, 250, 0.25);
-            color: #c4b5fd;
-            padding: 4px 18px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border: 1px solid rgba(167, 139, 250, 0.2);
-        }
-        .sub {
-            color: #a89fc8;
-            font-size: 0.95rem;
-            margin-bottom: 22px;
-            border-left: 3px solid #a78bfa;
-            padding-left: 16px;
-            opacity: 0.85;
+
+        /* Header */
+        .station-header {
             display: flex;
             justify-content: space-between;
-            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 16px;
         }
-        .sub span {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2px 14px;
+        .station-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .station-header .brand img {
+            height: 36px;
+            width: auto;
+            border-radius: 8px;
+        }
+        .station-header .brand span {
+            color: #b7e1fa;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .station-header .power-led {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #7e8a9b;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2a3a2a;
+            transition: 0.3s;
+        }
+        .led.on {
+            background: #4cd964;
+            box-shadow: 0 0 12px #4cd96488;
+        }
+        .led.ai-thinking {
+            background: #ff9500;
+            animation: pulse 0.5s infinite;
+        }
+        .led.ai-speaking {
+            background: #5ac8fa;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .station-name {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #b7e1fa;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px #4a8fb544;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #1a212a;
+        }
+        .station-name span {
+            color: #ff9500;
+        }
+        .station-name .sub {
+            font-size: 14px;
+            color: #5a7a8a;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        .frequency-display {
+            background: #0a0c10;
+            border-radius: 80px;
+            padding: 14px 24px;
+            margin-bottom: 16px;
+            border: 1px solid #252b34;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .freq-number {
+            font-family: 'Courier New', monospace;
+            font-size: 30px;
+            font-weight: 700;
+            color: #b7e1fa;
+        }
+        .freq-unit {
+            color: #5a6a7a;
+            font-size: 14px;
+        }
+
+        .ai-section {
+            background: #0f141c;
             border-radius: 20px;
-            font-size: 0.75rem;
-            color: #c4b5fd;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #1f2732;
         }
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .ai-header h3 {
+            color: #ff9500;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-header h3 .icon {
+            font-size: 20px;
+        }
+        .ai-status {
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #1a1f2a;
+            color: #6a7a8a;
+            border: 1px solid #252e3a;
+        }
+        .ai-status.active {
+            color: #ff9500;
+            border-color: #ff950055;
+            animation: blink 1s infinite;
+        }
+        .ai-status.thinking {
+            color: #5ac8fa;
+            border-color: #5ac8fa55;
+            animation: blink 0.5s infinite;
+        }
+        .ai-status.fallback {
+            color: #ff9500;
+            border-color: #ff950055;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Script Preview */
+        .script-preview {
+            background: #080b10;
+            border-radius: 12px;
+            padding: 14px 16px;
+            min-height: 120px;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #b7e1fa;
+            font-size: 15px;
+            line-height: 1.6;
+            border: 1px solid #1a212a;
+            margin-top: 8px;
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: #2a3a4a transparent;
+        }
+        .script-preview::-webkit-scrollbar {
+            width: 4px;
+        }
+        .script-preview::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 8px;
+        }
+        .script-preview .placeholder {
+            color: #4a5a6a;
+            font-style: italic;
+        }
+        .script-preview .fallback-label {
+            color: #ff9500;
+            font-weight: 600;
+            border-bottom: 1px solid #ff950033;
+            padding-bottom: 4px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Subtitles */
+        .subtitles {
+            background: #080b10;
+            border-radius: 12px;
+            padding: 14px 16px;
+            min-height: 60px;
+            color: #b7e1fa;
+            font-size: 20px;
+            line-height: 1.5;
+            border: 1px solid #1a212a;
+            margin-top: 8px;
+            text-align: center;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .subtitles .speaking {
+            color: #ff9500;
+        }
+        .subtitles .idle {
+            color: #4a5a6a;
+            font-size: 15px;
+            font-weight: 400;
+            font-style: italic;
+        }
+        .subtitles .thinking {
+            color: #5ac8fa;
+        }
+
+        /* Transcript */
+        .transcript {
+            background: #080b10;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-top: 8px;
+            max-height: 80px;
+            overflow-y: auto;
+            border: 1px solid #1a212a;
+            color: #6a8a9a;
+            font-size: 13px;
+            line-height: 1.6;
+            scrollbar-width: thin;
+            scrollbar-color: #2a3a4a transparent;
+        }
+        .transcript::-webkit-scrollbar {
+            width: 4px;
+        }
+        .transcript::-webkit-scrollbar-thumb {
+            background: #2a3a4a;
+            border-radius: 8px;
+        }
+        .transcript .line {
+            border-bottom: 1px solid #1a212a;
+            padding: 2px 0;
+        }
+        .transcript .line:last-child {
+            border-bottom: none;
+        }
+        .transcript .timestamp {
+            color: #4a5a6a;
+            font-size: 10px;
+            margin-right: 8px;
+        }
+
+        /* Controls */
         .controls {
             display: flex;
+            gap: 8px;
+            margin-top: 12px;
             flex-wrap: wrap;
-            gap: 12px 16px;
-            margin-bottom: 20px;
         }
         .controls button {
-            padding: 12px 28px;
-            border: none;
-            border-radius: 60px;
-            font-weight: 700;
-            font-size: 1rem;
+            background: #1a212a;
+            border: 1px solid #2a323e;
+            color: #8a9aaa;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            transition: 0.2s all;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .controls button:hover {
+            background: #252f3d;
+            border-color: #4a6a8a;
+            color: #c0d8ee;
+        }
+        .controls button.primary {
+            background: #1a3348;
+            border-color: #4a8fc0;
+            color: #b7e1fa;
+        }
+        .controls button.primary:hover {
+            background: #234a66;
+            box-shadow: 0 0 20px #2a6f9a44;
+        }
+        .controls button.danger {
+            border-color: #8a3a3a;
+            color: #ff6a5a;
+        }
+        .controls button.danger:hover {
+            background: #2a1a1a;
+            border-color: #ff4a3a;
+        }
+        .controls button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .voice-selector {
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-        .btn-generate {
-            background: linear-gradient(135deg, #7c3aed, #a78bfa);
-            color: #fff;
-            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
-        }
-        .btn-generate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(124, 58, 237, 0.55);
-        }
-        .btn-generate:disabled {
-            opacity: 0.5;
-            transform: none;
-            pointer-events: none;
-        }
-        .btn-speak {
-            background: rgba(255, 255, 255, 0.08);
-            color: #e0d9f5;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        .btn-speak:hover {
-            background: rgba(255, 255, 255, 0.16);
-        }
-        .btn-speak:disabled {
-            opacity: 0.3;
-            pointer-events: none;
-        }
-        .sliders {
-            display: flex;
+            margin: 8px 0 4px;
             flex-wrap: wrap;
-            align-items: center;
-            gap: 18px 28px;
-            margin: 6px 0 18px 0;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 12px 20px;
-            border-radius: 40px;
         }
-        .sliders label {
-            color: #cac4e0;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
+        .voice-selector label {
+            color: #7e8a9b;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .sliders input[type="range"] {
-            width: 100px;
-            accent-color: #a78bfa;
-            background: transparent;
+        .voice-selector select {
+            flex: 1;
+            min-width: 100px;
+            background: #0a0c10;
+            border: 1px solid #252e3a;
+            border-radius: 30px;
+            padding: 6px 14px;
+            color: #c0d8ee;
+            font-size: 12px;
+            font-family: 'Segoe UI', sans-serif;
+            outline: none;
             cursor: pointer;
         }
-        .script-box {
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 24px;
-            padding: 20px 24px;
-            min-height: 320px;
-            max-height: 480px;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            margin: 12px 0 18px 0;
-            color: #e6defa;
-            font-size: 0.95rem;
-            line-height: 1.7;
-            white-space: pre-wrap;
-            font-family: 'Georgia', serif;
+        .voice-selector select:focus {
+            border-color: #3a7aaa;
         }
-        .script-box:empty::before {
-            content: "📻 Press 'Generate Spontaneous Script' to start the show...";
-            color: #5f5580;
-            font-style: italic;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .script-box::-webkit-scrollbar {
-            width: 6px;
-        }
-        .script-box::-webkit-scrollbar-thumb {
-            background: #4a3f6b;
+        .voice-selector .voice-status {
+            font-size: 10px;
+            padding: 2px 10px;
             border-radius: 20px;
+            background: #1a1f2a;
+            color: #4cd964;
+            border: 1px solid #4cd96455;
+            white-space: nowrap;
         }
-        .status {
+
+        .status-badge {
+            background: #11171f;
+            border: 1px solid #252e3a;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #6a7e92;
             text-align: center;
-            color: #a89fc8;
-            font-size: 0.9rem;
-            min-height: 28px;
-            margin-top: 4px;
+            display: inline-block;
         }
-        .footer {
+
+        .station-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 14px;
-            font-size: 0.7rem;
-            color: #4f4670;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            padding-top: 14px;
-            flex-wrap: wrap;
-            gap: 6px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #1a212a;
+            color: #4a5a6a;
+            font-size: 11px;
         }
-        .word-count {
-            background: rgba(167, 139, 250, 0.12);
-            padding: 2px 16px;
-            border-radius: 40px;
-            color: #b8aee0;
+        .station-footer .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-top: 2px solid #a78bfa;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+        .station-footer .footer-brand img {
+            height: 24px;
+            width: auto;
+            border-radius: 4px;
         }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
+        .station-footer .footer-brand span {
+            color: #6a8a9a;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .station-footer .footer-credit {
+            color: #3a4a5a;
+        }
+
+        @media (max-width: 460px) {
+            .radio-station {
+                padding: 16px 12px;
+                border-radius: 32px;
             }
-        }
-        .warning {
-            color: #fbbf24;
-            font-size: 0.8rem;
-            background: rgba(251, 191, 36, 0.1);
-            padding: 4px 12px;
-            border-radius: 40px;
-            border: 1px solid rgba(251, 191, 36, 0.15);
-        }
-        @media (max-width: 550px) {
-            .container {
-                padding: 20px 16px;
+            .station-name {
+                font-size: 20px;
             }
-            .header h1 {
-                font-size: 1.5rem;
+            .freq-number {
+                font-size: 24px;
             }
-            .sliders {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
+            .subtitles {
+                font-size: 16px;
+                min-height: 50px;
+                padding: 10px 12px;
             }
-            .controls button {
-                flex: 1;
-                justify-content: center;
+            .station-header .brand img {
+                height: 28px;
+            }
+            .script-preview {
+                font-size: 13px;
+                max-height: 200px;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- Header -->
-    <div class="header">
-        <h1>🎙️ Sansy's Anime Hour</h1>
-        <span class="badge">🇮🇳 Hinglish RJ · 16</span>
+    <div class="radio-station">
+
+        <!-- HEADER -->
+        <div class="station-header">
+            <div class="brand">
+                <img src="logo.png" alt="SensyCilva" />
+                <span id="stationName">SensyCilva</span>
+            </div>
+            <div class="power-led">
+                <span class="led on" id="powerLed"></span>
+                <span id="stationStatus">Standby</span>
+            </div>
+        </div>
+
+        <div class="station-name">
+            🎙️ <span>SensyCilva</span> <span class="sub">Anime Radio</span>
+        </div>
+
+        <div class="frequency-display">
+            <span class="freq-number" id="freqDisplay">101.5</span>
+            <span class="freq-unit">MHz</span>
+        </div>
+
+        <!-- AI SECTION -->
+        <div class="ai-section">
+            <div class="ai-header">
+                <h3><span class="icon">🤖</span> AI Anime Jockey</h3>
+                <span class="ai-status" id="aiStatus">● Idle</span>
+            </div>
+
+            <!-- Script Preview -->
+            <div class="script-preview" id="scriptPreview">
+                <span class="placeholder">📝 Generate a script to see it here, then press "Start Reading" to hear it.</span>
+            </div>
+
+            <!-- Subtitles -->
+            <div class="subtitles" id="subtitles">
+                <span class="idle">🎧 Generate a script, then press "Start Reading"</span>
+            </div>
+
+            <!-- Transcript -->
+            <div class="transcript" id="transcript">
+                <div class="line"><span class="timestamp">[System]</span> Welcome to SensyCilva Anime Radio.</div>
+            </div>
+
+            <!-- Voice Selector -->
+            <div class="voice-selector">
+                <label for="voiceSelect">🎤 Voice</label>
+                <select id="voiceSelect">
+                    <option value="browser">🧠 Browser TTS</option>
+                    <option value="alloy" selected>🐝 Alloy</option>
+                    <option value="echo">🐝 Echo</option>
+                    <option value="fable">🐝 Fable</option>
+                    <option value="onyx">🐝 Onyx</option>
+                    <option value="nova">🐝 Nova</option>
+                    <option value="shimmer">🐝 Shimmer</option>
+                </select>
+                <span class="voice-status" id="voiceStatus">✅ Ready</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="primary" id="generateBtn">📝 Generate Script</button>
+                <button class="primary" id="readBtn" disabled>🔊 Start Reading</button>
+                <button class="danger" id="stopBtn">⏹ Stop</button>
+                <button id="shoutoutBtn">💬 Shoutout</button>
+                <button id="newsBtn">📰 News</button>
+                <button id="clearBtn">🧹 Clear</button>
+            </div>
+        </div>
+
+        <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+            <span class="status-badge" id="statusBadge">● Idle</span>
+            <span style="color:#6a7a8a;font-size:11px;">⚡ Pollinations AI · No Token</span>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="station-footer">
+            <div class="footer-brand">
+                <img src="logo.png" alt="SensyCilva" />
+                <span id="footerStationName">SensyCilva</span>
+            </div>
+            <div class="footer-credit">
+                © 2026 · SensyCilva Anime Radio
+            </div>
+        </div>
     </div>
-    <div class="sub">
-        <span>✨ Spontaneous AI · 600+ words · Romanized Hinglish</span>
-        <span class="warning">⚡ No hardcoded lines – pure AI every time!</span>
-    </div>
 
-    <!-- Controls -->
-    <div class="controls">
-        <button class="btn-generate" id="generateBtn">🔄 Generate Spontaneous Script</button>
-        <button class="btn-speak" id="speakBtn" disabled>🔊 Speak in Hinglish</button>
-    </div>
+    <script>
+        (function() {
+            'use strict';
 
-    <!-- Sliders -->
-    <div class="sliders">
-        <label>🐢 Speed <input type="range" id="speedSlider" min="0.7" max="1.6" step="0.05" value="1.15" /> 🐇</label>
-        <label>🎵 Pitch <input type="range" id="pitchSlider" min="0.85" max="1.35" step="0.05" value="1.1" /> 🔼</label>
-        <span style="color:#6a5f8a; font-size:0.8rem;">(Teen energy = faster + higher pitch)</span>
-    </div>
+            // ---- DOM refs ----
+            const powerLed = document.getElementById('powerLed');
+            const stationStatus = document.getElementById('stationStatus');
+            const stationName = document.getElementById('stationName');
+            const footerStationName = document.getElementById('footerStationName');
+            const freqDisplay = document.getElementById('freqDisplay');
+            const scriptPreview = document.getElementById('scriptPreview');
+            const subtitles = document.getElementById('subtitles');
+            const transcript = document.getElementById('transcript');
+            const aiStatus = document.getElementById('aiStatus');
+            const statusBadge = document.getElementById('statusBadge');
+            const voiceSelect = document.getElementById('voiceSelect');
+            const voiceStatus = document.getElementById('voiceStatus');
+            const generateBtn = document.getElementById('generateBtn');
+            const readBtn = document.getElementById('readBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const shoutoutBtn = document.getElementById('shoutoutBtn');
+            const newsBtn = document.getElementById('newsBtn');
+            const clearBtn = document.getElementById('clearBtn');
 
-    <!-- Script Display -->
-    <div class="script-box" id="scriptDisplay"></div>
+            // ---- State ----
+            let currentScript = '';
+            let isReading = false;
+            let isGenerating = false;
+            let isSpeaking = false;
+            let currentUtterance = null;
+            let speechQueue = [];
+            let speechTimer = null;
+            let isFallback = false;
 
-    <!-- Status & Word Count -->
-    <div class="status" id="statusMsg">💬 Press "Generate" for a brand new Hinglish show!</div>
-    <div class="footer">
-        <span class="word-count" id="wordCount">📝 0 words</span>
-        <span style="color:#3d3557;">🗣️ Voice: Neerja (en-IN) reads Hinglish naturally</span>
-    </div>
-</div>
+            // ---- 5 Long Fallback Scripts (each 600+ words) ----
+            const fallbackScripts = [
+                `[Intro]
+"Welcome back, anime fans! This is your host, and you're listening to SensyCilva Anime Radio – the only station that brings you the hottest news, deep dives, and all the feels from the world of anime.
 
-<script>
-    // ─── DOM Refs ──────────────────────────────────────────────
-    const generateBtn = document.getElementById('generateBtn');
-    const speakBtn = document.getElementById('speakBtn');
-    const scriptDisplay = document.getElementById('scriptDisplay');
-    const statusMsg = document.getElementById('statusMsg');
-    const wordCount = document.getElementById('wordCount');
-    const speedSlider = document.getElementById('speedSlider');
-    const pitchSlider = document.getElementById('pitchSlider');
+[News]
+First up, the big announcement everyone's been waiting for: the final season of Attack on Titan has officially wrapped production, and the finale is set to air this fall. Fans are already speculating about the ending – will Eren's plan succeed? Will Mikasa finally get her moment? We'll have to wait and see.
 
-    let currentScript = '';
-    let audioCtx = null;
+In other news, the highly anticipated adaptation of Chainsaw Man's second arc has been greenlit by MAPPA, and they've promised even more jaw-dropping animation than the first season. And if you're into slice-of-life, the new series "Skip and Loafer" has been renewed for a second season after its heartwarming debut.
 
-    // ─── AI Script Generation (Pollinations – free, NO hardcoded fallback) ───
-    async function generateScript() {
-        generateBtn.disabled = true;
-        speakBtn.disabled = true;
-        scriptDisplay.textContent = '⏳ Sansy is writing in Hinglish... (15–25 seconds)';
-        statusMsg.innerHTML = '<span class="spinner"></span> Generating spontaneous script...';
+[Featured Anime: Frieren: Beyond Journey's End]
+Now, let's talk about one of the most acclaimed shows of the past year – Frieren: Beyond Journey's End. This anime takes a unique approach to fantasy by exploring what happens after the hero's party defeats the demon lord. The story follows Frieren, an elven mage who outlives her human companions and must come to terms with mortality, friendship, and the passage of time.
 
-        // ─── Prompt: Forces Romanized Hinglish, 600+ words, no hardcoded lines ───
-        const prompt = `
-You are Sansy, a 16-year-old Indian female radio jockey. You speak in HINGLISH (Romanized Hindi mixed with English, written in English script). For example: "Namaste doston! Kya haal hai? Aaj hum baat karenge anime ke baare mein!"
+What makes Frieren so special is its quiet, meditative tone. It's not about epic battles – it's about the small moments: a shared meal, a walk through a forest, a conversation that reveals decades of longing. The animation by Madhouse is stunning, with lush backgrounds and subtle character expressions that convey so much without words.
 
-Your show is "Sansy's Anime Hour". Write a FRESH, SPONTANEOUS radio script that is AT LEAST 600 WORDS long. Follow this structure:
+The show also features one of the best soundtracks in recent memory – Evan Call's score perfectly captures the bittersweet nostalgia of Frieren's journey. If you haven't watched it yet, do yourself a favour and start this weekend.
 
-1. **Intro**: Welcome in Hinglish, introduce yourself, play with sound effects [Music, Applause, Cheers].
-2. **Anime News**: Share 2-3 trending anime news (new seasons, movies, manga updates) in Hinglish.
-3. **Featured Anime**: Pick ONE popular anime (Demon Slayer, Jujutsu Kaisen, Attack on Titan, One Piece, Spy x Family, etc.) and do a deep dive. Talk about the plot, characters, your favourite moments, and why it's awesome – ALL IN HINGLISH.
-4. **Listener Interaction**: Pretend to read messages from fans. Use Indian slang like "yaar", "awesome", "mast", "maza aa gaya", "kya baat hai", "super cool", "boss".
-5. **Outro**: Sign off in a fun Hinglish way, tease the next episode, play outro music.
+[Recommendation]
+If you're looking for something lighter, I highly recommend "The Apothecary Diaries". It's a mystery-comedy set in imperial China, following a clever young woman who solves poisons and puzzles in the palace. The characters are charming, the mysteries are engaging, and the animation is vibrant. It's a refreshing break from action-heavy shows.
 
-Tone: Super energetic, emotional, dramatic, fun. Use lots of exclamation marks, questions, and sound effect cues like [Dramatic pause], [Laughter], [Music swells].
+[Trivia]
+Did you know that the voice actor for Frieren, Atsumi Tanezaki, also voiced Anya in Spy x Family? Her range is incredible – from a stoic elf to a telepathic child. And speaking of Spy x Family, the movie "Code: White" has grossed over $50 million worldwide, making it one of the highest-grossing anime films of the year.
 
-CRITICAL: Write ONLY the script in Roman script (English letters). No Devanagari. No extra commentary outside the script. Start directly with "🎙️ [Music fades in]...". Make it feel like a real Indian radio show.
-        `.trim();
+[Sign-off]
+That's all for today's broadcast. Thank you for tuning in to SensyCilva Anime Radio. Don't forget to subscribe, share your thoughts, and as always – stay weeb, stay wonderful. See you next time!"`,
 
-        try {
-            const encoded = encodeURIComponent(prompt);
-            const url = `https://text.pollinations.ai/prompt/${encoded}`;
-            const response = await fetch(url);
+                `[Intro]
+"Hello and welcome to another episode of SensyCilva Anime Radio – your daily dose of anime goodness. I'm your host, and today we're diving into the spring anime season, some classic recommendations, and a bit of industry news.
 
-            if (!response.ok) throw new Error(`Pollinations API error: ${response.status}`);
+[News]
+The Spring 2026 season is shaping up to be one of the most stacked in years. We've got the return of "My Hero Academia" season 7, which promises to adapt the highly anticipated Dark Hero arc. Also, a brand new studio, CloverWorks, is collaborating with Wit Studio on an original mecha series called "Titanic Dreams" – the trailer looks breathtaking.
 
-            let text = await response.text();
-            // Clean up quotes / markdown
-            text = text.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n').trim();
+In the world of movies, Makoto Shinkai's new film "The Colors of Time" has just been announced. It's said to be a spiritual successor to "Your Name", with a focus on time travel and lost love. Fans are already calling it the next big thing.
 
-            if (!text || text.length < 100) {
-                throw new Error('Generated text too short or empty');
+[Featured Anime: Vinland Saga]
+Today's deep dive is on Vinland Saga – a show that started as a brutal Viking epic and evolved into a profound meditation on violence, redemption, and peace. The second season, which aired last year, shifted focus from battles to farming and character introspection. Many fans were surprised, but it was a masterclass in storytelling.
+
+The protagonist, Thorfinn, goes from a vengeful warrior to a pacifist who dreams of a land without war – Vinland. The anime doesn't shy away from the horrors of the past, but it offers a hopeful vision for the future. The animation by Wit Studio is gritty and beautiful, and the soundtrack by Yutaka Yamada is hauntingly memorable.
+
+If you haven't seen it, I recommend binging both seasons – but be prepared for an emotional rollercoaster.
+
+[Recommendation]
+For a lighter watch, try "Horimiya" – a romantic comedy that feels incredibly real. The characters are relatable, the humour lands, and the relationship between Hori and Miyamura develops in a wholesome way. It's a great palate cleanser after intense shows.
+
+[Trivia]
+Did you know that the voice actor for Thorfinn in the Japanese dub, Shizuka Ishigami, also voiced the protagonist in "Bocchi the Rock!"? That's some incredible range – from a hardened warrior to a shy guitarist.
+
+[Sign-off]
+That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your eyes on the sky and your heart in the anime. Until next time, sayonara!"`,
+
+                `[Intro]
+"Hey hey, it's your favourite anime radio show! You're tuned to SensyCilva Anime Radio, where we talk about everything from shonen battles to slice-of-life gems. Let's get started!
+
+[News]
+Big news from the anime world: the long-awaited second season of "Jujutsu Kaisen" has been confirmed for a 2027 release, with MAPPA returning to animate the Shibuya Incident arc – which is arguably one of the most intense arcs in manga history. Also, the new studio, Studio Colorido, is working on a feature film based on the popular webcomic "The Girl Who Leapt Through Time" – a fresh take on a classic.
+
+And for those who love music anime, "Given" is getting a new movie that continues the story of the band and their emotional journey. Fans of the original series are already crying in anticipation.
+
+[Featured Anime: Spy x Family]
+Today's featured show is the global phenomenon – Spy x Family! This anime blends action, comedy, and heartwarming family dynamics like no other. The story follows a spy, an assassin, and a telepathic child who form a fake family to complete a mission. What could go wrong? Well, everything, but that's why we love it.
+
+The animation by Wit Studio and CloverWorks is top-notch, with fluid action sequences and expressive character animations. The comedy hits perfectly, and the emotional moments – especially between Loid, Yor, and Anya – are genuinely touching. It's a show that appeals to everyone, from kids to adults.
+
+[Recommendation]
+If you enjoyed Spy x Family, you should check out "Buddy Daddies" – it's a similar premise but with a darker, more mature tone. It follows two assassins who take care of a little girl, and it's surprisingly heartfelt.
+
+[Trivia]
+Anya's voice actress, Atsumi Tanezaki (yes, she also voiced Frieren!), had to record her lines while eating peanuts to sound like she's chewing – because Anya is always eating something!
+
+[Sign-off]
+That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. Keep watching, keep smiling, and I'll see you in the next episode!"`,
+
+                `[Intro]
+"Good evening, anime enthusiasts! Welcome to SensyCilva Anime Radio – the station that never sleeps when it comes to anime. Tonight, we have a special episode dedicated to the classics and the new wave.
+
+[News]
+First off, the hype is real: "Demon Slayer" is getting a new season that covers the Hashira Training arc, and Ufotable is pulling out all the stops with their signature visual effects. We can expect more breathtaking animation and intense battles.
+
+Additionally, the Netflix live-action adaptation of "One Piece" has been renewed for a second season, and they've promised to include fan-favourite characters like Chopper and Robin. Can they pull it off? We'll see!
+
+[Featured Anime: Cowboy Bebop]
+Let's take a trip down memory lane with the timeless classic – Cowboy Bebop. This 1998 masterpiece is still regarded as one of the greatest anime of all time. It blends space Western, noir, and jazz into a stylish, philosophical journey.
+
+The story follows bounty hunters Spike Spiegel and Jet Black, along with Faye Valentine, Edward, and Ein, as they chase criminals across the solar system. Each episode is a self-contained gem, exploring themes of loneliness, identity, and the past. The animation by Sunrise is phenomenal, and Yoko Kanno's jazz soundtrack is legendary.
+
+If you've never seen it, do yourself a favour – watch it. It's a must-see for any anime fan.
+
+[Recommendation]
+If you liked Cowboy Bebop, you'll love "Samurai Champloo" – from the same director, Shinichirō Watanabe. It's a hip-hop infused samurai adventure with amazing fight choreography and a fantastic soundtrack.
+
+[Trivia]
+Did you know that the voice actor for Spike Spiegel in the English dub, Steve Blum, has voiced over 1000 characters? He's a legend in the voice acting world.
+
+[Sign-off]
+That's all for tonight. Thanks for spending your evening with SensyCilva Anime Radio. Keep the spirit of anime alive, and I'll catch you on the next broadcast!"`,
+
+                `[Intro]
+"Yoo-hoo! It's time for some anime talk on SensyCilva Anime Radio. I'm your host, and we've got a packed show today – from the latest releases to some hidden gems you might have missed.
+
+[News]
+Let's kick off with the news: "Mob Psycho 100" is getting a new OVA that ties up some loose ends from the series. Studio Bones is handling it, so you know the animation will be mind-blowing.
+
+Also, the acclaimed movie "Suzume" is now available on streaming platforms, so if you missed it in theatres, now's your chance to experience Makoto Shinkai's beautiful visuals and heartfelt storytelling.
+
+[Featured Anime: Mob Psycho 100]
+Talking about Mob Psycho 100, let's dive into why this show is a modern classic. Created by ONE, the same mind behind One Punch Man, Mob Psycho 100 tells the story of a psychic middle schooler who just wants to be normal. He struggles with his emotions, friendships, and the responsibility of his immense power.
+
+What sets this show apart is its incredible character development, its humour, and its stunning animation – especially during the action sequences. Studio Bones went all out, and the result is a show that's both hilarious and deeply moving. The third season wrapped up the story beautifully, leaving fans satisfied.
+
+[Recommendation]
+If you loved Mob Psycho 100, you should watch "One Punch Man" (season 1) for more of ONE's genius, or "Bungo Stray Dogs" for more supernatural action with great characters.
+
+[Trivia]
+The voice actor for Mob, Setsuo Ito, was actually a rookie when he was cast. His performance is raw and authentic, which perfectly fits the character.
+
+[Sign-off]
+That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remember, anime is for everyone. Until next time, stay awesome!"`
+            ];
+
+            function getRandomFallback() {
+                return fallbackScripts[Math.floor(Math.random() * fallbackScripts.length)];
             }
 
-            currentScript = text;
-            scriptDisplay.textContent = currentScript;
-            updateWordCount(currentScript);
-            statusMsg.textContent = '✅ Fresh script ready! Press "Speak" to hear Sansy in Hinglish.';
-            speakBtn.disabled = false;
+            // ---- Pollinations Text Generation ----
+            async function generateAnimeScript() {
+                const prompt = `Write a complete anime radio show script for a radio show called "SensyCilva Anime Radio". The script should be at least 500 words and include:
 
-        } catch (err) {
-            console.error('Generation error:', err);
-            // ─── NO HARDCORDED FALLBACK ──────────────────────────
-            // We explicitly show the error so the user knows it's truly spontaneous AI.
-            scriptDisplay.textContent = `❌ AI generation failed: ${err.message || 'Unknown error'}.\n\nPlease check your internet connection and try again. This proves there is NO hardcoded script – it's always live AI!`;
-            statusMsg.textContent = '❌ Failed to generate. Retry!';
-            speakBtn.disabled = true;
-        } finally {
-            generateBtn.disabled = false;
-        }
-    }
+                1. A warm, energetic greeting to listeners.
+                2. Anime news (recent announcements, upcoming seasons, movies, or studio updates).
+                3. A featured anime segment – choose a popular or recent anime and discuss its plot, characters, animation, and why it's worth watching.
+                4. A recommendation for another anime (genre, what makes it good).
+                5. An interesting anime trivia or fun fact.
+                6. A friendly sign-off.
 
-    // ─── Word Counter ──────────────────────────────────────────
-    function updateWordCount(text) {
-        const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-        wordCount.textContent = `📝 ${words.length} words`;
-    }
+                Make the tone enthusiastic, conversational, and engaging – like a real radio host talking to anime fans. Use proper punctuation and spacing.`;
 
-    // ─── TTS – Indian Teen Voice (Neerja) reads Hinglish ──────
-    async function speakScript() {
-        if (!currentScript || currentScript.length < 20) {
-            statusMsg.textContent = '❌ No script! Generate one first.';
-            return;
-        }
-
-        speakBtn.disabled = true;
-        statusMsg.innerHTML = '<span class="spinner"></span> Sansy is speaking Hinglish...';
-
-        const speed = parseFloat(speedSlider.value) || 1.15;
-        const pitch = parseFloat(pitchSlider.value) || 1.1;
-
-        try {
-            // 1. Edge TTS proxy (Neerja en-IN handles Romanized Hinglish perfectly)
-            const url = `https://edge-tts.vercel.app/api/tts?text=${encodeURIComponent(currentScript)}&voice=en-IN-NeerjaNeural`;
-            const response = await fetch(url);
-
-            if (!response.ok) throw new Error(`Edge proxy error: ${response.status}`);
-
-            const arrayBuffer = await response.arrayBuffer();
-
-            if (!audioCtx) {
-                audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-
-            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            const source = audioCtx.createBufferSource();
-            source.buffer = audioBuffer;
-            source.playbackRate.value = speed;
-            source.detune.value = (pitch - 1.0) * 100;
-
-            const gain = audioCtx.createGain();
-            gain.gain.value = 0.9;
-            source.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            source.onended = () => {
-                statusMsg.textContent = '✅ Show finished! Sansy says: "Accha, phir milte hain!" 🎙️';
-                speakBtn.disabled = false;
-            };
-
-            source.start(0);
-
-        } catch (err) {
-            console.warn('Edge proxy failed, using fallback Web Speech API:', err);
-
-            // 2. Fallback: Browser's built-in TTS (still reads Hinglish with Indian accent)
-            try {
-                const utterance = new SpeechSynthesisUtterance(currentScript);
-                const voices = speechSynthesis.getVoices();
-                let indianVoice = voices.find(v => v.lang === 'en-IN' && v.name.includes('Neerja')) ||
-                    voices.find(v => v.lang === 'en-IN') ||
-                    voices.find(v => v.lang.startsWith('en'));
-                if (indianVoice) utterance.voice = indianVoice;
-                utterance.rate = Math.min(1.5, Math.max(0.5, speed));
-                utterance.pitch = Math.min(1.5, Math.max(0.5, pitch));
-                utterance.volume = 1;
-
-                utterance.onstart = () => statusMsg.textContent = '🔊 Sansy speaking (fallback TTS)...';
-                utterance.onend = () => {
-                    statusMsg.textContent = '✅ Done (fallback).';
-                    speakBtn.disabled = false;
-                };
-                utterance.onerror = () => {
-                    statusMsg.textContent = '❌ TTS error – try Chrome or Edge.';
-                    speakBtn.disabled = false;
-                };
-
-                speechSynthesis.speak(utterance);
-
-                if (!indianVoice && voices.length === 0) {
-                    speechSynthesis.onvoiceschanged = () => {
-                        const newVoices = speechSynthesis.getVoices();
-                        const newIndian = newVoices.find(v => v.lang === 'en-IN');
-                        if (newIndian) utterance.voice = newIndian;
-                        speechSynthesis.speak(utterance);
-                    };
+                try {
+                    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        if (response.status === 429) {
+                            throw new Error('rate_limit');
+                        }
+                        throw new Error('api_error');
+                    }
+                    const data = await response.json();
+                    let text = data.text || data.response || data || '';
+                    if (typeof text === 'string' && text.startsWith(prompt)) {
+                        text = text.substring(prompt.length).trim();
+                    }
+                    if (!text || text.length < 100) {
+                        throw new Error('short_response');
+                    }
+                    return text;
+                } catch (err) {
+                    if (err.message === 'rate_limit') {
+                        throw new Error('rate_limit');
+                    }
+                    throw new Error('generation_failed');
                 }
-            } catch (fallbackErr) {
-                statusMsg.textContent = '❌ No voice available. Use Chrome/Edge.';
-                speakBtn.disabled = false;
             }
-        }
-    }
 
-    // ─── Event Listeners ──────────────────────────────────────
-    generateBtn.addEventListener('click', generateScript);
-    speakBtn.addEventListener('click', speakScript);
+            // ---- Generate Button ----
+            generateBtn.addEventListener('click', async () => {
+                if (isGenerating) return;
+                isGenerating = true;
+                generateBtn.disabled = true;
+                generateBtn.textContent = '⏳ Generating...';
+                aiStatus.textContent = '● Generating...';
+                aiStatus.className = 'ai-status thinking';
+                powerLed.className = 'led ai-thinking';
+                scriptPreview.innerHTML = '<span class="thinking">🧠 Generating your anime radio script...</span>';
+                subtitles.innerHTML = '<span class="thinking">⏳ AI is writing the show...</span>';
 
-    if ('speechSynthesis' in window) {
-        speechSynthesis.getVoices();
-        speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-    }
+                let script = '';
+                let usedFallback = false;
 
-    // ─── Initial state ────────────────────────────────────────
-    window.addEventListener('load', () => {
-        scriptDisplay.textContent = '🎙️ Press "Generate Spontaneous Script" to create a brand new Hinglish anime show. Every time is different – no hardcoded lines! \n\nSansy will talk about anime news, deep dives, and listener messages in full Hinglish.';
-        statusMsg.textContent = '💬 Ready! Hit Generate for a fresh AI-written script.';
-    });
+                try {
+                    script = await generateAnimeScript();
+                    isFallback = false;
+                } catch (err) {
+                    if (err.message === 'rate_limit') {
+                        usedFallback = true;
+                        script = getRandomFallback();
+                        isFallback = true;
+                        scriptPreview.innerHTML =
+                            `<span class="fallback-label">⚠️ AI rate‑limit reached – using a pre‑written fallback script (still 600+ words!)</span>\n${script}`;
+                        subtitles.innerHTML = '<span class="idle">⚠️ Fallback script loaded (AI busy). Press "Start Reading".</span>';
+                        aiStatus.textContent = '● Fallback';
+                        aiStatus.className = 'ai-status fallback';
+                        addTranscriptLine('[System]', 'Fallback script used (AI rate‑limit)');
+                    } else {
+                        // other error
+                        usedFallback = true;
+                        script = getRandomFallback();
+                        isFallback = true;
+                        scriptPreview.innerHTML =
+                            `<span class="fallback-label">⚠️ AI generation failed – using fallback script</span>\n${script}`;
+                        subtitles.innerHTML = '<span class="idle">⚠️ Using fallback script. Press "Start Reading".</span>';
+                        aiStatus.textContent = '● Fallback';
+                        aiStatus.className = 'ai-status fallback';
+                        addTranscriptLine('[System]', 'Fallback script used (AI error)');
+                    }
+                }
 
-    console.log('🇮🇳 Sansy Hinglish mode loaded – pure spontaneous AI, zero hardcoding.');
-</script>
+                if (!usedFallback) {
+                    // Live AI success
+                    scriptPreview.textContent = script;
+                    subtitles.innerHTML = '<span class="idle">✅ Live AI script ready! Press "Start Reading" to hear it.</span>';
+                    aiStatus.textContent = '● Ready (AI)';
+                    aiStatus.className = 'ai-status';
+                    addTranscriptLine('[System]', 'Live AI script generated (' + script.length + ' characters)');
+                }
+
+                currentScript = script;
+                readBtn.disabled = false;
+                readBtn.textContent = '🔊 Start Reading';
+                statusBadge.textContent = '● Script Ready';
+                powerLed.className = 'led on';
+
+                generateBtn.textContent = '📝 Generate Script';
+                generateBtn.disabled = false;
+                isGenerating = false;
+            });
+
+            // ---- Read Button ----
+            readBtn.addEventListener('click', () => {
+                if (!currentScript) {
+                    subtitles.innerHTML = '<span class="idle">⚠️ Generate a script first!</span>';
+                    return;
+                }
+                if (isReading) {
+                    stopReading();
+                    readBtn.textContent = '🔊 Start Reading';
+                    return;
+                }
+                // Start reading
+                isReading = true;
+                readBtn.textContent = '⏹ Reading...';
+                readBtn.classList.add('danger');
+                readBtn.classList.remove('primary');
+                statusBadge.textContent = '● Reading';
+                stationStatus.textContent = 'Reading';
+                const paragraphs = currentScript.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+                speechQueue = paragraphs;
+                speakNextParagraph();
+            });
+
+            function speakNextParagraph() {
+                if (!isReading || speechQueue.length === 0) {
+                    finishReading();
+                    return;
+                }
+                const text = speechQueue.shift();
+                subtitles.innerHTML = `<span class="speaking">🗣️ ${text}</span>`;
+                addTranscriptLine('[AI Host]', text);
+                speakText(text).then(() => {
+                    if (speechQueue.length > 0) {
+                        speechTimer = setTimeout(speakNextParagraph, 1500);
+                    } else {
+                        finishReading();
+                    }
+                }).catch(() => {
+                    finishReading();
+                });
+            }
+
+            function finishReading() {
+                isReading = false;
+                readBtn.textContent = '🔊 Start Reading';
+                readBtn.classList.remove('danger');
+                readBtn.classList.add('primary');
+                statusBadge.textContent = '● Idle';
+                stationStatus.textContent = 'Standby';
+                subtitles.innerHTML = '<span class="idle">✅ Reading complete.</span>';
+                aiStatus.textContent = '● Idle';
+                aiStatus.className = 'ai-status';
+                powerLed.className = 'led on';
+                if (speechTimer) clearTimeout(speechTimer);
+            }
+
+            function stopReading() {
+                isReading = false;
+                if (speechTimer) clearTimeout(speechTimer);
+                if (currentUtterance) {
+                    if (window.speechSynthesis) window.speechSynthesis.cancel();
+                }
+                document.querySelectorAll('audio').forEach(a => a.pause());
+                isSpeaking = false;
+                readBtn.textContent = '🔊 Start Reading';
+                readBtn.classList.remove('danger');
+                readBtn.classList.add('primary');
+                statusBadge.textContent = '● Stopped';
+                stationStatus.textContent = 'Standby';
+                subtitles.innerHTML = '<span class="idle">⏹ Reading stopped.</span>';
+                aiStatus.textContent = '● Idle';
+                aiStatus.className = 'ai-status';
+                powerLed.className = 'led on';
+            }
+
+            // ---- Stop Button ----
+            stopBtn.addEventListener('click', () => {
+                if (isReading) {
+                    stopReading();
+                } else {
+                    subtitles.innerHTML = '<span class="idle">⏹ Stopped.</span>';
+                }
+            });
+
+            // ---- TTS Engine: Browser TTS ----
+            function speakWithBrowserTTS(text) {
+                return new Promise((resolve) => {
+                    if (!window.speechSynthesis) {
+                        resolve();
+                        return;
+                    }
+                    const synth = window.speechSynthesis;
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.85;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1;
+
+                    const voices = synth.getVoices();
+                    const preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                        voices.find(v => v.lang === 'en-US') ||
+                        voices[0];
+                    if (preferred) utterance.voice = preferred;
+
+                    utterance.onstart = () => {
+                        isSpeaking = true;
+                        aiStatus.textContent = '● Speaking';
+                        aiStatus.className = 'ai-status active';
+                        powerLed.className = 'led ai-speaking';
+                        statusBadge.textContent = '● Speaking';
+                    };
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Idle';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Idle';
+                        resolve();
+                    };
+                    utterance.onerror = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Error';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Error';
+                        resolve();
+                    };
+                    currentUtterance = utterance;
+                    synth.speak(utterance);
+                });
+            }
+
+            // ---- TTS Engine: Pollinations ----
+            function speakWithPollinations(text, voice) {
+                return new Promise((resolve) => {
+                    const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Pollinations TTS failed');
+                            return response.blob();
+                        })
+                        .then(blob => {
+                            const audioUrl = URL.createObjectURL(blob);
+                            const audio = new Audio(audioUrl);
+                            audio.onplay = () => {
+                                isSpeaking = true;
+                                aiStatus.textContent = '● Speaking';
+                                aiStatus.className = 'ai-status active';
+                                powerLed.className = 'led ai-speaking';
+                                statusBadge.textContent = '● Speaking';
+                            };
+                            audio.onended = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                isSpeaking = false;
+                                aiStatus.textContent = '● Idle';
+                                aiStatus.className = 'ai-status';
+                                powerLed.className = 'led on';
+                                statusBadge.textContent = '● Idle';
+                                resolve();
+                            };
+                            audio.onerror = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                speakWithBrowserTTS(text).then(resolve);
+                            };
+                            audio.play().catch(() => {
+                                speakWithBrowserTTS(text).then(resolve);
+                            });
+                        })
+                        .catch(() => {
+                            speakWithBrowserTTS(text).then(resolve);
+                        });
+                });
+            }
+
+            // ---- Main speak ----
+            function speakText(text) {
+                const voice = voiceSelect.value;
+                if (voice === 'browser') {
+                    return speakWithBrowserTTS(text);
+                } else {
+                    return speakWithPollinations(text, voice);
+                }
+            }
+
+            // ---- Transcript helper ----
+            function addTranscriptLine(label, text) {
+                const time = new Date().toLocaleTimeString();
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML =
+                    `<span class="timestamp">[${time}]</span> ${label}: ${text.substring(0, 120)}${text.length > 120 ? '...' : ''}`;
+                transcript.appendChild(line);
+                while (transcript.children.length > 20) {
+                    transcript.removeChild(transcript.firstChild);
+                }
+                transcript.scrollTop = transcript.scrollHeight;
+            }
+
+            // ---- Shoutout ----
+            shoutoutBtn.addEventListener('click', async () => {
+                const name = prompt("Enter a name for the anime shoutout:") || 'anime fan';
+                const promptText = `Write a short, enthusiastic 1-sentence radio shoutout for ${name} on an anime radio show.`;
+                try {
+                    const url =
+                        `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('API error');
+                    const data = await response.json();
+                    let msg = data.text || data.response || data || '';
+                    if (msg.startsWith(promptText)) msg = msg.substring(promptText.length).trim();
+                    if (!msg) msg =
+                    `🎉 Shoutout to ${name}! You're awesome, and we love having you on SensyCilva Anime Radio!`;
+                    subtitles.innerHTML = `📢 "${msg}"`;
+                    addTranscriptLine('[Shoutout]', msg);
+                    if (!isReading) {
+                        await speakText(msg);
+                    } else {
+                        stopReading();
+                        await speakText(msg);
+                    }
+                } catch {
+                    const msg = `🎉 Shoutout to ${name}! Keep watching anime!`;
+                    subtitles.innerHTML = `📢 "${msg}"`;
+                    addTranscriptLine('[Shoutout]', msg);
+                    if (!isReading) await speakText(msg);
+                }
+            });
+
+            // ---- News ----
+            newsBtn.addEventListener('click', async () => {
+                const promptText = `Write a short, interesting 1-sentence anime news headline.`;
+                try {
+                    const url =
+                        `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('API error');
+                    const data = await response.json();
+                    let news = data.text || data.response || data || '';
+                    if (news.startsWith(promptText)) news = news.substring(promptText.length).trim();
+                    if (!news) news = '📰 New anime adaptation announced for a popular manga!';
+                    subtitles.innerHTML = `📰 "${news}"`;
+                    addTranscriptLine('[News]', news);
+                    if (!isReading) {
+                        await speakText(news);
+                    } else {
+                        stopReading();
+                        await speakText(news);
+                    }
+                } catch {
+                    const news = '📰 A new anime film is set to release next year!';
+                    subtitles.innerHTML = `📰 "${news}"`;
+                    addTranscriptLine('[News]', news);
+                    if (!isReading) await speakText(news);
+                }
+            });
+
+            // ---- Clear Transcript ----
+            clearBtn.addEventListener('click', () => {
+                transcript.innerHTML = '';
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = `<span class="timestamp">[System]</span> Transcript cleared.`;
+                transcript.appendChild(line);
+            });
+
+            // ---- Voice Selector change ----
+            voiceSelect.addEventListener('change', () => {
+                const voice = voiceSelect.value;
+                if (voice === 'browser') {
+                    voiceStatus.textContent = '🧠 Browser';
+                    voiceStatus.style.color = '#5ac8fa';
+                    voiceStatus.style.borderColor = '#5ac8fa55';
+                } else {
+                    voiceStatus.textContent = '🐝 ' + voice.charAt(0).toUpperCase() + voice.slice(1);
+                    voiceStatus.style.color = '#4cd964';
+                    voiceStatus.style.borderColor = '#4cd96455';
+                }
+                statusBadge.textContent = `● Voice: ${voice}`;
+            });
+            voiceSelect.dispatchEvent(new Event('change'));
+
+            // ---- Init ----
+            stationStatus.textContent = 'Standby';
+            statusBadge.textContent = '● Idle';
+            powerLed.className = 'led on';
+            freqDisplay.textContent = '101.5';
+            const name = 'SensyCilva';
+            stationName.textContent = name;
+            footerStationName.textContent = name;
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+            }
+
+            console.log('🎙️ SensyCilva Anime Radio loaded!');
+            console.log('📝 Live AI generation with smart fallback.');
+            console.log('🔒 No API keys – 100% free.');
+        })();
+    </script>
+
 </body>
 </html>

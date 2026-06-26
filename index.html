@@ -6,7 +6,6 @@
     <title>SensyCilva Anime Radio</title>
     <link rel="icon" href="logo.png" type="image/png" />
     <style>
-        /* ====== EXACT SAME STYLES AS BEFORE ====== */
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#0b0d11; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family:'Segoe UI',system-ui,sans-serif; padding:20px; }
         .radio-station { background:linear-gradient(145deg,#1a1e26,#101318); border-radius:48px; padding:32px 28px; max-width:780px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.8); border:1px solid #2a2f3a; }
@@ -34,16 +33,19 @@
         .ai-status.active { color:#ff9500; border-color:#ff950055; animation:blink 1s infinite; }
         .ai-status.thinking { color:#5ac8fa; border-color:#5ac8fa55; animation:blink .5s infinite; }
         .ai-status.fallback { color:#ff9500; border-color:#ff950055; }
+        .ai-status.error { color:#ff6a5a; border-color:#ff6a5a55; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-        .script-preview { background:#080b10; border-radius:12px; padding:14px 16px; min-height:120px; max-height:300px; overflow-y:auto; color:#b7e1fa; font-size:15px; line-height:1.6; border:1px solid #1a212a; margin-top:8px; white-space:pre-wrap; scrollbar-width:thin; scrollbar-color:#2a3a4a transparent; }
+        .script-preview { background:#080b10; border-radius:12px; padding:14px 16px; min-height:120px; max-height:300px; overflow-y:auto; color:#b7e1fa; font-size:15px; line-height:1.6; border:1px solid #1a212a; margin-top:8px; white-space:pre-wrap; font-family:'Segoe UI',sans-serif; scrollbar-width:thin; scrollbar-color:#2a3a4a transparent; }
         .script-preview::-webkit-scrollbar { width:4px; }
         .script-preview::-webkit-scrollbar-thumb { background:#2a3a4a; border-radius:8px; }
         .script-preview .placeholder { color:#4a5a6a; font-style:italic; }
         .script-preview .fallback-label { color:#ff9500; font-weight:600; border-bottom:1px solid #ff950033; padding-bottom:4px; display:block; margin-bottom:8px; }
+        .script-preview .error-detail { color:#ff6a5a; background:#1a0a0a; border:1px solid #ff6a5a33; border-radius:8px; padding:12px; margin:8px 0; font-size:14px; }
         .subtitles { background:#080b10; border-radius:12px; padding:14px 16px; min-height:60px; color:#b7e1fa; font-size:20px; line-height:1.5; border:1px solid #1a212a; margin-top:8px; text-align:center; font-weight:500; letter-spacing:.3px; display:flex; align-items:center; justify-content:center; transition:.2s; }
         .subtitles .speaking { color:#ff9500; }
         .subtitles .idle { color:#4a5a6a; font-size:15px; font-weight:400; font-style:italic; }
         .subtitles .thinking { color:#5ac8fa; }
+        .subtitles .error { color:#ff6a5a; }
         .transcript { background:#080b10; border-radius:12px; padding:10px 14px; margin-top:8px; max-height:80px; overflow-y:auto; border:1px solid #1a212a; color:#6a8a9a; font-size:13px; line-height:1.6; scrollbar-width:thin; scrollbar-color:#2a3a4a transparent; }
         .transcript::-webkit-scrollbar { width:4px; }
         .transcript::-webkit-scrollbar-thumb { background:#2a3a4a; border-radius:8px; }
@@ -57,6 +59,8 @@
         .controls button.primary:hover { background:#234a66; box-shadow:0 0 20px #2a6f9a44; }
         .controls button.danger { border-color:#8a3a3a; color:#ff6a5a; }
         .controls button.danger:hover { background:#2a1a1a; border-color:#ff4a3a; }
+        .controls button.test { border-color:#5a7a8a; color:#8ab0c8; }
+        .controls button.test:hover { background:#1f2f3a; border-color:#7a9aaa; }
         .controls button:disabled { opacity:.4; cursor:not-allowed; }
         .voice-selector { display:flex; align-items:center; gap:10px; margin:8px 0 4px; flex-wrap:wrap; }
         .voice-selector label { color:#7e8a9b; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; }
@@ -75,7 +79,6 @@
 <body>
 
     <div class="radio-station">
-
         <!-- HEADER -->
         <div class="station-header">
             <div class="brand">
@@ -104,22 +107,18 @@
                 <span class="ai-status" id="aiStatus">● Idle</span>
             </div>
 
-            <!-- Script Preview -->
             <div class="script-preview" id="scriptPreview">
-                <span class="placeholder">📝 Generate a script to see it here, then press "Start Reading" to hear it.</span>
+                <span class="placeholder">📝 Generate a script – token is secure in Cloudflare Worker.</span>
             </div>
 
-            <!-- Subtitles -->
             <div class="subtitles" id="subtitles">
                 <span class="idle">🎧 Generate a script, then press "Start Reading"</span>
             </div>
 
-            <!-- Transcript -->
             <div class="transcript" id="transcript">
                 <div class="line"><span class="timestamp">[System]</span> Welcome to SensyCilva Anime Radio.</div>
             </div>
 
-            <!-- Voice Selector -->
             <div class="voice-selector">
                 <label for="voiceSelect">🎤 Voice</label>
                 <select id="voiceSelect">
@@ -135,20 +134,20 @@
                 <span class="voice-status" id="voiceStatus">✅ Ready</span>
             </div>
 
-            <!-- Controls -->
             <div class="controls">
                 <button class="primary" id="generateBtn">📝 Generate Script</button>
                 <button class="primary" id="readBtn" disabled>🔊 Start Reading</button>
                 <button class="danger" id="stopBtn">⏹ Stop</button>
                 <button id="shoutoutBtn">💬 Shoutout</button>
                 <button id="newsBtn">📰 News</button>
+                <button class="test" id="testApiBtn">🧪 Test API</button>
                 <button id="clearBtn">🧹 Clear</button>
             </div>
         </div>
 
         <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
             <span class="status-badge" id="statusBadge">● Idle</span>
-            <span style="color:#6a7a8a;font-size:11px;">⚡ HuggingFace AI · Token in code (secure soon)</span>
+            <span style="color:#6a7a8a;font-size:11px;">🔒 Token secured in Cloudflare Worker</span>
         </div>
 
         <!-- FOOTER -->
@@ -168,10 +167,9 @@
             'use strict';
 
             // ============================================================
-            //  CONFIGURATION – PUT YOUR HUGGINGFACE TOKEN HERE
-            //  (Get one at https://huggingface.co/settings/tokens)
+            //  CONFIGURATION – YOUR CLOUDFLARE WORKER URL
             // ============================================================
-            const HF_TOKEN = 'hf_YOUR_TOKEN_HERE';  // <-- REPLACE WITH YOUR ACTUAL TOKEN
+            const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
 
             // ===== DOM refs =====
             const powerLed = document.getElementById('powerLed');
@@ -191,6 +189,7 @@
             const stopBtn = document.getElementById('stopBtn');
             const shoutoutBtn = document.getElementById('shoutoutBtn');
             const newsBtn = document.getElementById('newsBtn');
+            const testApiBtn = document.getElementById('testApiBtn');
             const clearBtn = document.getElementById('clearBtn');
 
             // ===== State =====
@@ -203,7 +202,7 @@
             let speechTimer = null;
             let audioElement = null;
 
-            // ===== LARGE FALLBACK LIBRARY (10+ full scripts, 600+ words each) =====
+            // ===== Fallback scripts (full length) =====
             const fallbackScripts = [
                 // Script 1
                 `[Intro]
@@ -255,47 +254,82 @@ Did you know that the voice actor for Thorfinn in the Japanese dub, Shizuka Ishi
 [Sign-off]
 That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your eyes on the sky and your heart in the anime. Until next time, sayonara!"`,
 
-                // Script 3 – you can add more (I've added 3 for brevity, but the full code in your final answer should include at least 5–8 full scripts)
-                // ... (add additional scripts as needed)
+                // Script 3
+                `[Intro]
+"Hey hey, it's your favourite anime radio show! You're tuned to SensyCilva Anime Radio, where we talk about everything from shonen battles to slice-of-life gems. Let's get started!
+
+[News]
+Big news from the anime world: the long-awaited second season of "Jujutsu Kaisen" has been confirmed for a 2027 release, with MAPPA returning to animate the Shibuya Incident arc – which is arguably one of the most intense arcs in manga history. Also, the new studio, Studio Colorido, is working on a feature film based on the popular webcomic "The Girl Who Leapt Through Time" – a fresh take on a classic.
+
+And for those who love music anime, "Given" is getting a new movie that continues the story of the band and their emotional journey. Fans of the original series are already crying in anticipation.
+
+[Featured Anime: Spy x Family]
+Today's featured show is the global phenomenon – Spy x Family! This anime blends action, comedy, and heartwarming family dynamics like no other. The story follows a spy, an assassin, and a telepathic child who form a fake family to complete a mission. What could go wrong? Well, everything, but that's why we love it.
+
+The animation by Wit Studio and CloverWorks is top-notch, with fluid action sequences and expressive character animations. The comedy hits perfectly, and the emotional moments – especially between Loid, Yor, and Anya – are genuinely touching. It's a show that appeals to everyone, from kids to adults.
+
+[Recommendation]
+If you enjoyed Spy x Family, you should check out "Buddy Daddies" – it's a similar premise but with a darker, more mature tone. It follows two assassins who take care of a little girl, and it's surprisingly heartfelt.
+
+[Trivia]
+Anya's voice actress, Atsumi Tanezaki (yes, she also voiced Frieren!), had to record her lines while eating peanuts to sound like she's chewing – because Anya is always eating something!
+
+[Sign-off]
+That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. Keep watching, keep smiling, and I'll see you in the next episode!"`
             ];
 
             function getRandomFallback() {
                 return fallbackScripts[Math.floor(Math.random() * fallbackScripts.length)];
             }
 
-            // ===== HuggingFace API call =====
-            async function generateWithHuggingFace(prompt) {
-                const HF_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1';
+            // ===== Helper: Show error =====
+            function showError(title, details) {
+                const errorHtml = `
+                    <div class="error-detail">
+                        <strong>❌ ${title}</strong><br/>
+                        <span style="color:#ff9a8a;">${details}</span>
+                    </div>
+                `;
+                if (scriptPreview.innerHTML.includes('error-detail')) {
+                    scriptPreview.innerHTML = scriptPreview.innerHTML.replace(/<div class="error-detail">.*?<\/div>/, errorHtml);
+                } else {
+                    scriptPreview.innerHTML = errorHtml + scriptPreview.innerHTML;
+                }
+            }
+
+            function clearErrors() {
+                scriptPreview.innerHTML = scriptPreview.innerHTML.replace(/<div class="error-detail">.*?<\/div>/g, '');
+            }
+
+            // ===== Call Worker =====
+            async function generateWithWorker(prompt) {
                 try {
-                    const response = await fetch(HF_URL, {
+                    const response = await fetch(WORKER_URL, {
                         method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${HF_TOKEN}`,
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            inputs: prompt,
-                            parameters: {
-                                max_new_tokens: 600,
-                                temperature: 0.75,
-                                top_p: 0.9,
-                                do_sample: true,
-                            },
-                        }),
+                            action: 'generate_script',
+                            prompt: prompt
+                        })
                     });
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`HF error ${response.status}: ${errorText}`);
-                    }
+
                     const data = await response.json();
-                    let text = data[0]?.generated_text || '';
-                    if (text.startsWith(prompt)) {
-                        text = text.substring(prompt.length).trim();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || `HTTP ${response.status}`);
                     }
-                    return text || null;
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    if (!data.text || data.text.length < 50) {
+                        throw new Error(`Response too short (${data.text?.length || 0} chars)`);
+                    }
+
+                    return data.text;
                 } catch (err) {
-                    console.warn('HuggingFace generation failed:', err);
-                    return null;
+                    throw new Error(`Worker error: ${err.message}`);
                 }
             }
 
@@ -304,12 +338,93 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
                 const prompt = `Write a complete anime radio show script for "SensyCilva Anime Radio". At least 500 words with:
                 greeting, news, featured anime, recommendation, trivia, sign-off. Make it engaging and conversational.`;
 
-                const result = await generateWithHuggingFace(prompt);
+                const result = await generateWithWorker(prompt);
                 if (result && result.length > 100) return result;
-                throw new Error('short_response');
+                throw new Error('Response too short after processing');
             }
 
-            // ===== TTS: Pollinations (fallback) =====
+            // ===== Test API =====
+            testApiBtn.addEventListener('click', async () => {
+                clearErrors();
+                scriptPreview.innerHTML = '<span class="thinking">🔬 Testing Worker connection...</span>';
+                aiStatus.textContent = '● Testing';
+                aiStatus.className = 'ai-status thinking';
+                powerLed.className = 'led ai-thinking';
+
+                const testPrompt = 'Write a short 1-sentence greeting for an anime radio show.';
+                try {
+                    const result = await generateWithWorker(testPrompt);
+                    scriptPreview.innerHTML =
+                        `✅ Worker Test Successful!<br/><br/>Response:<br/><span style="color:#5ac8fa;">"${result}"</span>`;
+                    aiStatus.textContent = '● OK';
+                    aiStatus.className = 'ai-status';
+                    powerLed.className = 'led on';
+                    subtitles.innerHTML = '<span class="idle">✅ Worker test passed.</span>';
+                    addTranscriptLine('[System]', 'Worker test successful');
+                } catch (err) {
+                    const errorMsg = err.message;
+                    showError('Worker Test Failed', errorMsg);
+                    aiStatus.textContent = '● Error';
+                    aiStatus.className = 'ai-status error';
+                    powerLed.className = 'led on';
+                    subtitles.innerHTML = `<span class="error">❌ ${errorMsg}</span>`;
+                    addTranscriptLine('[System]', `Worker test failed: ${errorMsg}`);
+                }
+            });
+
+            // ===== Generate Button =====
+            generateBtn.addEventListener('click', async () => {
+                if (isGenerating) return;
+                clearErrors();
+                isGenerating = true;
+                generateBtn.disabled = true;
+                generateBtn.textContent = '⏳ Generating...';
+                aiStatus.textContent = '● Generating...';
+                aiStatus.className = 'ai-status thinking';
+                powerLed.className = 'led ai-thinking';
+                scriptPreview.innerHTML = '<span class="thinking">🧠 Generating your anime radio script...</span>';
+                subtitles.innerHTML = '<span class="thinking">⏳ AI is writing the show...</span>';
+
+                let script = '';
+                let usedFallback = false;
+                let errorDetail = '';
+
+                try {
+                    script = await generateAnimeScript();
+                    if (!script || script.length < 100) throw new Error('Response too short');
+                } catch (err) {
+                    usedFallback = true;
+                    errorDetail = err.message;
+                    showError('AI Generation Failed', errorDetail);
+                    script = getRandomFallback();
+                    scriptPreview.innerHTML +=
+                        `<span class="fallback-label">⚠️ Using fallback script</span>\n${script}`;
+                    subtitles.innerHTML = '<span class="idle">⚠️ Fallback script loaded. Press "Start Reading".</span>';
+                    aiStatus.textContent = '● Fallback';
+                    aiStatus.className = 'ai-status fallback';
+                    addTranscriptLine('[System]', `Fallback used: ${errorDetail}`);
+                }
+
+                if (!usedFallback) {
+                    scriptPreview.textContent = script;
+                    subtitles.innerHTML = '<span class="idle">✅ Live AI script ready! Press "Start Reading" to hear it.</span>';
+                    aiStatus.textContent = '● Ready (AI)';
+                    aiStatus.className = 'ai-status';
+                    addTranscriptLine('[System]', `Live AI script (${script.length} chars)`);
+                }
+
+                currentScript = script;
+                readBtn.disabled = false;
+                readBtn.textContent = '🔊 Start Reading';
+                statusBadge.textContent = '● Script Ready';
+                powerLed.className = 'led on';
+
+                generateBtn.textContent = '📝 Generate Script';
+                generateBtn.disabled = false;
+                isGenerating = false;
+            });
+
+            // ===== TTS and reading logic =====
             function speakWithPollinationsTTS(text, voice) {
                 return new Promise((resolve) => {
                     const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
@@ -353,7 +468,6 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
                 });
             }
 
-            // ===== Browser TTS (Indian) =====
             function speakWithBrowserTTS(text, lang = 'en-US') {
                 return new Promise((resolve) => {
                     if (!window.speechSynthesis) { resolve(); return; }
@@ -363,7 +477,6 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
                     utterance.rate = 0.85;
                     utterance.pitch = 1.0;
                     utterance.volume = 1;
-
                     const voices = synth.getVoices();
                     let preferred = voices.find(v => v.lang === lang && v.name.includes('Google'));
                     if (!preferred) preferred = voices.find(v => v.lang === lang);
@@ -399,77 +512,17 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
                 });
             }
 
-            // ===== Main speak =====
             function speakText(text) {
                 const voice = voiceSelect.value;
-                if (voice === 'indian') {
-                    return speakWithBrowserTTS(text, 'en-IN');
-                } else if (voice === 'browser') {
-                    return speakWithBrowserTTS(text, 'en-US');
-                } else {
-                    return speakWithPollinationsTTS(text, voice);
-                }
+                if (voice === 'indian') return speakWithBrowserTTS(text, 'en-IN');
+                else if (voice === 'browser') return speakWithBrowserTTS(text, 'en-US');
+                else return speakWithPollinationsTTS(text, voice);
             }
-
-            // ===== Generate Button =====
-            generateBtn.addEventListener('click', async () => {
-                if (isGenerating) return;
-                isGenerating = true;
-                generateBtn.disabled = true;
-                generateBtn.textContent = '⏳ Generating...';
-                aiStatus.textContent = '● Generating...';
-                aiStatus.className = 'ai-status thinking';
-                powerLed.className = 'led ai-thinking';
-                scriptPreview.innerHTML = '<span class="thinking">🧠 Generating your anime radio script...</span>';
-                subtitles.innerHTML = '<span class="thinking">⏳ AI is writing the show...</span>';
-
-                let script = '';
-                let usedFallback = false;
-
-                try {
-                    script = await generateAnimeScript();
-                    if (!script || script.length < 100) throw new Error('short');
-                } catch (err) {
-                    usedFallback = true;
-                    script = getRandomFallback();
-                    scriptPreview.innerHTML =
-                        `<span class="fallback-label">⚠️ ${err.message === 'short_response' ? 'AI response too short' : 'AI generation failed'} – using fallback script</span>\n${script}`;
-                    subtitles.innerHTML = '<span class="idle">⚠️ Fallback script loaded. Press "Start Reading".</span>';
-                    aiStatus.textContent = '● Fallback';
-                    aiStatus.className = 'ai-status fallback';
-                    addTranscriptLine('[System]', `Fallback used (${err.message})`);
-                }
-
-                if (!usedFallback) {
-                    scriptPreview.textContent = script;
-                    subtitles.innerHTML = '<span class="idle">✅ Live AI script ready! Press "Start Reading" to hear it.</span>';
-                    aiStatus.textContent = '● Ready (AI)';
-                    aiStatus.className = 'ai-status';
-                    addTranscriptLine('[System]', `Live AI script (${script.length} chars)`);
-                }
-
-                currentScript = script;
-                readBtn.disabled = false;
-                readBtn.textContent = '🔊 Start Reading';
-                statusBadge.textContent = '● Script Ready';
-                powerLed.className = 'led on';
-
-                generateBtn.textContent = '📝 Generate Script';
-                generateBtn.disabled = false;
-                isGenerating = false;
-            });
 
             // ===== Read Button =====
             readBtn.addEventListener('click', () => {
-                if (!currentScript) {
-                    subtitles.innerHTML = '<span class="idle">⚠️ Generate a script first!</span>';
-                    return;
-                }
-                if (isReading) {
-                    stopReading();
-                    readBtn.textContent = '🔊 Start Reading';
-                    return;
-                }
+                if (!currentScript) { subtitles.innerHTML = '<span class="idle">⚠️ Generate a script first!</span>'; return; }
+                if (isReading) { stopReading(); readBtn.textContent = '🔊 Start Reading'; return; }
                 isReading = true;
                 readBtn.textContent = '⏹ Reading...';
                 readBtn.classList.add('danger');
@@ -482,10 +535,7 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
             });
 
             function speakNextParagraph() {
-                if (!isReading || speechQueue.length === 0) {
-                    finishReading();
-                    return;
-                }
+                if (!isReading || speechQueue.length === 0) { finishReading(); return; }
                 const text = speechQueue.shift();
                 subtitles.innerHTML = `<span class="speaking">🗣️ ${text}</span>`;
                 addTranscriptLine('[AI Host]', text);
@@ -495,9 +545,7 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
                     } else {
                         finishReading();
                     }
-                }).catch(() => {
-                    finishReading();
-                });
+                }).catch(() => finishReading());
             }
 
             function finishReading() {
@@ -517,13 +565,9 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
             function stopReading() {
                 isReading = false;
                 if (speechTimer) clearTimeout(speechTimer);
-                if (currentUtterance) {
-                    if (window.speechSynthesis) window.speechSynthesis.cancel();
-                }
-                if (audioElement) {
-                    audioElement.pause();
-                    audioElement = null;
-                }
+                if (currentUtterance && window.speechSynthesis) window.speechSynthesis.cancel();
+                if (audioElement) { audioElement.pause();
+                    audioElement = null; }
                 isSpeaking = false;
                 readBtn.textContent = '🔊 Start Reading';
                 readBtn.classList.remove('danger');
@@ -544,9 +588,10 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
             // ===== Shoutout =====
             shoutoutBtn.addEventListener('click', async () => {
                 const name = prompt("Enter a name for the anime shoutout:") || 'anime fan';
-                const promptText = `Write a short, enthusiastic 1-sentence radio shoutout for ${name} on an anime radio show.`;
+                const promptText =
+                    `Write a short, enthusiastic 1-sentence radio shoutout for ${name} on an anime radio show.`;
                 try {
-                    const result = await generateWithHuggingFace(promptText);
+                    const result = await generateWithWorker(promptText);
                     let msg = result || `🎉 Shoutout to ${name}! You're awesome!`;
                     subtitles.innerHTML = `📢 "${msg}"`;
                     addTranscriptLine('[Shoutout]', msg);
@@ -565,7 +610,7 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
             newsBtn.addEventListener('click', async () => {
                 const promptText = `Write a short, interesting 1-sentence anime news headline.`;
                 try {
-                    const result = await generateWithHuggingFace(promptText);
+                    const result = await generateWithWorker(promptText);
                     let news = result || '📰 New anime adaptation announced!';
                     subtitles.innerHTML = `📰 "${news}"`;
                     addTranscriptLine('[News]', news);
@@ -637,8 +682,8 @@ That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your 
                 window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
             }
 
-            console.log('🎙️ SensyCilva Anime Radio loaded with HuggingFace AI!');
-            console.log('🔑 Token is hardcoded – replace with your own.');
+            console.log('🎙️ SensyCilva Anime Radio loaded – token is secured in Cloudflare Worker.');
+            console.log(`🔗 Worker URL: ${WORKER_URL}`);
         })();
     </script>
 

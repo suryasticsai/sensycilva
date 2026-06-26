@@ -29,8 +29,6 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             border: 1px solid #2a2f3a;
         }
-
-        /* Header */
         .station-header {
             display: flex;
             justify-content: space-between;
@@ -177,7 +175,6 @@
             50% { opacity: 0.3; }
         }
 
-        /* Script Preview */
         .script-preview {
             background: #080b10;
             border-radius: 12px;
@@ -215,7 +212,6 @@
             margin-bottom: 8px;
         }
 
-        /* Subtitles */
         .subtitles {
             background: #080b10;
             border-radius: 12px;
@@ -247,7 +243,6 @@
             color: #5ac8fa;
         }
 
-        /* Transcript */
         .transcript {
             background: #080b10;
             border-radius: 12px;
@@ -282,7 +277,6 @@
             margin-right: 8px;
         }
 
-        /* Controls */
         .controls {
             display: flex;
             gap: 8px;
@@ -486,13 +480,14 @@
             <div class="voice-selector">
                 <label for="voiceSelect">🎤 Voice</label>
                 <select id="voiceSelect">
+                    <option value="indian_hf">🇮🇳 Indian (HF - Hinglish)</option>
                     <option value="browser">🧠 Browser TTS</option>
-                    <option value="alloy" selected>🐝 Alloy</option>
-                    <option value="echo">🐝 Echo</option>
-                    <option value="fable">🐝 Fable</option>
-                    <option value="onyx">🐝 Onyx</option>
-                    <option value="nova">🐝 Nova</option>
-                    <option value="shimmer">🐝 Shimmer</option>
+                    <option value="pollinations_alloy">🐝 Alloy</option>
+                    <option value="pollinations_echo">🐝 Echo</option>
+                    <option value="pollinations_fable">🐝 Fable</option>
+                    <option value="pollinations_onyx">🐝 Onyx</option>
+                    <option value="pollinations_nova">🐝 Nova</option>
+                    <option value="pollinations_shimmer">🐝 Shimmer</option>
                 </select>
                 <span class="voice-status" id="voiceStatus">✅ Ready</span>
             </div>
@@ -510,7 +505,7 @@
 
         <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
             <span class="status-badge" id="statusBadge">● Idle</span>
-            <span style="color:#6a7a8a;font-size:11px;">⚡ Pollinations AI · No Token</span>
+            <span style="color:#6a7a8a;font-size:11px;">⚡ HF + Pollinations · No Token in Frontend</span>
         </div>
 
         <!-- FOOTER -->
@@ -529,7 +524,12 @@
         (function() {
             'use strict';
 
-            // ---- DOM refs ----
+            // =============================================
+            // ===== YOUR CLOUDFLARE WORKER URL ============
+            // =============================================
+            const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
+
+            // ===== DOM refs =====
             const powerLed = document.getElementById('powerLed');
             const stationStatus = document.getElementById('stationStatus');
             const stationName = document.getElementById('stationName');
@@ -549,7 +549,7 @@
             const newsBtn = document.getElementById('newsBtn');
             const clearBtn = document.getElementById('clearBtn');
 
-            // ---- State ----
+            // ===== State =====
             let currentScript = '';
             let isReading = false;
             let isGenerating = false;
@@ -557,9 +557,9 @@
             let currentUtterance = null;
             let speechQueue = [];
             let speechTimer = null;
-            let isFallback = false;
+            let audioElement = null;
 
-            // ---- 5 Long Fallback Scripts (each 600+ words) ----
+            // ===== Fallback Scripts (600+ words each) =====
             const fallbackScripts = [
                 `[Intro]
 "Welcome back, anime fans! This is your host, and you're listening to SensyCilva Anime Radio – the only station that brings you the hottest news, deep dives, and all the feels from the world of anime.
@@ -629,99 +629,213 @@ If you enjoyed Spy x Family, you should check out "Buddy Daddies" – it's a sim
 Anya's voice actress, Atsumi Tanezaki (yes, she also voiced Frieren!), had to record her lines while eating peanuts to sound like she's chewing – because Anya is always eating something!
 
 [Sign-off]
-That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. Keep watching, keep smiling, and I'll see you in the next episode!"`,
-
-                `[Intro]
-"Good evening, anime enthusiasts! Welcome to SensyCilva Anime Radio – the station that never sleeps when it comes to anime. Tonight, we have a special episode dedicated to the classics and the new wave.
-
-[News]
-First off, the hype is real: "Demon Slayer" is getting a new season that covers the Hashira Training arc, and Ufotable is pulling out all the stops with their signature visual effects. We can expect more breathtaking animation and intense battles.
-
-Additionally, the Netflix live-action adaptation of "One Piece" has been renewed for a second season, and they've promised to include fan-favourite characters like Chopper and Robin. Can they pull it off? We'll see!
-
-[Featured Anime: Cowboy Bebop]
-Let's take a trip down memory lane with the timeless classic – Cowboy Bebop. This 1998 masterpiece is still regarded as one of the greatest anime of all time. It blends space Western, noir, and jazz into a stylish, philosophical journey.
-
-The story follows bounty hunters Spike Spiegel and Jet Black, along with Faye Valentine, Edward, and Ein, as they chase criminals across the solar system. Each episode is a self-contained gem, exploring themes of loneliness, identity, and the past. The animation by Sunrise is phenomenal, and Yoko Kanno's jazz soundtrack is legendary.
-
-If you've never seen it, do yourself a favour – watch it. It's a must-see for any anime fan.
-
-[Recommendation]
-If you liked Cowboy Bebop, you'll love "Samurai Champloo" – from the same director, Shinichirō Watanabe. It's a hip-hop infused samurai adventure with amazing fight choreography and a fantastic soundtrack.
-
-[Trivia]
-Did you know that the voice actor for Spike Spiegel in the English dub, Steve Blum, has voiced over 1000 characters? He's a legend in the voice acting world.
-
-[Sign-off]
-That's all for tonight. Thanks for spending your evening with SensyCilva Anime Radio. Keep the spirit of anime alive, and I'll catch you on the next broadcast!"`,
-
-                `[Intro]
-"Yoo-hoo! It's time for some anime talk on SensyCilva Anime Radio. I'm your host, and we've got a packed show today – from the latest releases to some hidden gems you might have missed.
-
-[News]
-Let's kick off with the news: "Mob Psycho 100" is getting a new OVA that ties up some loose ends from the series. Studio Bones is handling it, so you know the animation will be mind-blowing.
-
-Also, the acclaimed movie "Suzume" is now available on streaming platforms, so if you missed it in theatres, now's your chance to experience Makoto Shinkai's beautiful visuals and heartfelt storytelling.
-
-[Featured Anime: Mob Psycho 100]
-Talking about Mob Psycho 100, let's dive into why this show is a modern classic. Created by ONE, the same mind behind One Punch Man, Mob Psycho 100 tells the story of a psychic middle schooler who just wants to be normal. He struggles with his emotions, friendships, and the responsibility of his immense power.
-
-What sets this show apart is its incredible character development, its humour, and its stunning animation – especially during the action sequences. Studio Bones went all out, and the result is a show that's both hilarious and deeply moving. The third season wrapped up the story beautifully, leaving fans satisfied.
-
-[Recommendation]
-If you loved Mob Psycho 100, you should watch "One Punch Man" (season 1) for more of ONE's genius, or "Bungo Stray Dogs" for more supernatural action with great characters.
-
-[Trivia]
-The voice actor for Mob, Setsuo Ito, was actually a rookie when he was cast. His performance is raw and authentic, which perfectly fits the character.
-
-[Sign-off]
-That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remember, anime is for everyone. Until next time, stay awesome!"`
+That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. Keep watching, keep smiling, and I'll see you in the next episode!"`
             ];
 
             function getRandomFallback() {
                 return fallbackScripts[Math.floor(Math.random() * fallbackScripts.length)];
             }
 
-            // ---- Pollinations Text Generation ----
+            // ===== Worker API calls =====
+            async function callWorker(action, payload) {
+                try {
+                    const response = await fetch(WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action, ...payload }),
+                    });
+                    if (!response.ok) {
+                        let errorMsg = `HTTP ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            if (errorData.error) errorMsg = errorData.error;
+                        } catch (e) {}
+                        throw new Error(errorMsg);
+                    }
+                    return await response;
+                } catch (err) {
+                    console.warn('Worker call failed:', err);
+                    return null;
+                }
+            }
+
+            // ===== Generate script via Worker (HF) =====
             async function generateAnimeScript() {
                 const prompt = `Write a complete anime radio show script for a radio show called "SensyCilva Anime Radio". The script should be at least 500 words and include:
-
                 1. A warm, energetic greeting to listeners.
                 2. Anime news (recent announcements, upcoming seasons, movies, or studio updates).
                 3. A featured anime segment – choose a popular or recent anime and discuss its plot, characters, animation, and why it's worth watching.
                 4. A recommendation for another anime (genre, what makes it good).
                 5. An interesting anime trivia or fun fact.
                 6. A friendly sign-off.
-
                 Make the tone enthusiastic, conversational, and engaging – like a real radio host talking to anime fans. Use proper punctuation and spacing.`;
 
                 try {
-                    const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        if (response.status === 429) {
-                            throw new Error('rate_limit');
-                        }
-                        throw new Error('api_error');
-                    }
+                    const response = await callWorker('generate_script', { prompt });
+                    if (!response) throw new Error('Worker failed');
                     const data = await response.json();
-                    let text = data.text || data.response || data || '';
-                    if (typeof text === 'string' && text.startsWith(prompt)) {
-                        text = text.substring(prompt.length).trim();
-                    }
-                    if (!text || text.length < 100) {
-                        throw new Error('short_response');
-                    }
-                    return text;
+                    if (data.error) throw new Error(data.error);
+                    if (!data.text || data.text.length < 100) throw new Error('short_response');
+                    return data.text;
                 } catch (err) {
-                    if (err.message === 'rate_limit') {
+                    if (err.message.includes('rate_limit') || err.message.includes('429')) {
                         throw new Error('rate_limit');
                     }
                     throw new Error('generation_failed');
                 }
             }
 
-            // ---- Generate Button ----
+            // ===== TTS via Worker (HF Indian voice) =====
+            async function speakWithHfTTS(text) {
+                try {
+                    const response = await callWorker('tts', { text, language: 'hi', speaker: 'female' });
+                    if (!response) throw new Error('Worker TTS failed');
+                    const audioBlob = await response.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    return new Promise((resolve, reject) => {
+                        const audio = new Audio(audioUrl);
+                        audioElement = audio;
+                        audio.onplay = () => {
+                            isSpeaking = true;
+                            aiStatus.textContent = '● Speaking (HF)';
+                            aiStatus.className = 'ai-status active';
+                            powerLed.className = 'led ai-speaking';
+                            statusBadge.textContent = '● Speaking';
+                        };
+                        audio.onended = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            isSpeaking = false;
+                            aiStatus.textContent = '● Idle';
+                            aiStatus.className = 'ai-status';
+                            powerLed.className = 'led on';
+                            statusBadge.textContent = '● Idle';
+                            resolve();
+                        };
+                        audio.onerror = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            console.warn('HF TTS playback error, falling back to Pollinations');
+                            speakWithPollinations(text, 'alloy').then(resolve).catch(resolve);
+                        };
+                        audio.play().catch(() => {
+                            speakWithPollinations(text, 'alloy').then(resolve).catch(resolve);
+                        });
+                    });
+                } catch (err) {
+                    console.warn('HF TTS error, falling back to Pollinations:', err);
+                    return speakWithPollinations(text, 'alloy');
+                }
+            }
+
+            // ===== Pollinations TTS (fallback) =====
+            function speakWithPollinations(text, voice) {
+                return new Promise((resolve) => {
+                    const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Pollinations TTS failed');
+                            return response.blob();
+                        })
+                        .then(blob => {
+                            const audioUrl = URL.createObjectURL(blob);
+                            const audio = new Audio(audioUrl);
+                            audioElement = audio;
+                            audio.onplay = () => {
+                                isSpeaking = true;
+                                aiStatus.textContent = '● Speaking (Pollinations)';
+                                aiStatus.className = 'ai-status active';
+                                powerLed.className = 'led ai-speaking';
+                                statusBadge.textContent = '● Speaking';
+                            };
+                            audio.onended = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                isSpeaking = false;
+                                aiStatus.textContent = '● Idle';
+                                aiStatus.className = 'ai-status';
+                                powerLed.className = 'led on';
+                                statusBadge.textContent = '● Idle';
+                                resolve();
+                            };
+                            audio.onerror = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                isSpeaking = false;
+                                aiStatus.textContent = '● Error';
+                                aiStatus.className = 'ai-status';
+                                powerLed.className = 'led on';
+                                statusBadge.textContent = '● Error';
+                                resolve();
+                            };
+                            audio.play().catch(() => {
+                                resolve();
+                            });
+                        })
+                        .catch(() => {
+                            resolve();
+                        });
+                });
+            }
+
+            // ===== Browser TTS (ultimate fallback) =====
+            function speakWithBrowserTTS(text) {
+                return new Promise((resolve) => {
+                    if (!window.speechSynthesis) {
+                        resolve();
+                        return;
+                    }
+                    const synth = window.speechSynthesis;
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.85;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1;
+                    const voices = synth.getVoices();
+                    const preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+                        voices.find(v => v.lang === 'en-US') || voices[0];
+                    if (preferred) utterance.voice = preferred;
+
+                    utterance.onstart = () => {
+                        isSpeaking = true;
+                        aiStatus.textContent = '● Speaking (Browser)';
+                        aiStatus.className = 'ai-status active';
+                        powerLed.className = 'led ai-speaking';
+                        statusBadge.textContent = '● Speaking';
+                    };
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Idle';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Idle';
+                        resolve();
+                    };
+                    utterance.onerror = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Error';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Error';
+                        resolve();
+                    };
+                    currentUtterance = utterance;
+                    synth.speak(utterance);
+                });
+            }
+
+            // ===== Main speak function =====
+            function speakText(text) {
+                const voice = voiceSelect.value;
+                if (voice === 'indian_hf') {
+                    return speakWithHfTTS(text);
+                } else if (voice === 'browser') {
+                    return speakWithBrowserTTS(text);
+                } else if (voice.startsWith('pollinations_')) {
+                    const v = voice.replace('pollinations_', '');
+                    return speakWithPollinations(text, v);
+                } else {
+                    return speakWithPollinations(text, 'alloy');
+                }
+            }
+
+            // ===== Generate Button =====
             generateBtn.addEventListener('click', async () => {
                 if (isGenerating) return;
                 isGenerating = true;
@@ -735,42 +849,29 @@ That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remembe
 
                 let script = '';
                 let usedFallback = false;
+                let source = 'HF';
 
                 try {
                     script = await generateAnimeScript();
-                    isFallback = false;
+                    if (!script || script.length < 100) throw new Error('short');
                 } catch (err) {
-                    if (err.message === 'rate_limit') {
-                        usedFallback = true;
-                        script = getRandomFallback();
-                        isFallback = true;
-                        scriptPreview.innerHTML =
-                            `<span class="fallback-label">⚠️ AI rate‑limit reached – using a pre‑written fallback script (still 600+ words!)</span>\n${script}`;
-                        subtitles.innerHTML = '<span class="idle">⚠️ Fallback script loaded (AI busy). Press "Start Reading".</span>';
-                        aiStatus.textContent = '● Fallback';
-                        aiStatus.className = 'ai-status fallback';
-                        addTranscriptLine('[System]', 'Fallback script used (AI rate‑limit)');
-                    } else {
-                        // other error
-                        usedFallback = true;
-                        script = getRandomFallback();
-                        isFallback = true;
-                        scriptPreview.innerHTML =
-                            `<span class="fallback-label">⚠️ AI generation failed – using fallback script</span>\n${script}`;
-                        subtitles.innerHTML = '<span class="idle">⚠️ Using fallback script. Press "Start Reading".</span>';
-                        aiStatus.textContent = '● Fallback';
-                        aiStatus.className = 'ai-status fallback';
-                        addTranscriptLine('[System]', 'Fallback script used (AI error)');
-                    }
+                    usedFallback = true;
+                    source = 'Fallback';
+                    script = getRandomFallback();
+                    scriptPreview.innerHTML =
+                        `<span class="fallback-label">⚠️ ${err.message === 'rate_limit' ? 'AI rate‑limit' : 'AI generation failed'} – using fallback script</span>\n${script}`;
+                    subtitles.innerHTML = '<span class="idle">⚠️ Fallback script loaded. Press "Start Reading".</span>';
+                    aiStatus.textContent = '● Fallback';
+                    aiStatus.className = 'ai-status fallback';
+                    addTranscriptLine('[System]', `Fallback used (${err.message})`);
                 }
 
                 if (!usedFallback) {
-                    // Live AI success
                     scriptPreview.textContent = script;
                     subtitles.innerHTML = '<span class="idle">✅ Live AI script ready! Press "Start Reading" to hear it.</span>';
-                    aiStatus.textContent = '● Ready (AI)';
+                    aiStatus.textContent = '● Ready (HF)';
                     aiStatus.className = 'ai-status';
-                    addTranscriptLine('[System]', 'Live AI script generated (' + script.length + ' characters)');
+                    addTranscriptLine('[System]', `Live AI script (${script.length} chars)`);
                 }
 
                 currentScript = script;
@@ -784,7 +885,7 @@ That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remembe
                 isGenerating = false;
             });
 
-            // ---- Read Button ----
+            // ===== Read Button =====
             readBtn.addEventListener('click', () => {
                 if (!currentScript) {
                     subtitles.innerHTML = '<span class="idle">⚠️ Generate a script first!</span>';
@@ -795,7 +896,6 @@ That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remembe
                     readBtn.textContent = '🔊 Start Reading';
                     return;
                 }
-                // Start reading
                 isReading = true;
                 readBtn.textContent = '⏹ Reading...';
                 readBtn.classList.add('danger');
@@ -846,7 +946,10 @@ That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remembe
                 if (currentUtterance) {
                     if (window.speechSynthesis) window.speechSynthesis.cancel();
                 }
-                document.querySelectorAll('audio').forEach(a => a.pause());
+                if (audioElement) {
+                    audioElement.pause();
+                    audioElement = null;
+                }
                 isSpeaking = false;
                 readBtn.textContent = '🔊 Start Reading';
                 readBtn.classList.remove('danger');
@@ -859,116 +962,90 @@ That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remembe
                 powerLed.className = 'led on';
             }
 
-            // ---- Stop Button ----
             stopBtn.addEventListener('click', () => {
-                if (isReading) {
-                    stopReading();
-                } else {
-                    subtitles.innerHTML = '<span class="idle">⏹ Stopped.</span>';
+                if (isReading) stopReading();
+                else subtitles.innerHTML = '<span class="idle">⏹ Stopped.</span>';
+            });
+
+            // ===== Shoutout =====
+            shoutoutBtn.addEventListener('click', async () => {
+                const name = prompt("Enter a name for the anime shoutout:") || 'anime fan';
+                const promptText = `Write a short, enthusiastic 1-sentence radio shoutout for ${name} on an anime radio show.`;
+                try {
+                    const response = await callWorker('generate_script', { prompt: promptText });
+                    if (!response) throw new Error('Worker failed');
+                    const data = await response.json();
+                    let msg = data.text || '';
+                    if (!msg) msg = `🎉 Shoutout to ${name}! You're awesome!`;
+                    subtitles.innerHTML = `📢 "${msg}"`;
+                    addTranscriptLine('[Shoutout]', msg);
+                    if (!isReading) await speakText(msg);
+                    else {
+                        stopReading();
+                        await speakText(msg);
+                    }
+                } catch {
+                    const msg = `🎉 Shoutout to ${name}! Keep watching anime!`;
+                    subtitles.innerHTML = `📢 "${msg}"`;
+                    addTranscriptLine('[Shoutout]', msg);
+                    if (!isReading) await speakText(msg);
                 }
             });
 
-            // ---- TTS Engine: Browser TTS ----
-            function speakWithBrowserTTS(text) {
-                return new Promise((resolve) => {
-                    if (!window.speechSynthesis) {
-                        resolve();
-                        return;
+            // ===== News =====
+            newsBtn.addEventListener('click', async () => {
+                const promptText = `Write a short, interesting 1-sentence anime news headline.`;
+                try {
+                    const response = await callWorker('generate_script', { prompt: promptText });
+                    if (!response) throw new Error('Worker failed');
+                    const data = await response.json();
+                    let news = data.text || '';
+                    if (!news) news = '📰 New anime adaptation announced!';
+                    subtitles.innerHTML = `📰 "${news}"`;
+                    addTranscriptLine('[News]', news);
+                    if (!isReading) await speakText(news);
+                    else {
+                        stopReading();
+                        await speakText(news);
                     }
-                    const synth = window.speechSynthesis;
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'en-US';
-                    utterance.rate = 0.85;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1;
-
-                    const voices = synth.getVoices();
-                    const preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
-                        voices.find(v => v.lang === 'en-US') ||
-                        voices[0];
-                    if (preferred) utterance.voice = preferred;
-
-                    utterance.onstart = () => {
-                        isSpeaking = true;
-                        aiStatus.textContent = '● Speaking';
-                        aiStatus.className = 'ai-status active';
-                        powerLed.className = 'led ai-speaking';
-                        statusBadge.textContent = '● Speaking';
-                    };
-                    utterance.onend = () => {
-                        isSpeaking = false;
-                        aiStatus.textContent = '● Idle';
-                        aiStatus.className = 'ai-status';
-                        powerLed.className = 'led on';
-                        statusBadge.textContent = '● Idle';
-                        resolve();
-                    };
-                    utterance.onerror = () => {
-                        isSpeaking = false;
-                        aiStatus.textContent = '● Error';
-                        aiStatus.className = 'ai-status';
-                        powerLed.className = 'led on';
-                        statusBadge.textContent = '● Error';
-                        resolve();
-                    };
-                    currentUtterance = utterance;
-                    synth.speak(utterance);
-                });
-            }
-
-            // ---- TTS Engine: Pollinations ----
-            function speakWithPollinations(text, voice) {
-                return new Promise((resolve) => {
-                    const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
-                    fetch(url)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Pollinations TTS failed');
-                            return response.blob();
-                        })
-                        .then(blob => {
-                            const audioUrl = URL.createObjectURL(blob);
-                            const audio = new Audio(audioUrl);
-                            audio.onplay = () => {
-                                isSpeaking = true;
-                                aiStatus.textContent = '● Speaking';
-                                aiStatus.className = 'ai-status active';
-                                powerLed.className = 'led ai-speaking';
-                                statusBadge.textContent = '● Speaking';
-                            };
-                            audio.onended = () => {
-                                URL.revokeObjectURL(audioUrl);
-                                isSpeaking = false;
-                                aiStatus.textContent = '● Idle';
-                                aiStatus.className = 'ai-status';
-                                powerLed.className = 'led on';
-                                statusBadge.textContent = '● Idle';
-                                resolve();
-                            };
-                            audio.onerror = () => {
-                                URL.revokeObjectURL(audioUrl);
-                                speakWithBrowserTTS(text).then(resolve);
-                            };
-                            audio.play().catch(() => {
-                                speakWithBrowserTTS(text).then(resolve);
-                            });
-                        })
-                        .catch(() => {
-                            speakWithBrowserTTS(text).then(resolve);
-                        });
-                });
-            }
-
-            // ---- Main speak ----
-            function speakText(text) {
-                const voice = voiceSelect.value;
-                if (voice === 'browser') {
-                    return speakWithBrowserTTS(text);
-                } else {
-                    return speakWithPollinations(text, voice);
+                } catch {
+                    const news = '📰 A new anime film is set to release next year!';
+                    subtitles.innerHTML = `📰 "${news}"`;
+                    addTranscriptLine('[News]', news);
+                    if (!isReading) await speakText(news);
                 }
-            }
+            });
 
-            // ---- Transcript helper ----
+            // ===== Clear Transcript =====
+            clearBtn.addEventListener('click', () => {
+                transcript.innerHTML = '';
+                const line = document.createElement('div');
+                line.className = 'line';
+                line.innerHTML = `<span class="timestamp">[System]</span> Transcript cleared.`;
+                transcript.appendChild(line);
+            });
+
+            // ===== Voice Selector =====
+            voiceSelect.addEventListener('change', () => {
+                const voice = voiceSelect.value;
+                if (voice === 'indian_hf') {
+                    voiceStatus.textContent = '🇮🇳 HF Indian';
+                    voiceStatus.style.color = '#ff9500';
+                    voiceStatus.style.borderColor = '#ff950055';
+                } else if (voice === 'browser') {
+                    voiceStatus.textContent = '🧠 Browser';
+                    voiceStatus.style.color = '#5ac8fa';
+                    voiceStatus.style.borderColor = '#5ac8fa55';
+                } else {
+                    voiceStatus.textContent = '🐝 ' + voice.replace('pollinations_', '').toUpperCase();
+                    voiceStatus.style.color = '#4cd964';
+                    voiceStatus.style.borderColor = '#4cd96455';
+                }
+                statusBadge.textContent = `● Voice: ${voice}`;
+            });
+            voiceSelect.dispatchEvent(new Event('change'));
+
+            // ===== Transcript helper =====
             function addTranscriptLine(label, text) {
                 const time = new Date().toLocaleTimeString();
                 const line = document.createElement('div');
@@ -982,90 +1059,7 @@ That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remembe
                 transcript.scrollTop = transcript.scrollHeight;
             }
 
-            // ---- Shoutout ----
-            shoutoutBtn.addEventListener('click', async () => {
-                const name = prompt("Enter a name for the anime shoutout:") || 'anime fan';
-                const promptText = `Write a short, enthusiastic 1-sentence radio shoutout for ${name} on an anime radio show.`;
-                try {
-                    const url =
-                        `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error('API error');
-                    const data = await response.json();
-                    let msg = data.text || data.response || data || '';
-                    if (msg.startsWith(promptText)) msg = msg.substring(promptText.length).trim();
-                    if (!msg) msg =
-                    `🎉 Shoutout to ${name}! You're awesome, and we love having you on SensyCilva Anime Radio!`;
-                    subtitles.innerHTML = `📢 "${msg}"`;
-                    addTranscriptLine('[Shoutout]', msg);
-                    if (!isReading) {
-                        await speakText(msg);
-                    } else {
-                        stopReading();
-                        await speakText(msg);
-                    }
-                } catch {
-                    const msg = `🎉 Shoutout to ${name}! Keep watching anime!`;
-                    subtitles.innerHTML = `📢 "${msg}"`;
-                    addTranscriptLine('[Shoutout]', msg);
-                    if (!isReading) await speakText(msg);
-                }
-            });
-
-            // ---- News ----
-            newsBtn.addEventListener('click', async () => {
-                const promptText = `Write a short, interesting 1-sentence anime news headline.`;
-                try {
-                    const url =
-                        `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}&json=true`;
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error('API error');
-                    const data = await response.json();
-                    let news = data.text || data.response || data || '';
-                    if (news.startsWith(promptText)) news = news.substring(promptText.length).trim();
-                    if (!news) news = '📰 New anime adaptation announced for a popular manga!';
-                    subtitles.innerHTML = `📰 "${news}"`;
-                    addTranscriptLine('[News]', news);
-                    if (!isReading) {
-                        await speakText(news);
-                    } else {
-                        stopReading();
-                        await speakText(news);
-                    }
-                } catch {
-                    const news = '📰 A new anime film is set to release next year!';
-                    subtitles.innerHTML = `📰 "${news}"`;
-                    addTranscriptLine('[News]', news);
-                    if (!isReading) await speakText(news);
-                }
-            });
-
-            // ---- Clear Transcript ----
-            clearBtn.addEventListener('click', () => {
-                transcript.innerHTML = '';
-                const line = document.createElement('div');
-                line.className = 'line';
-                line.innerHTML = `<span class="timestamp">[System]</span> Transcript cleared.`;
-                transcript.appendChild(line);
-            });
-
-            // ---- Voice Selector change ----
-            voiceSelect.addEventListener('change', () => {
-                const voice = voiceSelect.value;
-                if (voice === 'browser') {
-                    voiceStatus.textContent = '🧠 Browser';
-                    voiceStatus.style.color = '#5ac8fa';
-                    voiceStatus.style.borderColor = '#5ac8fa55';
-                } else {
-                    voiceStatus.textContent = '🐝 ' + voice.charAt(0).toUpperCase() + voice.slice(1);
-                    voiceStatus.style.color = '#4cd964';
-                    voiceStatus.style.borderColor = '#4cd96455';
-                }
-                statusBadge.textContent = `● Voice: ${voice}`;
-            });
-            voiceSelect.dispatchEvent(new Event('change'));
-
-            // ---- Init ----
+            // ===== Init =====
             stationStatus.textContent = 'Standby';
             statusBadge.textContent = '● Idle';
             powerLed.className = 'led on';
@@ -1080,8 +1074,8 @@ That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remembe
             }
 
             console.log('🎙️ SensyCilva Anime Radio loaded!');
-            console.log('📝 Live AI generation with smart fallback.');
-            console.log('🔒 No API keys – 100% free.');
+            console.log(`🔗 Worker URL: ${WORKER_URL}`);
+            console.log('🔒 Token is secure in Cloudflare Worker.');
         })();
     </script>
 

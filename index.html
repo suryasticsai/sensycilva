@@ -410,7 +410,7 @@
             const clearBtn = document.getElementById('clearBtn');
 
             // ===== State =====
-            let currentScript = '';
+            let currentScriptLines = [];   // array of one-liners
             let isReading = false;
             let isGenerating = false;
             let isSpeaking = false;
@@ -419,93 +419,68 @@
             let speechTimer = null;
             let audioElement = null;
 
-            // ===== Fallback Scripts (600+ words each) =====
-            const fallbackScripts = [
-                `[Intro]
-"Welcome back, anime fans! This is your host, and you're listening to SensyCilva Anime Radio – the only station that brings you the hottest news, deep dives, and all the feels from the world of anime.
-
-[News]
-First up, the big announcement everyone's been waiting for: the final season of Attack on Titan has officially wrapped production, and the finale is set to air this fall. Fans are already speculating about the ending – will Eren's plan succeed? Will Mikasa finally get her moment? We'll have to wait and see.
-
-In other news, the highly anticipated adaptation of Chainsaw Man's second arc has been greenlit by MAPPA, and they've promised even more jaw-dropping animation than the first season. And if you're into slice-of-life, the new series "Skip and Loafer" has been renewed for a second season after its heartwarming debut.
-
-[Featured Anime: Frieren: Beyond Journey's End]
-Now, let's talk about one of the most acclaimed shows of the past year – Frieren: Beyond Journey's End. This anime takes a unique approach to fantasy by exploring what happens after the hero's party defeats the demon lord. The story follows Frieren, an elven mage who outlives her human companions and must come to terms with mortality, friendship, and the passage of time.
-
-What makes Frieren so special is its quiet, meditative tone. It's not about epic battles – it's about the small moments: a shared meal, a walk through a forest, a conversation that reveals decades of longing. The animation by Madhouse is stunning, with lush backgrounds and subtle character expressions that convey so much without words.
-
-The show also features one of the best soundtracks in recent memory – Evan Call's score perfectly captures the bittersweet nostalgia of Frieren's journey. If you haven't watched it yet, do yourself a favour and start this weekend.
-
-[Recommendation]
-If you're looking for something lighter, I highly recommend "The Apothecary Diaries". It's a mystery-comedy set in imperial China, following a clever young woman who solves poisons and puzzles in the palace. The characters are charming, the mysteries are engaging, and the animation is vibrant. It's a refreshing break from action-heavy shows.
-
-[Trivia]
-Did you know that the voice actor for Frieren, Atsumi Tanezaki, also voiced Anya in Spy x Family? Her range is incredible – from a stoic elf to a telepathic child. And speaking of Spy x Family, the movie "Code: White" has grossed over $50 million worldwide, making it one of the highest-grossing anime films of the year.
-
-[Sign-off]
-That's all for today's broadcast. Thank you for tuning in to SensyCilva Anime Radio. Don't forget to subscribe, share your thoughts, and as always – stay weeb, stay wonderful. See you next time!"`,
-
-                `[Intro]
-"Hello and welcome to another episode of SensyCilva Anime Radio – your daily dose of anime goodness. I'm your host, and today we're diving into the spring anime season, some classic recommendations, and a bit of industry news.
-
-[News]
-The Spring 2026 season is shaping up to be one of the most stacked in years. We've got the return of "My Hero Academia" season 7, which promises to adapt the highly anticipated Dark Hero arc. Also, a brand new studio, CloverWorks, is collaborating with Wit Studio on an original mecha series called "Titanic Dreams" – the trailer looks breathtaking.
-
-In the world of movies, Makoto Shinkai's new film "The Colors of Time" has just been announced. It's said to be a spiritual successor to "Your Name", with a focus on time travel and lost love. Fans are already calling it the next big thing.
-
-[Featured Anime: Vinland Saga]
-Today's deep dive is on Vinland Saga – a show that started as a brutal Viking epic and evolved into a profound meditation on violence, redemption, and peace. The second season, which aired last year, shifted focus from battles to farming and character introspection. Many fans were surprised, but it was a masterclass in storytelling.
-
-The protagonist, Thorfinn, goes from a vengeful warrior to a pacifist who dreams of a land without war – Vinland. The anime doesn't shy away from the horrors of the past, but it offers a hopeful vision for the future. The animation by Wit Studio is gritty and beautiful, and the soundtrack by Yutaka Yamada is hauntingly memorable.
-
-If you haven't seen it, I recommend binging both seasons – but be prepared for an emotional rollercoaster.
-
-[Recommendation]
-For a lighter watch, try "Horimiya" – a romantic comedy that feels incredibly real. The characters are relatable, the humour lands, and the relationship between Hori and Miyamura develops in a wholesome way. It's a great palate cleanser after intense shows.
-
-[Trivia]
-Did you know that the voice actor for Thorfinn in the Japanese dub, Shizuka Ishigami, also voiced the protagonist in "Bocchi the Rock!"? That's some incredible range – from a hardened warrior to a shy guitarist.
-
-[Sign-off]
-That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your eyes on the sky and your heart in the anime. Until next time, sayonara!"`,
-
-                `[Intro]
-"Hey hey, it's your favourite anime radio show! You're tuned to SensyCilva Anime Radio, where we talk about everything from shonen battles to slice-of-life gems. Let's get started!
-
-[News]
-Big news from the anime world: the long-awaited second season of "Jujutsu Kaisen" has been confirmed for a 2027 release, with MAPPA returning to animate the Shibuya Incident arc – which is arguably one of the most intense arcs in manga history. Also, the new studio, Studio Colorido, is working on a feature film based on the popular webcomic "The Girl Who Leapt Through Time" – a fresh take on a classic.
-
-And for those who love music anime, "Given" is getting a new movie that continues the story of the band and their emotional journey. Fans of the original series are already crying in anticipation.
-
-[Featured Anime: Spy x Family]
-Today's featured show is the global phenomenon – Spy x Family! This anime blends action, comedy, and heartwarming family dynamics like no other. The story follows a spy, an assassin, and a telepathic child who form a fake family to complete a mission. What could go wrong? Well, everything, but that's why we love it.
-
-The animation by Wit Studio and CloverWorks is top-notch, with fluid action sequences and expressive character animations. The comedy hits perfectly, and the emotional moments – especially between Loid, Yor, and Anya – are genuinely touching. It's a show that appeals to everyone, from kids to adults.
-
-[Recommendation]
-If you enjoyed Spy x Family, you should check out "Buddy Daddies" – it's a similar premise but with a darker, more mature tone. It follows two assassins who take care of a little girl, and it's surprisingly heartfelt.
-
-[Trivia]
-Anya's voice actress, Atsumi Tanezaki (yes, she also voiced Frieren!), had to record her lines while eating peanuts to sound like she's chewing – because Anya is always eating something!
-
-[Sign-off]
-That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. Keep watching, keep smiling, and I'll see you in the next episode!"`
+            // ===== Fallback one-liners (50+ lines) =====
+            const fallbackLines = [
+                "Welcome back, anime fans! You're tuned into SensyCilva Anime Radio.",
+                "Today we've got a jam-packed show for all you anime lovers.",
+                "First up, the news: Attack on Titan's final season has wrapped production!",
+                "The finale is set to air this fall – fans are already speculating.",
+                "In other news, Chainsaw Man's second arc has been greenlit by MAPPA.",
+                "They've promised even more jaw-dropping animation.",
+                "Skip and Loafer has been renewed for a second season.",
+                "Now, let's talk about one of the most acclaimed shows of the year – Frieren.",
+                "Frieren: Beyond Journey's End explores what happens after the hero's party wins.",
+                "It's a quiet, meditative fantasy about time and friendship.",
+                "The animation by Madhouse is stunning.",
+                "And the soundtrack by Evan Call is one of the best in recent memory.",
+                "If you haven't seen it, start this weekend.",
+                "For something lighter, I recommend The Apothecary Diaries.",
+                "It's a mystery-comedy set in imperial China.",
+                "The characters are charming and the mysteries are engaging.",
+                "And a fun fact: Frieren's voice actor also voices Anya in Spy x Family!",
+                "Spy x Family: Code: White has grossed over $50 million worldwide.",
+                "That's all for today's broadcast.",
+                "Thank you for tuning in to SensyCilva Anime Radio.",
+                "Stay weeb, stay wonderful – see you next time!",
+                // Additional lines to make it longer
+                "Now for some quick recommendations: if you love action, watch Jujutsu Kaisen.",
+                "The Shibuya Incident arc is coming in 2027 – get ready.",
+                "If you prefer romance, Horimiya is a must-watch.",
+                "It's a wholesome, realistic love story.",
+                "And don't forget about the new Studio Colorido film – The Girl Who Leapt Through Time.",
+                "It's a fresh take on a classic story.",
+                "Also, Given is getting a new movie – fans are already crying.",
+                "For something fun, Spy x Family season 2 is now streaming.",
+                "The comedy and family moments are top-notch.",
+                "And if you haven't seen Vinland Saga, now's the time.",
+                "It's a brutal but beautiful story about redemption.",
+                "The second season is a masterpiece.",
+                "Alright, let's wrap up with a joke: Why did the anime character cross the road?",
+                "To get to the other side of the screen!",
+                "Okay, that was terrible – but you loved it.",
+                "Thanks for listening, and remember: anime is for everyone.",
+                "Keep your eyes on the sky and your heart in the anime.",
+                "Until next time, sayonara!",
+                "This is SensyCilva Anime Radio signing off."
             ];
 
-            function getRandomFallback() {
-                return fallbackScripts[Math.floor(Math.random() * fallbackScripts.length)];
+            function getFallbackLines(count = 20) {
+                // Return a random slice of fallback lines
+                const shuffled = [...fallbackLines].sort(() => Math.random() - 0.5);
+                return shuffled.slice(0, count);
             }
 
-            // ===== Improved Pollinations (longer output) =====
-            async function generateWithPollinations(prompt) {
+            // ===== Improved Pollinations (generates multiple 1‑liners) =====
+            async function generateOneLiners() {
+                const prompt = `Write a list of 25 short, engaging 1-sentence segments for an anime radio show called "SensyCilva Anime Radio". Each must be a complete thought: greetings, news, featured anime comments, recommendations, trivia, jokes, sign-offs. Number them 1 to 25.`;
                 try {
                     const response = await fetch('https://text.pollinations.ai/', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             messages: [{ role: 'user', content: prompt }],
-                            model: 'llama',          // 'llama' often gives longer responses
-                            max_tokens: 800,         // force longer output
+                            model: 'llama',
+                            max_tokens: 800,
                             seed: Math.floor(Math.random() * 1000),
                             json: true
                         })
@@ -513,124 +488,14 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     let text = data.message?.content || data.response || data.text || '';
-                    if (text.startsWith(prompt)) text = text.substring(prompt.length).trim();
-                    return text || null;
+                    // Remove numbering and split into lines
+                    const lines = text.split(/\n+/)
+                        .map(line => line.replace(/^\s*\d+\.\s*/, '').trim())
+                        .filter(line => line.length > 10);
+                    return lines.length > 5 ? lines : null;
                 } catch (err) {
-                    console.warn('Pollinations text generation failed:', err);
+                    console.warn('Pollinations one-liner generation failed:', err);
                     return null;
-                }
-            }
-
-            // ===== Generate script =====
-            async function generateAnimeScript() {
-                const prompt = `Write a complete anime radio show script for "SensyCilva Anime Radio". At least 500 words with:
-                greeting, news, featured anime, recommendation, trivia, sign-off.`;
-
-                const result = await generateWithPollinations(prompt);
-                if (result && result.length > 100) return result;
-                throw new Error('short_response');
-            }
-
-            // ===== TTS: Pollinations =====
-            function speakWithPollinationsTTS(text, voice) {
-                return new Promise((resolve) => {
-                    const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
-                    fetch(url)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Pollinations TTS failed');
-                            return response.blob();
-                        })
-                        .then(blob => {
-                            const audioUrl = URL.createObjectURL(blob);
-                            const audio = new Audio(audioUrl);
-                            audioElement = audio;
-                            audio.onplay = () => {
-                                isSpeaking = true;
-                                aiStatus.textContent = '● Speaking (Pollinations)';
-                                aiStatus.className = 'ai-status active';
-                                powerLed.className = 'led ai-speaking';
-                                statusBadge.textContent = '● Speaking';
-                            };
-                            audio.onended = () => {
-                                URL.revokeObjectURL(audioUrl);
-                                isSpeaking = false;
-                                aiStatus.textContent = '● Idle';
-                                aiStatus.className = 'ai-status';
-                                powerLed.className = 'led on';
-                                statusBadge.textContent = '● Idle';
-                                resolve();
-                            };
-                            audio.onerror = () => {
-                                URL.revokeObjectURL(audioUrl);
-                                isSpeaking = false;
-                                aiStatus.textContent = '● Error';
-                                aiStatus.className = 'ai-status';
-                                powerLed.className = 'led on';
-                                statusBadge.textContent = '● Error';
-                                resolve();
-                            };
-                            audio.play().catch(() => resolve());
-                        })
-                        .catch(() => resolve());
-                });
-            }
-
-            // ===== Browser TTS (standard) =====
-            function speakWithBrowserTTS(text, lang = 'en-US') {
-                return new Promise((resolve) => {
-                    if (!window.speechSynthesis) { resolve(); return; }
-                    const synth = window.speechSynthesis;
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = lang;
-                    utterance.rate = 0.85;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1;
-
-                    // Try to find a voice matching the language
-                    const voices = synth.getVoices();
-                    let preferred = voices.find(v => v.lang === lang && v.name.includes('Google'));
-                    if (!preferred) preferred = voices.find(v => v.lang === lang);
-                    if (!preferred) preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google'));
-                    if (!preferred) preferred = voices[0];
-                    if (preferred) utterance.voice = preferred;
-
-                    utterance.onstart = () => {
-                        isSpeaking = true;
-                        aiStatus.textContent = '● Speaking (Browser)';
-                        aiStatus.className = 'ai-status active';
-                        powerLed.className = 'led ai-speaking';
-                        statusBadge.textContent = '● Speaking';
-                    };
-                    utterance.onend = () => {
-                        isSpeaking = false;
-                        aiStatus.textContent = '● Idle';
-                        aiStatus.className = 'ai-status';
-                        powerLed.className = 'led on';
-                        statusBadge.textContent = '● Idle';
-                        resolve();
-                    };
-                    utterance.onerror = () => {
-                        isSpeaking = false;
-                        aiStatus.textContent = '● Error';
-                        aiStatus.className = 'ai-status';
-                        powerLed.className = 'led on';
-                        statusBadge.textContent = '● Error';
-                        resolve();
-                    };
-                    currentUtterance = utterance;
-                    synth.speak(utterance);
-                });
-            }
-
-            // ===== Main speak function =====
-            function speakText(text) {
-                const voice = voiceSelect.value;
-                if (voice === 'indian') {
-                    return speakWithBrowserTTS(text, 'en-IN');
-                } else if (voice === 'browser') {
-                    return speakWithBrowserTTS(text, 'en-US');
-                } else {
-                    return speakWithPollinationsTTS(text, voice);
                 }
             }
 
@@ -643,35 +508,39 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
                 aiStatus.textContent = '● Generating...';
                 aiStatus.className = 'ai-status thinking';
                 powerLed.className = 'led ai-thinking';
-                scriptPreview.innerHTML = '<span class="thinking">🧠 Generating your anime radio script...</span>';
-                subtitles.innerHTML = '<span class="thinking">⏳ AI is writing the show...</span>';
+                scriptPreview.innerHTML = '<span class="thinking">🧠 Generating 1‑liners...</span>';
+                subtitles.innerHTML = '<span class="thinking">⏳ AI is writing short segments...</span>';
 
-                let script = '';
+                let lines = [];
                 let usedFallback = false;
 
                 try {
-                    script = await generateAnimeScript();
-                    if (!script || script.length < 100) throw new Error('short');
+                    const result = await generateOneLiners();
+                    if (result && result.length > 5) {
+                        lines = result;
+                    } else {
+                        throw new Error('short');
+                    }
                 } catch (err) {
                     usedFallback = true;
-                    script = getRandomFallback();
+                    lines = getFallbackLines(25);
                     scriptPreview.innerHTML =
-                        `<span class="fallback-label">⚠️ ${err.message === 'short_response' ? 'AI response too short' : 'AI generation failed'} – using fallback script</span>\n${script}`;
-                    subtitles.innerHTML = '<span class="idle">⚠️ Fallback script loaded. Press "Start Reading".</span>';
+                        `<span class="fallback-label">⚠️ ${err.message === 'short' ? 'AI response too short' : 'AI generation failed'} – using fallback 1‑liners</span>\n${lines.join('\n')}`;
+                    subtitles.innerHTML = '<span class="idle">⚠️ Fallback lines loaded. Press "Start Reading".</span>';
                     aiStatus.textContent = '● Fallback';
                     aiStatus.className = 'ai-status fallback';
                     addTranscriptLine('[System]', `Fallback used (${err.message})`);
                 }
 
                 if (!usedFallback) {
-                    scriptPreview.textContent = script;
-                    subtitles.innerHTML = '<span class="idle">✅ Live AI script ready! Press "Start Reading" to hear it.</span>';
+                    scriptPreview.textContent = lines.join('\n');
+                    subtitles.innerHTML = '<span class="idle">✅ AI 1‑liners ready! Press "Start Reading" to hear them.</span>';
                     aiStatus.textContent = '● Ready (AI)';
                     aiStatus.className = 'ai-status';
-                    addTranscriptLine('[System]', `Live AI script (${script.length} chars)`);
+                    addTranscriptLine('[System]', `AI generated ${lines.length} one‑liners`);
                 }
 
-                currentScript = script;
+                currentScriptLines = lines;
                 readBtn.disabled = false;
                 readBtn.textContent = '🔊 Start Reading';
                 statusBadge.textContent = '● Script Ready';
@@ -684,7 +553,7 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
 
             // ===== Read Button =====
             readBtn.addEventListener('click', () => {
-                if (!currentScript) {
+                if (!currentScriptLines || currentScriptLines.length === 0) {
                     subtitles.innerHTML = '<span class="idle">⚠️ Generate a script first!</span>';
                     return;
                 }
@@ -699,12 +568,13 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
                 readBtn.classList.remove('primary');
                 statusBadge.textContent = '● Reading';
                 stationStatus.textContent = 'Reading';
-                const paragraphs = currentScript.split(/\n\s*\n/).filter(p => p.trim().length > 0);
-                speechQueue = paragraphs;
-                speakNextParagraph();
+                // Shuffle for variety
+                const shuffled = [...currentScriptLines].sort(() => Math.random() - 0.5);
+                speechQueue = shuffled;
+                speakNextLine();
             });
 
-            function speakNextParagraph() {
+            function speakNextLine() {
                 if (!isReading || speechQueue.length === 0) {
                     finishReading();
                     return;
@@ -713,8 +583,9 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
                 subtitles.innerHTML = `<span class="speaking">🗣️ ${text}</span>`;
                 addTranscriptLine('[AI Host]', text);
                 speakText(text).then(() => {
+                    // Wait 2 seconds between lines
                     if (speechQueue.length > 0) {
-                        speechTimer = setTimeout(speakNextParagraph, 1500);
+                        speechTimer = setTimeout(speakNextLine, 2000);
                     } else {
                         finishReading();
                     }
@@ -764,13 +635,130 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
                 else subtitles.innerHTML = '<span class="idle">⏹ Stopped.</span>';
             });
 
+            // ===== TTS: Pollinations =====
+            function speakWithPollinationsTTS(text, voice) {
+                return new Promise((resolve) => {
+                    const url = `https://text.pollinations.ai/${encodeURIComponent(text)}?voice=${voice}`;
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) throw new Error('Pollinations TTS failed');
+                            return response.blob();
+                        })
+                        .then(blob => {
+                            const audioUrl = URL.createObjectURL(blob);
+                            const audio = new Audio(audioUrl);
+                            audioElement = audio;
+                            audio.onplay = () => {
+                                isSpeaking = true;
+                                aiStatus.textContent = '● Speaking (Pollinations)';
+                                aiStatus.className = 'ai-status active';
+                                powerLed.className = 'led ai-speaking';
+                                statusBadge.textContent = '● Speaking';
+                            };
+                            audio.onended = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                isSpeaking = false;
+                                aiStatus.textContent = '● Idle';
+                                aiStatus.className = 'ai-status';
+                                powerLed.className = 'led on';
+                                statusBadge.textContent = '● Idle';
+                                resolve();
+                            };
+                            audio.onerror = () => {
+                                URL.revokeObjectURL(audioUrl);
+                                isSpeaking = false;
+                                aiStatus.textContent = '● Error';
+                                aiStatus.className = 'ai-status';
+                                powerLed.className = 'led on';
+                                statusBadge.textContent = '● Error';
+                                resolve();
+                            };
+                            audio.play().catch(() => resolve());
+                        })
+                        .catch(() => resolve());
+                });
+            }
+
+            // ===== Browser TTS (standard + Indian) =====
+            function speakWithBrowserTTS(text, lang = 'en-US') {
+                return new Promise((resolve) => {
+                    if (!window.speechSynthesis) { resolve(); return; }
+                    const synth = window.speechSynthesis;
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang;
+                    utterance.rate = 0.85;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1;
+
+                    const voices = synth.getVoices();
+                    let preferred = voices.find(v => v.lang === lang && v.name.includes('Google'));
+                    if (!preferred) preferred = voices.find(v => v.lang === lang);
+                    if (!preferred) preferred = voices.find(v => v.lang === 'en-US' && v.name.includes('Google'));
+                    if (!preferred) preferred = voices[0];
+                    if (preferred) utterance.voice = preferred;
+
+                    utterance.onstart = () => {
+                        isSpeaking = true;
+                        aiStatus.textContent = '● Speaking (Browser)';
+                        aiStatus.className = 'ai-status active';
+                        powerLed.className = 'led ai-speaking';
+                        statusBadge.textContent = '● Speaking';
+                    };
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Idle';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Idle';
+                        resolve();
+                    };
+                    utterance.onerror = () => {
+                        isSpeaking = false;
+                        aiStatus.textContent = '● Error';
+                        aiStatus.className = 'ai-status';
+                        powerLed.className = 'led on';
+                        statusBadge.textContent = '● Error';
+                        resolve();
+                    };
+                    currentUtterance = utterance;
+                    synth.speak(utterance);
+                });
+            }
+
+            // ===== Main speak =====
+            function speakText(text) {
+                const voice = voiceSelect.value;
+                if (voice === 'indian') {
+                    return speakWithBrowserTTS(text, 'en-IN');
+                } else if (voice === 'browser') {
+                    return speakWithBrowserTTS(text, 'en-US');
+                } else {
+                    return speakWithPollinationsTTS(text, voice);
+                }
+            }
+
             // ===== Shoutout =====
             shoutoutBtn.addEventListener('click', async () => {
                 const name = prompt("Enter a name for the anime shoutout:") || 'anime fan';
                 const promptText = `Write a short, enthusiastic 1-sentence radio shoutout for ${name} on an anime radio show.`;
                 try {
-                    const result = await generateWithPollinations(promptText);
-                    let msg = result || `🎉 Shoutout to ${name}! You're awesome!`;
+                    const result = await fetch('https://text.pollinations.ai/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: [{ role: 'user', content: promptText }],
+                            model: 'llama',
+                            max_tokens: 100,
+                            seed: Math.floor(Math.random() * 1000),
+                            json: true
+                        })
+                    });
+                    let msg = '🎉 Shoutout to ' + name + '! You\'re awesome!';
+                    if (result.ok) {
+                        const data = await result.json();
+                        let text = data.message?.content || data.response || data.text || '';
+                        if (text && text.length > 5) msg = text;
+                    }
                     subtitles.innerHTML = `📢 "${msg}"`;
                     addTranscriptLine('[Shoutout]', msg);
                     if (!isReading) await speakText(msg);
@@ -788,8 +776,23 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
             newsBtn.addEventListener('click', async () => {
                 const promptText = `Write a short, interesting 1-sentence anime news headline.`;
                 try {
-                    const result = await generateWithPollinations(promptText);
-                    let news = result || '📰 New anime adaptation announced!';
+                    const result = await fetch('https://text.pollinations.ai/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: [{ role: 'user', content: promptText }],
+                            model: 'llama',
+                            max_tokens: 80,
+                            seed: Math.floor(Math.random() * 1000),
+                            json: true
+                        })
+                    });
+                    let news = '📰 New anime adaptation announced!';
+                    if (result.ok) {
+                        const data = await result.json();
+                        let text = data.message?.content || data.response || data.text || '';
+                        if (text && text.length > 5) news = text;
+                    }
                     subtitles.innerHTML = `📰 "${news}"`;
                     addTranscriptLine('[News]', news);
                     if (!isReading) await speakText(news);
@@ -840,7 +843,7 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
                 line.innerHTML =
                     `<span class="timestamp">[${time}]</span> ${label}: ${text.substring(0, 120)}${text.length > 120 ? '...' : ''}`;
                 transcript.appendChild(line);
-                while (transcript.children.length > 20) {
+                while (transcript.children.length > 25) {
                     transcript.removeChild(transcript.firstChild);
                 }
                 transcript.scrollTop = transcript.scrollHeight;
@@ -855,15 +858,15 @@ That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. 
             stationName.textContent = name;
             footerStationName.textContent = name;
 
-            // Preload voices for browser TTS
             if (window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
                 window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
             }
 
-            console.log('🎙️ SensyCilva Anime Radio loaded with Indian voice!');
-            console.log('🔒 No token needed – using Pollinations AI + fallback scripts.');
+            console.log('🎙️ SensyCilva Anime Radio loaded with 1‑liner generation!');
+            console.log('🔒 No token needed – using Pollinations AI + fallback one‑liners.');
         })();
     </script>
+
 </body>
 </html>

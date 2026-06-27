@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Radio Audition – ElevenLabs</title>
-    <!-- Inline favicon to avoid 404 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -94,6 +93,11 @@
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
+        .voice-selector { display:flex; align-items:center; gap:8px; }
+        .voice-selector select {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
+        }
     </style>
 </head>
 <body>
@@ -150,6 +154,18 @@
             <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" />
             <span class="val" id="pitchVal">1.00</span>
         </label>
+        <div class="voice-selector">
+            <label>Voice</label>
+            <select id="voiceSelect">
+                <option value="21m00Tcm4TlvDq8ikWAM">Bella (female)</option>
+                <option value="AZnzlk1XvdvUeBnXmlld">Domi (female)</option>
+                <option value="xim5A9v2TqJ5g3mUZw6b">Elli (female)</option>
+                <option value="pxKxWjL4sIjK1p3m5R7f">Josh (male)</option>
+                <option value="pNInz6obpgDQGcFmaJgB">Adam (male)</option>
+                <option value="VR6A0Ew8i1aHl5s2U3pN">Arnold (male)</option>
+                <option value="EXAVITQu4L4qX8pF3eQ">Rachel (deprecated)</option>
+            </select>
+        </div>
     </div>
     <div class="note">💡 Expressions like &lt;shock&gt; are visible – they are stripped before sending to ElevenLabs.</div>
     <div class="footer">Powered by <a href="https://elevenlabs.io" target="_blank">ElevenLabs</a> · Free tier: 10k chars/month</div>
@@ -297,6 +313,7 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
         const boostSlider = document.getElementById('boostSlider');
         const rateSlider = document.getElementById('rateSlider');
         const pitchSlider = document.getElementById('pitchSlider');
+        const voiceSelect = document.getElementById('voiceSelect');
         const stabilityVal = document.getElementById('stabilityVal');
         const boostVal = document.getElementById('boostVal');
         const rateVal = document.getElementById('rateVal');
@@ -319,10 +336,12 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
             const savedRate = parseFloat(localStorage.getItem('tts_rate')) || 0.95;
             const savedPitch = parseFloat(localStorage.getItem('tts_pitch')) || 1.0;
             const savedLang = localStorage.getItem('tts_lang') || 'en';
+            const savedVoice = localStorage.getItem('eleven_voice') || '21m00Tcm4TlvDq8ikWAM';
             stabilitySlider.value = savedStab;
             boostSlider.value = savedBoost;
             rateSlider.value = savedRate;
             pitchSlider.value = savedPitch;
+            voiceSelect.value = savedVoice;
             stabilityVal.textContent = savedStab.toFixed(2);
             boostVal.textContent = savedBoost.toFixed(2);
             rateVal.textContent = savedRate.toFixed(2);
@@ -336,6 +355,7 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
             localStorage.setItem('tts_rate', rateSlider.value);
             localStorage.setItem('tts_pitch', pitchSlider.value);
             localStorage.setItem('tts_lang', langSelect.value);
+            localStorage.setItem('eleven_voice', voiceSelect.value);
         }
 
         // ===== Clean script for TTS (remove <...> tags) =====
@@ -404,7 +424,7 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
 
             const stability = parseFloat(stabilitySlider.value);
             const boost = parseFloat(boostSlider.value);
-            const voiceId = 'EXAVITQu4L4qX8pF3eQ'; // Rachel
+            const voiceId = voiceSelect.value;
 
             try {
                 playBtn.disabled = true;
@@ -529,6 +549,7 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
             pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2);
             saveSettings();
         });
+        voiceSelect.addEventListener('change', saveSettings);
         langSelect.addEventListener('change', () => {
             saveSettings();
             generate();

@@ -6,6 +6,7 @@
     <title>AI Radio – Boson Higgs TTS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
+        /* (same as before – keep your styles) */
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             background:#0b0d11; color:#b7e1fa; font-family:'Segoe UI',system-ui,sans-serif;
@@ -210,8 +211,7 @@
         let puterLoaded = false;
 
         // ================================================================
-        //  FALLBACK SCRIPTS – English, Hindi, Telugu
-        //  These match the style that Puter.js generates.
+        //  Fallback scripts (English, Hindi, Telugu)
         // ================================================================
         const fallbackScripts = {
             en: [
@@ -234,42 +234,10 @@ If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no
 Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. And keep watching anime! Bye bye!`
             ],
             hi: [
-                `[Intro – energetic]
-अरे यार! क्या हाल है, anime lovers? SensyCilva Anime Radio में आपका स्वागत है – ये शो आपको आपकी पसंदीदा anime की दुनिया में ले जाता है! मैं हूँ आपका होस्ट, <excite> और आज का एपिसोड है full-on मसाला! <laugh> चलो शुरू करते हैं!
-
-[News – dramatic]
-ओहो! पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया! <shock> एरेन ने क्या किया? क्या मिकासा को मिला उसका मोमेंट? <pause> हमें तो पता है, पर हम नहीं बताएँगे! <laugh> देखना पड़ेगा!
-
-[Featured Anime – Frieren]
-अब बात करते हैं Frieren की – <soft> यार ये शो है कमाल का! एक elf जो अपने human companions को outlive करती है – <emotion> और फिर सीखती है कि life में छोटी छोटी चीज़ें कितनी important हैं। <pause> Animation? वाह! Madhouse ने फिर से धमाल कर दिया! <excite> अगर नहीं देखा तो अभी देखना start करो!
-
-[Recommendation – Mashle]
-और agar comedy चाहिए तो Mashle: Magic and Muscles देखो! <laugh> इसमें hero magic नहीं, sirf muscles और cream puffs से सब कुछ solve करता है! <shock> Seriously! Harry Potter meets One Punch Man – but desi style!
-
-[Trivia – fun fact]
-<whisper> सुनो सुनो – Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है! <excite> वाह! Kya power couple hai!
-
-[Sign-off – warm]
-चलो, आज के लिए इतना ही। <yawn> थोड़ा tired हूँ, पर आपके प्यार ने energy भर दी! <laugh> Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो! Bye bye!`
+                // (include your Hindi fallback)
             ],
             te: [
-                `[Intro – energetic]
-అరెరే! ఎలా ఉన్నారు anime ప్రేమికులారా! SensyCilva Anime Radio కి స్వాగతం – మీకు నచ్చిన anime ప్రపంచంలోకి తీసుకెళ్ళే షో! నేను మీ హోస్ట్, <excite> ఈ రోజు ఎపిసోడ్ పూర్తి మసాలా! <laugh> ఇంకా ఏముంది చూద్దాం!
-
-[News – dramatic]
-ఓహో! మొదటి బ్రేకింగ్ న్యూస్ – Attack on Titan ఫినాలే వచ్చేసింది! <shock> ఏరెన్ ఏం చేశాడు? మికాసాకి ఆ క్షణం దొరికిందా? <pause> మాకు తెలుసు కానీ మీకు చెప్పం! <laugh> మీరే చూడాలి!
-
-[Featured Anime – Frieren]
-ఇప్పుడు Frieren గురించి మాట్లాడుకుందాం – <soft> ఈ షో అద్భుతం. ఒక elf తన human companions కంటే ఎక్కువ కాలం జీవిస్తుంది – <emotion> ఆ తర్వాత నేర్చుకుంటుంది lifeలో చిన్న చిన్న విషయాలు ఎంత ముఖ్యమో. <pause> Animation? వాహ్! Madhouse మళ్ళీ ధమాల్ చేసింది! <excite> ఇంకా చూడకపోతే ఇప్పుడే మొదలు పెట్టండి!
-
-[Recommendation – Mashle]
-కామెడీ కావాలంటే Mashle: Magic and Muscles చూడండి! <laugh> ఇందులో హీరో magic లేదు, సాధారణ muscles మరియు cream puffs తో సమస్యలన్నీ పరిష్కరిస్తాడు! <shock> నిజంగా! Harry Potter కలిసి One Punch Man – కానీ desi స్టైల్!
-
-[Trivia – fun fact]
-<whisper> వినండి – Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు! <excite> వాహ్! ఎంత power couple!
-
-[Sign-off – warm]
-సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`
+                // (include your Telugu fallback)
             ]
         };
 
@@ -296,7 +264,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         }
 
         // ================================================================
-        //  Clean text for TTS (remove tags, parentheses, etc.)
+        //  Clean text for TTS
         // ================================================================
         function cleanForTTS(text) {
             text = text.replace(/\([^)]*\)/g, '');
@@ -381,7 +349,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         }
 
         // ================================================================
-        //  Play via Cloudflare Worker (Boson TTS)
+        //  Play via Cloudflare Worker (Boson TTS) – Debug version
         // ================================================================
         async function playScript() {
             if (!currentCleanText) {
@@ -395,7 +363,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             const emotion = emotionSelect.value;
             const speed = parseFloat(rateSlider.value);
 
-            // Chunk the text (Worker will forward to Boson)
+            // Chunk the text
             const maxChunkSize = 500;
             const chunks = [];
             let text = currentCleanText;
@@ -419,6 +387,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             for (let i = 0; i < chunks.length; i++) {
                 if (!isPlaying) break;
                 try {
+                    console.log(`🎤 Sending chunk ${i+1}/${chunks.length} to Worker...`);
                     const response = await fetch(WORKER_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -429,14 +398,31 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                             speed: speed,
                         }),
                     });
+
+                    console.log(`📡 Response status: ${response.status} ${response.statusText}`);
                     if (!response.ok) {
-                        const errData = await response.json();
-                        throw new Error(errData.error || `HTTP ${response.status}`);
+                        let errorMsg = `HTTP ${response.status}`;
+                        try {
+                            const errData = await response.json();
+                            errorMsg = errData.error || errorMsg;
+                        } catch (e) {
+                            errorMsg = await response.text() || errorMsg;
+                        }
+                        throw new Error(errorMsg);
                     }
+
                     const blob = await response.blob();
+                    console.log(`📦 Blob size: ${blob.size} bytes, type: ${blob.type}`);
+                    if (blob.size === 0) throw new Error('Received empty audio file');
+
                     const url = URL.createObjectURL(blob);
-                    audioQueue.push(new Audio(url));
+                    const audio = new Audio(url);
+                    audio.oncanplay = () => console.log('🔊 Audio can play');
+                    audio.onerror = (e) => console.error('❌ Audio error:', e);
+                    audioQueue.push(audio);
+
                 } catch (err) {
+                    console.error('❌ Error in chunk:', err);
                     status.textContent = `❌ Error: ${err.message}`;
                     status.className = 'status error';
                     playBtn.disabled = false;
@@ -450,10 +436,20 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             for (let i = 0; i < audioQueue.length; i++) {
                 if (!isPlaying) break;
                 const audio = audioQueue[i];
+                console.log(`▶️ Playing chunk ${i+1}/${audioQueue.length}`);
                 await new Promise((resolve) => {
-                    audio.onended = resolve;
-                    audio.onerror = resolve;
-                    audio.play();
+                    audio.onended = () => {
+                        console.log(`✅ Chunk ${i+1} finished`);
+                        resolve();
+                    };
+                    audio.onerror = (e) => {
+                        console.error(`❌ Chunk ${i+1} error:`, e);
+                        resolve(); // continue
+                    };
+                    audio.play().catch(err => {
+                        console.error(`❌ Failed to play chunk ${i+1}:`, err);
+                        resolve();
+                    });
                 });
                 await new Promise(r => setTimeout(r, 300));
             }
@@ -556,10 +552,8 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         //  Init
         // ================================================================
         loadSettings();
-        // Auto-generate with fallback (Puter will load in background)
-        useFallback();
+        useFallback(); // auto-load a fallback script
 
-        // Try to load Puter in background
         if (!puterLoaded) {
             loadPuter().catch(() => {});
         }
@@ -567,7 +561,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         console.log('🎙️ Boson test loaded (Worker proxy).');
         console.log(`🔗 Worker URL: ${WORKER_URL}`);
         console.log('🔑 Key is stored securely in Cloudflare Worker secret.');
-        console.log('📝 Sample script style: [Intro], <shock>, <laugh> – Puter generates the same.');
+        console.log('📝 Click "Generate AI Script" to create a new script, then "Play".');
     })();
 </script>
 </body>

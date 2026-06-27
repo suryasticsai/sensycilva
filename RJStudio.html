@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SensyCilva – Interactive Radio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background:#0b0d11; color:#b7e1fa; font-family:'Segoe UI',system-ui,sans-serif;
+            min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+        }
+        .container {
+            background:#1a1e26; border-radius:24px; padding:32px; max-width:840px; width:100%;
+            border:1px solid #2a2f3a; box-shadow:0 20px 60px rgba(0,0,0,.6);
+        }
+        h1 { font-size:26px; font-weight:700; margin-bottom:2px; }
+        h1 span { color:#ff9500; }
+        .sub { color:#5a7a8a; font-size:14px; margin-bottom:16px; }
+        .lang-selector {
+            display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;
+        }
+        .lang-selector label { color:#6a8a9a; font-weight:600; font-size:13px; }
+        .lang-selector select {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:6px 16px; color:#c0d8ee; font-size:13px; outline:none; cursor:pointer;
+        }
+        .actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+        .actions button {
+            background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa;
+            padding:10px 20px; border-radius:30px; font-weight:600; font-size:14px;
+            cursor:pointer; transition:.2s; font-family:inherit;
+        }
+        .actions button:hover { background:#234a66; }
+        .actions button:disabled { opacity:0.5; cursor:not-allowed; }
+        .actions button.copy { background:#1f2935; border-color:#2f3a48; }
+        .actions button.copy:hover { background:#2a3645; }
+        .actions button.play { background:#1a3a2a; border-color:#4cd964; }
+        .actions button.play:hover { background:#2a4a3a; }
+        .actions button.stop { background:#3a1a1a; border-color:#ff4a3a; }
+        .actions button.stop:hover { background:#4a2a2a; }
+        .actions button.custom { background:#1a2a3a; border-color:#5ac8fa; }
+        .actions button.custom:hover { background:#2a3a4a; }
+        .status {
+            font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px;
+        }
+        .status.error { color:#ff6a5a; }
+        .status.success { color:#4cd964; }
+        .status.warning { color:#ff9500; }
+        .script-box {
+            background:#0a0c10; border-radius:16px; padding:16px;
+            min-height:300px; max-height:400px; overflow-y:auto;
+            border:1px solid #1a212a; white-space:pre-wrap;
+            font-size:15px; line-height:1.7; color:#b7e1fa;
+        }
+        .custom-area {
+            margin-top:12px; display:none; flex-direction:column; gap:8px;
+        }
+        .custom-area textarea {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:12px;
+            padding:12px; color:#c0d8ee; font-size:14px; font-family:'Segoe UI',sans-serif;
+            min-height:150px; resize:vertical; outline:none;
+        }
+        .custom-area textarea:focus { border-color:#4a8fc0; }
+        .custom-area .custom-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .custom-area .custom-actions button {
+            background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa;
+            padding:8px 18px; border-radius:30px; font-weight:600; font-size:13px;
+            cursor:pointer; transition:.2s; font-family:inherit;
+        }
+        .custom-area .custom-actions button:hover { background:#234a66; }
+        .custom-area .custom-actions button.set { background:#1a3a2a; border-color:#4cd964; }
+        .custom-area .custom-actions button.set:hover { background:#2a4a3a; }
+        .controls-row {
+            display:flex; gap:16px; flex-wrap:wrap; align-items:center;
+            background:#0a0c10; border-radius:12px; padding:12px 16px;
+            margin-top:12px; border:1px solid #1a212a;
+        }
+        .controls-row label {
+            font-size:12px; color:#6a8a9a; display:flex; align-items:center; gap:6px;
+        }
+        .controls-row select, .controls-row input[type="range"] {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
+        }
+        .controls-row input[type="range"] { width:80px; padding:0; accent-color:#5ac8fa; }
+        .controls-row .val { color:#5ac8fa; font-size:12px; min-width:30px; }
+        .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
+        .footer a { color:#5ac8fa; text-decoration:none; }
+        .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
+        .voice-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
+        .voice-group select {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
+            max-width:220px;
+        }
+        .checkbox-group { display:flex; align-items:center; gap:6px; }
+        .checkbox-group input[type="checkbox"] { accent-color:#4cd964; width:16px; height:16px; cursor:pointer; }
+        .checkbox-group label { font-size:12px; color:#6a8a9a; cursor:pointer; }
+
+        .chat-section {
+            margin-top:16px;
+            border-top:1px solid #1a212a;
+            padding-top:16px;
+        }
+        .chat-log {
+            background:#0a0c10;
+            border-radius:12px;
+            padding:12px;
+            max-height:150px;
+            overflow-y:auto;
+            border:1px solid #1a212a;
+            margin-bottom:10px;
+            font-size:14px;
+            line-height:1.6;
+        }
+        .chat-log .user { color:#5ac8fa; }
+        .chat-log .host { color:#4cd964; }
+        .chat-input {
+            display:flex;
+            gap:10px;
+        }
+        .chat-input input {
+            flex:1;
+            background:#0a0c10;
+            border:1px solid #252e3a;
+            border-radius:30px;
+            padding:8px 16px;
+            color:#c0d8ee;
+            font-size:14px;
+            outline:none;
+        }
+        .chat-input input:focus { border-color:#4a8fc0; }
+        .chat-input button {
+            background:#1a3348;
+            border:1px solid #4a8fc0;
+            color:#b7e1fa;
+            padding:8px 20px;
+            border-radius:30px;
+            font-weight:600;
+            font-size:14px;
+            cursor:pointer;
+            transition:.2s;
+            font-family:inherit;
+        }
+        .chat-input button:hover { background:#234a66; }
+        .chat-input button:disabled { opacity:0.5; cursor:not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎙️ <span>SensyCilva</span> – Interactive Radio</h1>
+    <div class="sub">Send a text message – the host will reply live!</div>
+
+    <div class="lang-selector">
+        <label for="langSelect">🌐 Script Language</label>
+        <select id="langSelect">
+            <option value="en">English</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+        </select>
+        <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ Puter.js (AI scripts)</span>
+        <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
+    </div>
+
+    <div class="actions">
+        <button id="generateBtn">📝 Generate AI Script</button>
+        <button id="playBtn" class="play" disabled>🔊 Play</button>
+        <button id="stopBtn" class="stop" disabled>⏹ Stop</button>
+        <button id="copyBtn" class="copy" disabled>📋 Copy</button>
+    </div>
+
+    <div class="status" id="status">Ready – generate a script</div>
+    <div class="script-box" id="scriptBox"><span class="empty">Click "Generate AI Script" to create a new script.</span></div>
+
+    <div class="custom-area" id="customArea">
+        <textarea id="customScriptText" placeholder="Paste your custom script here."></textarea>
+        <div class="custom-actions">
+            <button class="set" id="setCustomBtn">✅ Use This Script</button>
+            <button id="cancelCustomBtn">✖ Cancel</button>
+        </div>
+    </div>
+
+    <div class="controls-row">
+        <div class="voice-group">
+            <label>Voice</label>
+            <select id="voiceSelect"></select>
+        </div>
+        <label>Rate (base)
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9" />
+            <span class="val" id="rateVal">0.90</span>
+        </label>
+        <label>Pitch (base)
+            <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" />
+            <span class="val" id="pitchVal">1.00</span>
+        </label>
+        <label>Volume
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0" />
+            <span class="val" id="volumeVal">1.00</span>
+        </label>
+        <div class="checkbox-group">
+            <input type="checkbox" id="randomizeToggle" checked />
+            <label for="randomizeToggle">Randomize voice</label>
+        </div>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="chat-section">
+        <div class="chat-log" id="chatLog">
+            <div class="host">🎙️ Welcome! Send a message and the host will reply.</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userMessageInput" placeholder="Type your message..." />
+            <button id="sendMessageBtn">Send</button>
+        </div>
+    </div>
+
+    <div class="note">💡 Scripts are short, neutral lines. Send any message – the host will reply and resume the show.</div>
+    <div class="footer">Browser TTS · No limits · Interactive AI host</div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ===== DOM refs =====
+        const generateBtn = document.getElementById('generateBtn');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const toggleCustomBtn = document.getElementById('toggleCustomBtn');
+        const customArea = document.getElementById('customArea');
+        const customScriptText = document.getElementById('customScriptText');
+        const setCustomBtn = document.getElementById('setCustomBtn');
+        const cancelCustomBtn = document.getElementById('cancelCustomBtn');
+        const scriptBox = document.getElementById('scriptBox');
+        const status = document.getElementById('status');
+        const langSelect = document.getElementById('langSelect');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const rateSlider = document.getElementById('rateSlider');
+        const pitchSlider = document.getElementById('pitchSlider');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const rateVal = document.getElementById('rateVal');
+        const pitchVal = document.getElementById('pitchVal');
+        const volumeVal = document.getElementById('volumeVal');
+        const randomizeToggle = document.getElementById('randomizeToggle');
+        const puterStatus = document.getElementById('puterStatus');
+        const chatLog = document.getElementById('chatLog');
+        const userMessageInput = document.getElementById('userMessageInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+        // ===== State =====
+        let currentScript = '';
+        let currentCleanText = '';
+        let isSpeaking = false;
+        let currentUtterance = null;
+        let isCustomMode = false;
+        let puterLoaded = false;
+        const speechSynth = window.speechSynthesis;
+
+        // For interactive replies
+        let sentences = [];
+        let currentSentenceIndex = 0;
+        let isInterrupted = false;
+        let isPausedForReply = false;
+
+        // ===== Fallback scripts (short lines, no emotions) =====
+        const fallbackScripts = {
+            en: [
+                `Hey there, anime fans.
+Welcome to SensyCilva Anime Radio.
+I'm your host and today's episode is packed with excitement.
+Let's get started.
+
+First breaking news – Attack on Titan's finale is finally here.
+What did Eren do?
+Did Mikasa get her moment?
+We know, but we won't tell.
+You'll have to watch.
+
+Now let's talk about Frieren.
+This show is amazing.
+An elf who outlives her human companions.
+She learns that the little things in life are so important.
+Animation?
+Madhouse has done it again.
+If you haven't seen it, start now.
+
+If you want comedy, check out Mashle: Magic and Muscles.
+The hero has no magic.
+Just muscles and cream puffs.
+Seriously.
+Harry Potter meets One Punch Man – desi style.
+
+Did you know Sailor Moon's creator, Naoko Takeuchi, is married to Hunter x Hunter's creator, Yoshihiro Togashi.
+What a power couple.
+
+That's all for today.
+Follow us @SensyCilvaRadio.
+And keep watching anime.
+Bye bye.`
+            ],
+            hi: [
+                `अरे यार, anime प्रेमियों.
+SensyCilva Anime Radio में आपका स्वागत है.
+मैं आपका होस्ट हूँ.
+आज का एपिसोड बहुत रोचक है.
+चलो शुरू करते हैं.
+
+पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया.
+एरेन ने क्या किया?
+क्या मिकासा को मिला उसका मोमेंट?
+हमें पता है पर हम नहीं बताएँगे.
+आपको देखना पड़ेगा.
+
+अब बात करते हैं Frieren की.
+ये शो कमाल का है.
+एक elf जो अपने human companions को outlive करती है.
+वह सीखती है कि life में छोटी चीज़ें कितनी important हैं.
+Animation?
+Madhouse ने धमाल कर दिया है.
+अगर नहीं देखा तो अभी देखना शुरू करो.
+
+अगर comedy चाहिए तो Mashle: Magic and Muscles देखो.
+hero magic नहीं.
+sirf muscles और cream puffs.
+Seriously.
+Harry Potter meets One Punch Man – but desi style.
+
+Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है.
+Kya power couple hai.
+
+चलो, आज के लिए इतना ही.
+Follow करो @SensyCilvaRadio.
+और हाँ, anime देखते रहो.
+Bye bye.`
+            ],
+            te: [
+                `అరెరే, anime ప్రేమికులారా.
+SensyCilva Anime Radio కి స్వాగతం.
+నేను మీ హోస్ట్.
+ఈ రోజు ఎపిసోడ్ చాలా exciting.
+ఇంకా ఏముంది చూద్దాం.
+
+మొదటి బ్రేకింగ్ న్యూస్ – Attack on Titan ఫినాలే వచ్చేసింది.
+ఏరెన్ ఏం చేశాడు?
+మికాసాకి ఆ క్షణం దొరికిందా?
+మాకు తెలుసు కానీ మీకు చెప్పం.
+మీరే చూడాలి.
+
+ఇప్పుడు Frieren గురించి మాట్లాడుకుందాం.
+ఈ షో అద్భుతం.
+ఒక elf తన human companions కంటే ఎక్కువ కాలం జీవిస్తుంది.
+ఆమె lifeలో చిన్న విషయాలు ఎంత ముఖ్యమో నేర్చుకుంటుంది.
+Animation?
+Madhouse మళ్ళీ ధమాల్ చేసింది.
+ఇంకా చూడకపోతే ఇప్పుడే మొదలు పెట్టండి.
+
+కామెడీ కావాలంటే Mashle: Magic and Muscles చూడండి.
+హీరో magic లేదు.
+సాధారణ muscles మరియు cream puffs.
+Seriously.
+Harry Potter కలిసి One Punch Man – కానీ desi స్టైల్.
+
+Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు.
+ఎంత power couple.
+
+సరే, ఈ రోజుకి ఇంతే.
+@SensyCilvaRadio ని follow చేయండి.
+Anime చూస్తూనే ఉండండి.
+Bye bye.`
+            ]
+        };
+
+        // ===== Load settings =====
+        function loadSettings() {
+            const savedLang = localStorage.getItem('sensy_lang') || 'en';
+            const savedVoice = localStorage.getItem('sensy_voice') || '';
+            const savedRate = parseFloat(localStorage.getItem('sensy_rate')) || 0.9;
+            const savedPitch = parseFloat(localStorage.getItem('sensy_pitch')) || 1.0;
+            const savedVolume = parseFloat(localStorage.getItem('sensy_volume')) || 1.0;
+            const savedRandomize = localStorage.getItem('sensy_randomize') !== 'false';
+            langSelect.value = savedLang;
+            rateSlider.value = savedRate;
+            pitchSlider.value = savedPitch;
+            volumeSlider.value = savedVolume;
+            rateVal.textContent = savedRate.toFixed(2);
+            pitchVal.textContent = savedPitch.toFixed(2);
+            volumeVal.textContent = savedVolume.toFixed(2);
+            randomizeToggle.checked = savedRandomize;
+        }
+
+        function saveSettings() {
+            localStorage.setItem('sensy_lang', langSelect.value);
+            localStorage.setItem('sensy_voice', voiceSelect.value);
+            localStorage.setItem('sensy_rate', rateSlider.value);
+            localStorage.setItem('sensy_pitch', pitchSlider.value);
+            localStorage.setItem('sensy_volume', volumeSlider.value);
+            localStorage.setItem('sensy_randomize', randomizeToggle.checked);
+        }
+
+        // ===== Populate voices =====
+        function populateVoices() {
+            const voices = speechSynth.getVoices();
+            voiceSelect.innerHTML = '';
+            const sorted = voices.sort((a, b) => {
+                if (a.lang.startsWith('en') && !b.lang.startsWith('en')) return -1;
+                if (!a.lang.startsWith('en') && b.lang.startsWith('en')) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            sorted.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.voiceURI;
+                opt.text = `${v.name} (${v.lang})`;
+                voiceSelect.appendChild(opt);
+            });
+            const savedVoice = localStorage.getItem('sensy_voice');
+            if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
+                voiceSelect.value = savedVoice;
+            } else {
+                const preferred = sorted.find(v => v.lang === 'en-IN') || sorted.find(v => v.lang === 'en-US');
+                if (preferred) voiceSelect.value = preferred.voiceURI;
+            }
+        }
+
+        // ===== Clean text: remove ALL emotions, interjections, tags =====
+        function cleanForTTS(text) {
+            let cleaned = text.replace(/<[^>]*>/g, '');
+            const interjections = [
+                /\b(whoa|wow|oh|ah|uh|um|hmm|hey|hello|hi|okay|alright|well|so|now)\b/gi,
+                /\b(अरे|यार|वाह|ओहो|हाँ|अच्छा|चलो|क्या|हाय)\b/gi,
+                /\b(అరెరే|అయ్యో|ఓహో|వాహ్|ఏంటి|కదా|రేయ్)\b/gi,
+                /(whoa!|wow!|oh!|ah!|uh!|um!|hey!|hello!|hi!|okay!|alright!|well!|so!|now!|arre!|yaar!|wah!|oho!)/gi,
+                /(!|\.\.\.|…)/g
+            ];
+            interjections.forEach(pattern => {
+                cleaned = cleaned.replace(pattern, '');
+            });
+            cleaned = cleaned.replace(/\[.*?\]/g, '');
+            cleaned = cleaned.replace(/\s+/g, ' ').trim();
+            cleaned = cleaned.replace(/^[.!?,;:\s]+/, '').replace(/[.!?,;:\s]+$/, '');
+            return cleaned;
+        }
+
+        // ===== Format script with short lines =====
+        function formatShortLines(text) {
+            let sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+            return sentences.map(s => s.trim()).join('\n');
+        }
+
+        // ===== Display script =====
+        function displayScript(script, isCustom = false) {
+            currentScript = script;
+            currentCleanText = cleanForTTS(script);
+            const displayText = formatShortLines(currentCleanText);
+            scriptBox.textContent = displayText || 'No script content.';
+            status.textContent = `✅ ${isCustom ? 'Custom' : 'Generated'} script (${displayText.length} chars)`;
+            status.className = 'status success';
+            playBtn.disabled = false;
+            copyBtn.disabled = false;
+            isCustomMode = isCustom;
+            // Reset sentences for playback
+            sentences = currentCleanText.match(/[^.!?]+[.!?]+/g) || [currentCleanText];
+            currentSentenceIndex = 0;
+            // Clear chat log and add a welcome message
+            chatLog.innerHTML = '<div class="host">🎙️ New script loaded. Send a message to interact!</div>';
+        }
+
+        // ===== Load Puter.js =====
+        function loadPuter() {
+            return new Promise((resolve, reject) => {
+                if (typeof puter !== 'undefined') {
+                    puterLoaded = true;
+                    puterStatus.textContent = '⚡ Puter.js loaded';
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://js.puter.com/v2/';
+                script.onload = () => {
+                    puterLoaded = true;
+                    puterStatus.textContent = '⚡ Puter.js loaded';
+                    resolve();
+                };
+                script.onerror = () => {
+                    puterStatus.textContent = '⚠️ Puter load failed';
+                    reject(new Error('Failed to load Puter'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        // ===== Generate script =====
+        async function generate() {
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generating...';
+            status.textContent = '⏳ Generating AI script...';
+            status.className = 'status';
+            scriptBox.textContent = '⏳ Generating...';
+
+            try {
+                if (!puterLoaded) {
+                    try { await loadPuter(); } catch(e) { useFallback(); return; }
+                }
+                const lang = langSelect.value;
+                const langName = lang === 'hi' ? 'Hindi' : lang === 'te' ? 'Telugu' : 'English';
+                const prompt = `Write a complete anime radio show script in ${langName} for "SensyCilva Anime Radio". 
+                Use short, broken sentences. Each sentence should be on its own line.
+                Do not use any emotional expressions like <shock>, <laugh>, <excite>, etc.
+                Keep it plain, conversational, and neutral.
+                Include: a greeting, news (Attack on Titan finale), featured anime (Frieren), recommendation (Mashle), trivia (Sailor Moon creator marriage), and a sign-off.
+                The script must be at least 300 words.
+                Output with line breaks after every sentence.`;
+                const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
+                let script = response.message?.content || response;
+                if (script && script.length > 100) {
+                    displayScript(script, false);
+                } else {
+                    throw new Error('Short response');
+                }
+            } catch (err) {
+                console.warn('Puter failed:', err);
+                useFallback();
+            }
+            generateBtn.disabled = false;
+            generateBtn.textContent = '📝 Generate AI Script';
+        }
+
+        function useFallback() {
+            const lang = langSelect.value;
+            const available = fallbackScripts[lang] || fallbackScripts.en;
+            const script = available[Math.floor(Math.random() * available.length)];
+            displayScript(script, false);
+            status.textContent = '⚠️ Using fallback script (AI unavailable)';
+            status.className = 'status warning';
+        }
+
+        // ===== Speak a single sentence =====
+        function speakSentence(text, callback) {
+            const voiceURI = voiceSelect.value;
+            const voices = speechSynth.getVoices();
+            const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = selectedVoice;
+            utterance.volume = parseFloat(volumeSlider.value);
+
+            const baseRate = parseFloat(rateSlider.value);
+            const basePitch = parseFloat(pitchSlider.value);
+            if (randomizeToggle.checked) {
+                const rateOffset = (Math.random() - 0.5) * 0.15;
+                const pitchOffset = (Math.random() - 0.5) * 0.3;
+                utterance.rate = Math.min(2, Math.max(0.5, baseRate + rateOffset));
+                utterance.pitch = Math.min(1.5, Math.max(0.5, basePitch + pitchOffset));
+            } else {
+                utterance.rate = baseRate;
+                utterance.pitch = basePitch;
+            }
+
+            utterance.onend = () => {
+                if (callback) callback();
+            };
+            utterance.onerror = (event) => {
+                console.warn('TTS error:', event);
+                if (callback) callback();
+            };
+            currentUtterance = utterance;
+            speechSynth.speak(utterance);
+        }
+
+        // ===== Play the whole script =====
+        function playScript() {
+            if (!currentCleanText) {
+                status.textContent = '⚠️ No script. Generate or paste one first.';
+                status.className = 'status error';
+                return;
+            }
+            if (isSpeaking) {
+                speechSynth.cancel();
+                isSpeaking = false;
+                playBtn.textContent = '🔊 Play';
+                stopBtn.disabled = true;
+                status.textContent = '⏹ Stopped.';
+                status.className = 'status';
+                // Reset index so next play starts from beginning
+                currentSentenceIndex = 0;
+                isInterrupted = false;
+                isPausedForReply = false;
+                return;
+            }
+
+            // Reset to start if we've finished or never started
+            if (currentSentenceIndex >= sentences.length) {
+                currentSentenceIndex = 0;
+            }
+
+            isInterrupted = false;
+            isPausedForReply = false;
+            status.textContent = `🔊 Speaking from sentence ${currentSentenceIndex+1}...`;
+            status.className = 'status';
+            playBtn.disabled = true;
+            stopBtn.disabled = false;
+            isSpeaking = true;
+
+            // Start the sequence
+            speakNextSentence();
+        }
+
+        function speakNextSentence() {
+            if (!isSpeaking) return;
+
+            // Check if we were interrupted (user sent a message)
+            if (isInterrupted) {
+                // Wait until the reply is done (handled in handleUserMessage)
+                return;
+            }
+
+            if (currentSentenceIndex >= sentences.length) {
+                status.textContent = '✅ Playback finished.';
+                status.className = 'status success';
+                playBtn.textContent = '🔊 Play';
+                playBtn.disabled = false;
+                stopBtn.disabled = true;
+                isSpeaking = false;
+                return;
+            }
+
+            const text = sentences[currentSentenceIndex].trim();
+            if (text.length === 0) {
+                currentSentenceIndex++;
+                speakNextSentence();
+                return;
+            }
+
+            // Speak the sentence
+            speakSentence(text, () => {
+                // After sentence ends, wait a bit then move to next
+                const wordCount = text.split(/\s+/).length;
+                const pauseMs = wordCount < 8 ? 1200 : 800;
+                setTimeout(() => {
+                    currentSentenceIndex++;
+                    speakNextSentence();
+                }, pauseMs);
+            });
+        }
+
+        // ===== Stop =====
+        function stopAudio() {
+            if (speechSynth.speaking) speechSynth.cancel();
+            isSpeaking = false;
+            isInterrupted = false;
+            isPausedForReply = false;
+            playBtn.textContent = '🔊 Play';
+            playBtn.disabled = false;
+            stopBtn.disabled = true;
+            status.textContent = '⏹ Stopped.';
+            status.className = 'status';
+        }
+
+        // ===== Handle user message =====
+        async function handleUserMessage() {
+            const msg = userMessageInput.value.trim();
+            if (!msg) return;
+            userMessageInput.value = '';
+
+            // Add user message to chat log
+            const userDiv = document.createElement('div');
+            userDiv.className = 'user';
+            userDiv.textContent = `👤 You: ${msg}`;
+            chatLog.appendChild(userDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            // If Puter not loaded, show fallback reply
+            if (!puterLoaded) {
+                const fallbackReply = "Thanks for your message! I'm still loading my brain. Try again in a moment.";
+                addHostReply(fallbackReply);
+                speakText(fallbackReply);
+                return;
+            }
+
+            // Generate reply using Puter
+            try {
+                const currentContext = sentences[currentSentenceIndex] || "The host is not saying anything specific right now.";
+                const lang = langSelect.value;
+                const langName = lang === 'hi' ? 'Hindi' : lang === 'te' ? 'Telugu' : 'English';
+                const prompt = `You are the host of SensyCilva Anime Radio. You are currently saying: "${currentContext}". 
+                A listener says: "${msg}".
+                Reply briefly and naturally in ${langName}. Keep it plain, without emotions, and in short sentences.`;
+                const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
+                let reply = response.message?.content || response;
+                // Clean any tags
+                reply = cleanForTTS(reply);
+                if (!reply || reply.length < 2) {
+                    throw new Error('Short reply');
+                }
+                addHostReply(reply);
+                // Interrupt current speech and speak reply
+                await speakText(reply);
+                // Resume the script after reply finishes
+                resumeScript();
+            } catch (err) {
+                console.warn('Reply generation failed:', err);
+                const fallbackReply = "Thanks for your message! I'll get back to you in a moment.";
+                addHostReply(fallbackReply);
+                await speakText(fallbackReply);
+                resumeScript();
+            }
+        }
+
+        function addHostReply(text) {
+            const hostDiv = document.createElement('div');
+            hostDiv.className = 'host';
+            hostDiv.textContent = `🎙️ Host: ${text}`;
+            chatLog.appendChild(hostDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function speakText(text) {
+            return new Promise((resolve) => {
+                // Cancel current speech
+                if (speechSynth.speaking) speechSynth.cancel();
+                // Speak the reply
+                speakSentence(text, () => {
+                    resolve();
+                });
+            });
+        }
+
+        function resumeScript() {
+            // After reply, continue with the next sentence
+            // But only if we are still supposed to be speaking (isSpeaking true)
+            if (isSpeaking) {
+                // Release the interruption flag
+                isInterrupted = false;
+                // Continue from the same index (already incremented after the interrupted sentence)
+                speakNextSentence();
+            } else {
+                // If the script was stopped, reset index to 0
+                currentSentenceIndex = 0;
+                isInterrupted = false;
+            }
+        }
+
+        // ===== Override the send button =====
+        sendMessageBtn.addEventListener('click', async () => {
+            // If script is not playing, we can still reply
+            // But we want to interrupt if speaking
+            if (isSpeaking) {
+                isInterrupted = true;
+                // Cancel current speech
+                if (speechSynth.speaking) speechSynth.cancel();
+            }
+            await handleUserMessage();
+        });
+
+        userMessageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendMessageBtn.click();
+            }
+        });
+
+        // ===== Copy =====
+        function copyScript() {
+            if (!currentScript) {
+                status.textContent = '⚠️ Nothing to copy.';
+                status.className = 'status error';
+                return;
+            }
+            const displayText = scriptBox.textContent;
+            navigator.clipboard.writeText(displayText).then(() => {
+                status.textContent = '📋 Copied!';
+                status.className = 'status success';
+                setTimeout(() => status.textContent = `✅ Script ready`, 2000);
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = displayText;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                status.textContent = '📋 Copied!';
+                status.className = 'status success';
+            });
+        }
+
+        // ===== Custom script =====
+        function setCustomScript() {
+            const text = customScriptText.value.trim();
+            if (!text) {
+                status.textContent = '⚠️ Please paste some text first.';
+                status.className = 'status error';
+                return;
+            }
+            displayScript(text, true);
+            customArea.style.display = 'none';
+            toggleCustomBtn.textContent = '📝 Paste Custom Script';
+        }
+
+        function toggleCustom() {
+            if (customArea.style.display === 'flex') {
+                customArea.style.display = 'none';
+                toggleCustomBtn.textContent = '📝 Paste Custom Script';
+            } else {
+                customArea.style.display = 'flex';
+                toggleCustomBtn.textContent = '✖ Close Custom';
+                if (isCustomMode) customScriptText.value = currentScript;
+            }
+        }
+
+        // ===== Event listeners =====
+        generateBtn.addEventListener('click', generate);
+        playBtn.addEventListener('click', playScript);
+        stopBtn.addEventListener('click', stopAudio);
+        copyBtn.addEventListener('click', copyScript);
+        toggleCustomBtn.addEventListener('click', toggleCustom);
+        setCustomBtn.addEventListener('click', setCustomScript);
+        cancelCustomBtn.addEventListener('click', () => {
+            customArea.style.display = 'none';
+            toggleCustomBtn.textContent = '📝 Paste Custom Script';
+        });
+
+        rateSlider.addEventListener('input', () => {
+            rateVal.textContent = parseFloat(rateSlider.value).toFixed(2);
+            saveSettings();
+        });
+        pitchSlider.addEventListener('input', () => {
+            pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2);
+            saveSettings();
+        });
+        volumeSlider.addEventListener('input', () => {
+            volumeVal.textContent = parseFloat(volumeSlider.value).toFixed(2);
+            saveSettings();
+        });
+        voiceSelect.addEventListener('change', saveSettings);
+        langSelect.addEventListener('change', saveSettings);
+        randomizeToggle.addEventListener('change', saveSettings);
+
+        // ===== Init =====
+        if (speechSynth) {
+            speechSynth.onvoiceschanged = () => {
+                populateVoices();
+                loadSettings();
+            };
+            setTimeout(() => {
+                if (speechSynth.getVoices().length > 0) {
+                    populateVoices();
+                    loadSettings();
+                }
+            }, 200);
+        }
+
+        loadSettings();
+        useFallback();
+
+        if (!puterLoaded) {
+            loadPuter().catch(() => {
+                puterStatus.textContent = '⚠️ Puter load failed – fallback scripts only';
+            });
+        }
+
+        console.log('🎙️ SensyCilva – Interactive Radio loaded. Send messages to the host!');
+    })();
+</script>
+</body>
+</html>

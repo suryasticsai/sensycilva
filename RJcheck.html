@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hinglish Script + TTS (Debug)</title>
+    <title>Anime Script Generator – Expressions in <></title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -11,7 +11,7 @@
             min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
         }
         .container {
-            background:#1a1e26; border-radius:24px; padding:32px; max-width:800px; width:100%;
+            background:#1a1e26; border-radius:24px; padding:32px; max-width:820px; width:100%;
             border:1px solid #2a2f3a; box-shadow:0 20px 60px rgba(0,0,0,.6);
         }
         h1 { font-size:24px; font-weight:700; margin-bottom:4px; }
@@ -31,223 +31,249 @@
         .actions button.play:hover { background:#2a4a3a; }
         .actions button.stop { background:#3a1a1a; border-color:#ff4a3a; }
         .actions button.stop:hover { background:#4a2a2a; }
-        .actions button.test { background:#1a2a3a; border-color:#5ac8fa; }
-        .actions button.test:hover { background:#2a3a4a; }
-        .status { font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px; white-space:pre-wrap; }
+        .status { font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px; }
         .status.error { color:#ff6a5a; }
         .status.success { color:#4cd964; }
         .script-box {
             background:#0a0c10; border-radius:16px; padding:16px;
-            min-height:300px; max-height:500px; overflow-y:auto;
+            min-height:300px; max-height:400px; overflow-y:auto;
             border:1px solid #1a212a; white-space:pre-wrap;
             font-size:15px; line-height:1.7; color:#b7e1fa;
         }
-        .script-box .empty { color:#4a5a6a; font-style:italic; }
+        .controls-row {
+            display:flex; gap:16px; flex-wrap:wrap; align-items:center;
+            background:#0a0c10; border-radius:12px; padding:12px 16px;
+            margin-top:12px; border:1px solid #1a212a;
+        }
+        .controls-row label {
+            font-size:12px; color:#6a8a9a; display:flex; align-items:center; gap:6px;
+        }
+        .controls-row select, .controls-row input[type="range"] {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
+        }
+        .controls-row input[type="range"] { width:80px; padding:0; accent-color:#5ac8fa; }
+        .controls-row .val { color:#5ac8fa; font-size:12px; min-width:30px; }
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
-        .log { color:#7a8a9a; font-size:12px; margin-top:8px; }
+        .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🎙️ <span>Hinglish</span> Anime Script</h1>
-    <div class="sub">Debugging TTS – check console for logs</div>
+    <div class="sub">Expressions in <shock> <laugh> <pause> – TTS speaks clean text</div>
 
     <div class="actions">
         <button id="generateBtn">📝 Generate Script</button>
         <button id="playBtn" class="play" disabled>🔊 Play</button>
         <button id="stopBtn" class="stop" disabled>⏹ Stop</button>
         <button id="copyBtn" class="copy" disabled>📋 Copy</button>
-        <button id="testBtn" class="test">🔊 Test TTS</button>
     </div>
 
     <div class="status" id="status">Ready – click "Generate"</div>
-    <div class="script-box" id="scriptBox"><span class="empty">Click "Generate" to create a new Hinglish script.</span></div>
-    <div class="footer">Powered by Puter.js · TTS: browser speech synthesis</div>
-    <div id="log" class="log"></div>
+    <div class="script-box" id="scriptBox"><span class="empty">Click "Generate" to see a new script.</span></div>
+
+    <div class="controls-row">
+        <label>🎤 Voice
+            <select id="voiceSelect"></select>
+        </label>
+        <label>Speed
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" />
+            <span class="val" id="rateVal">0.95</span>
+        </label>
+        <label>Pitch
+            <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" />
+            <span class="val" id="pitchVal">1.00</span>
+        </label>
+        <label>Volume
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" />
+            <span class="val" id="volumeVal">1.00</span>
+        </label>
+    </div>
+    <div class="note">💡 Angle‑bracket expressions (<shock>) are visible in the script – they are removed before speech.</div>
+    <div class="footer">Powered by browser TTS · All settings saved locally</div>
 </div>
 
 <script>
     (function() {
-        // ============================================================
-        //  DEBUG VERSION – logs everything to console and status
-        // ============================================================
+        // ================================================================
+        //  DUMMY SCRIPT LIBRARY – Using <shock>, <laugh>, <pause> etc.
+        // ================================================================
+        const dummyScripts = [
+            `<intro – energetic, beat drops>
+Arre yaar! Kya haal hai, anime lovers? Welcome to SensyCilva Anime Radio – the show jo aapki favourite anime ki duniya mein le jaata hai! Main hoon aapka host, <excite> aur aaj ka episode hai full-on masala! <laugh> Chalo shuru karte hain!
 
+<news – dramatic>
+Ohho! Pehli breaking news – Attack on Titan ka finale finally aagaya! <shock> Eren ne kya kiya? Kya Mikasa ko mila uska moment? <pause> Humein toh pata hai, par hum nahi bataenge! <laugh> Dekhna padega!
+
+<featured – Frieren>
+Ab baat karte hain Frieren ki – <soft> yaar yeh show hai kamaal ka. Ek elf jo apne human companions ko outlive karti hai – <emotion> aur phir seekhti hai ki life mein choti choti cheezein kitni important hain. <pause> Animation? Wah! Madhouse ne phir se dhamaal kar diya hai! <excite> Agar nahi dekha toh abhi dekhna start karo!
+
+<recommendation – Mashle>
+Aur agar comedy chahiye toh Mashle: Magic and Muscles dekh lo! <laugh> Isme hero magic nahi, sirf muscles aur cream puffs se sab kuch solve karta hai! <shock> Seriously! Harry Potter meets One Punch Man – but desi style!
+
+<trivia – fun fact>
+<whisper> Suno suno – Sailor Moon ki creator, Naoko Takeuchi, shadi ki hai Hunter x Hunter ke creator Yoshihiro Togashi se! <excite> Wah! Kya power couple hai!
+
+<signoff – warm>
+Chalo, aaj ke liye itna hi. <yawn> Thoda tired hoon, par aapke pyaar ne energy bhar di! <laugh> Follow karo @SensyCilvaRadio. Aur haan, anime dekhte raho! Bye bye!`,
+
+            `<intro – energetic>
+Arre arre arre! Kya scene hai! Main hoon aapka RJ, aur yeh hai SensyCilva Anime Radio – <shout> full power! <laugh> Aaj ka show hai super exciting!
+
+<news – fast pace>
+Oho! Oshi no Ko season 2 confirm ho gaya! July mein release! <dramatic> Ruby aur Aqua ki kahani aur bhi twisty hogi! <excite> Aur Solo Leveling season 2 bhi aa raha hai – Jinwoo ka comeback, wah!
+
+<featured – Spy x Family>
+Ab baat karte hain Spy x Family ki – <laugh> yeh show hai family entertainment ka best example! Ek spy, ek assassin, aur ek telepathic bacchi – sab ek family! <shock> Anya ki expressions toh dekho, yaar! <soft> Kya cute hai!
+
+<recommendation – Horimiya>
+Aur agar romance chahiye, toh Horimiya dekho – <warm> real life jaisi love story hai, no drama, bas pyaar aur hasi!
+
+<trivia>
+<whisper> Fun fact – Loid ki voice actor, Takuya Eguchi, ne bhi dekkha hai bahut saare roles! <laugh> Kya baat hai!
+
+<signoff>
+Okay guys, time to sign off! <yawn> Thoda neend aa rahi hai, par aapke liye kuch bhi! <laugh> Follow karo, share karo, aur haan – anime is life! Bye!`,
+
+            `<intro – high energy>
+Kya haal chaal, doston! Welcome to SensyCilva Anime Radio – aapka apna anime station! <excite> Main hoon aapka host, aur aaj ka show hai full of surprises!
+
+<news – excited>
+Pehli baat – Demon Slayer ka naya season aa raha hai! <shock> Hashira Training arc – Ufotable ne phir se kamaal kar diya! <laugh> Aur One Piece live action season 2 bhi confirm ho gaya!
+
+<featured – Jujutsu Kaisen>
+Ab baat karte hain Jujutsu Kaisen ki – <dramatic> Shibuya Incident arc – yaar kya action tha! Gojo vs Sukuna – <shock> mind-blowing! MAPPA ne apna best diya hai!
+
+<recommendation – Chainsaw Man>
+Aur agar dark fantasy pasand hai, toh Chainsaw Man dekho – <laugh> Denji ki story hai full on crazy! <excite> Power aur Aki ke characters toh top class hain!
+
+<trivia – fun>
+<whisper> Did you know – Gojo ki voice actor, Yuichi Nakamura, ne Hawks ko bhi voice kiya hai My Hero Academia mein! <laugh> Kya baat hai!
+
+<signoff>
+Chalo, aaj ke liye itna hi. <yawn> Thak gaye hain par aapke liye kuch bhi! <laugh> Phir milenge, bye bye!`
+        ];
+
+        // ===== DOM refs =====
         const generateBtn = document.getElementById('generateBtn');
         const playBtn = document.getElementById('playBtn');
         const stopBtn = document.getElementById('stopBtn');
         const copyBtn = document.getElementById('copyBtn');
-        const testBtn = document.getElementById('testBtn');
         const scriptBox = document.getElementById('scriptBox');
         const status = document.getElementById('status');
-        const logDiv = document.getElementById('log');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const rateSlider = document.getElementById('rateSlider');
+        const pitchSlider = document.getElementById('pitchSlider');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const rateVal = document.getElementById('rateVal');
+        const pitchVal = document.getElementById('pitchVal');
+        const volumeVal = document.getElementById('volumeVal');
 
         let currentScript = '';
         let currentCleanText = '';
-        let utterance = null;
-        let speechSynth = window.speechSynthesis;
         let isPlaying = false;
-        let debugLog = [];
+        let speechSynth = window.speechSynthesis;
+        let utterance = null;
 
-        function log(msg) {
-            debugLog.push(msg);
-            console.log('[TTS Debug]', msg);
-            logDiv.textContent = debugLog.slice(-5).join('\n');
+        // ===== Load settings from localStorage =====
+        function loadSettings() {
+            const savedVoice = localStorage.getItem('tts_voice') || '';
+            const savedRate = parseFloat(localStorage.getItem('tts_rate')) || 0.95;
+            const savedPitch = parseFloat(localStorage.getItem('tts_pitch')) || 1.0;
+            const savedVolume = parseFloat(localStorage.getItem('tts_volume')) || 1.0;
+            rateSlider.value = savedRate;
+            pitchSlider.value = savedPitch;
+            volumeSlider.value = savedVolume;
+            rateVal.textContent = savedRate.toFixed(2);
+            pitchVal.textContent = savedPitch.toFixed(2);
+            volumeVal.textContent = savedVolume.toFixed(2);
+            if (savedVoice) voiceSelect.value = savedVoice;
         }
 
-        // ===== Offline scripts (same as before) =====
-        const offlineScripts = [
-            `[Intro – energetic, beat drops]
-Arre yaar! Kya haal hai, anime lovers? Welcome to SensyCilva Anime Radio – the show jo aapki favourite anime ki duniya mein le jaata hai! Main hoon aapka host, [excited] aur aaj ka episode hai full-on masala! [laughing] Chalo shuru karte hain!
-
-[News – dramatic]
-Ohho! Pehli breaking news – Attack on Titan ka finale finally aagaya! [shocked] Eren ne kya kiya? Kya Mikasa ko mila uska moment? [dramatic pause] Humein toh pata hai, par hum nahi bataenge! [laughing] Dekhna padega!
-
-[Featured Anime – Frieren]
-Ab baat karte hain Frieren ki – [softly] yaar yeh show hai kamaal ka. Ek elf jo apne human companions ko outlive karti hai – [emotional] aur phir seekhti hai ki life mein choti choti cheezein kitni important hain. [pause] Animation? Wah! Madhouse ne phir se dhamaal kar diya hai! [excited] Agar nahi dekha toh abhi dekhna start karo!
-
-[Recommendation – Mashle]
-Aur agar comedy chahiye toh Mashle: Magic and Muscles dekh lo! [laughing] Isme hero magic nahi, sirf muscles aur cream puffs se sab kuch solve karta hai! [shocked] Seriously! Harry Potter meets One Punch Man – but desi style!
-
-[Trivia – fun fact]
-[whisper] Suno suno – Sailor Moon ki creator, Naoko Takeuchi, shadi ki hai Hunter x Hunter ke creator Yoshihiro Togashi se! [excited] Wah! Kya power couple hai!
-
-[Sign-off – warm]
-Chalo, aaj ke liye itna hi. [yawning] Thoda tired hoon, par aapke pyaar ne energy bhar di! [laughing] Follow karo @SensyCilvaRadio. Aur haan, anime dekhte raho! Bye bye!`,
-
-            `[Intro – energetic]
-Arre arre arre! Kya scene hai! Main hoon aapka RJ, aur yeh hai SensyCilva Anime Radio – [shouted] full power! [laughing] Aaj ka show hai super exciting!
-
-[News – fast pace]
-Oho! Oshi no Ko season 2 confirm ho gaya! July mein release! [dramatic] Ruby aur Aqua ki kahani aur bhi twisty hogi! [excited] Aur Solo Leveling season 2 bhi aa raha hai – Jinwoo ka comeback, wah!
-
-[Featured Anime – Spy x Family]
-Ab baat karte hain Spy x Family ki – [laughing] yeh show hai family entertainment ka best example! Ek spy, ek assassin, aur ek telepathic bacchi – sab ek family! [shocked] Anya ki expressions toh dekho, yaar! [softly] Kya cute hai!
-
-[Recommendation – Horimiya]
-Aur agar romance chahiye, toh Horimiya dekho – [warm] real life jaisi love story hai, no drama, bas pyaar aur hasi!
-
-[Trivia]
-[whisper] Fun fact – Loid ki voice actor, Takuya Eguchi, ne bhi dekkha hai bahut saare roles! [laughing] Kya baat hai!
-
-[Sign-off]
-Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye kuch bhi! [laughing] Follow karo, share karo, aur haan – anime is life! Bye!`
-        ];
-
-        function getOfflineScript() {
-            return offlineScripts[Math.floor(Math.random() * offlineScripts.length)];
+        function saveSettings() {
+            localStorage.setItem('tts_voice', voiceSelect.value);
+            localStorage.setItem('tts_rate', rateSlider.value);
+            localStorage.setItem('tts_pitch', pitchSlider.value);
+            localStorage.setItem('tts_volume', volumeSlider.value);
         }
 
-        // ===== Load Puter.js =====
-        let puterLoaded = false;
-        function loadPuter() {
-            return new Promise((resolve, reject) => {
-                if (typeof puter !== 'undefined') {
-                    puterLoaded = true;
-                    resolve();
-                    return;
-                }
-                const script = document.createElement('script');
-                script.src = 'https://js.puter.com/v2/';
-                script.onload = () => { puterLoaded = true; resolve(); };
-                script.onerror = () => reject(new Error('Failed to load Puter.js'));
-                document.head.appendChild(script);
-            });
-        }
-
-        // ===== Clean script for TTS =====
+        // ===== Clean script for TTS – remove <...> tags =====
         function cleanForTTS(text) {
-            return text.replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
+            return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
         }
 
-        // ===== Get available voices =====
-        function getVoices() {
-            return speechSynth.getVoices();
-        }
-
-        // ===== Test TTS with a short phrase =====
-        function testTTS() {
-            log('🧪 Testing TTS...');
-            const testText = 'Hello, this is a test of the Indian voice.';
-            const voices = getVoices();
-            log(`Found ${voices.length} voices.`);
-            let indianVoice = voices.find(v => v.lang === 'en-IN');
-            if (!indianVoice) indianVoice = voices.find(v => v.lang.startsWith('en'));
-            if (!indianVoice) indianVoice = voices[0];
-            if (indianVoice) {
-                log(`Using voice: ${indianVoice.name} (${indianVoice.lang})`);
-            } else {
-                log('❌ No voice found!');
-                status.textContent = '❌ No voice available for TTS.';
-                status.className = 'status error';
-                return;
+        // ===== Populate voice selector =====
+        function populateVoices() {
+            const voices = speechSynth.getVoices();
+            voiceSelect.innerHTML = '';
+            const sorted = voices.sort((a, b) => {
+                if (a.lang.startsWith('en') && !b.lang.startsWith('en')) return -1;
+                if (!a.lang.startsWith('en') && b.lang.startsWith('en')) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            sorted.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.voiceURI;
+                opt.text = `${v.name} (${v.lang})`;
+                voiceSelect.appendChild(opt);
+            });
+            // Try to select en-IN or en-US
+            const preferred = sorted.find(v => v.lang === 'en-IN') || sorted.find(v => v.lang === 'en-US');
+            if (preferred) voiceSelect.value = preferred.voiceURI;
+            // Then apply saved voice if any
+            const savedVoice = localStorage.getItem('tts_voice');
+            if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
+                voiceSelect.value = savedVoice;
             }
-
-            const utterance = new SpeechSynthesisUtterance(testText);
-            utterance.voice = indianVoice;
-            utterance.rate = 0.9;
-            utterance.pitch = 1.0;
-            utterance.volume = 1;
-            utterance.onstart = () => {
-                log('✅ TTS started playing.');
-                status.textContent = '🔊 Test TTS playing...';
-                status.className = 'status';
-            };
-            utterance.onend = () => {
-                log('✅ TTS finished.');
-                status.textContent = '✅ Test TTS finished.';
-                status.className = 'status success';
-            };
-            utterance.onerror = (err) => {
-                log('❌ TTS error: ' + (err.error || 'unknown'));
-                status.textContent = '❌ Test TTS error.';
-                status.className = 'status error';
-            };
-            speechSynth.speak(utterance);
         }
 
-        // ===== Speak the full script =====
+        // ===== Get selected voice =====
+        function getSelectedVoice() {
+            const uri = voiceSelect.value;
+            return speechSynth.getVoices().find(v => v.voiceURI === uri) || null;
+        }
+
+        // ===== Speak script =====
         function speakScript() {
             if (!currentCleanText) {
-                status.textContent = '⚠️ No script to play. Generate first.';
+                status.textContent = '⚠️ No script. Generate first.';
                 status.className = 'status error';
                 return;
             }
-            if (isPlaying) {
-                log('Already playing, ignoring.');
-                return;
-            }
-            if (speechSynth.speaking) {
-                speechSynth.cancel();
-            }
+            if (isPlaying) return;
+            if (speechSynth.speaking) speechSynth.cancel();
 
-            const voices = getVoices();
-            let indianVoice = voices.find(v => v.lang === 'en-IN');
-            if (!indianVoice) indianVoice = voices.find(v => v.lang.startsWith('en'));
-            if (!indianVoice) indianVoice = voices[0];
-            if (!indianVoice) {
-                log('❌ No voice available.');
-                status.textContent = '❌ No voice available.';
+            const voice = getSelectedVoice();
+            if (!voice) {
+                status.textContent = '❌ No voice selected.';
                 status.className = 'status error';
                 return;
             }
-            log(`Using voice: ${indianVoice.name} (${indianVoice.lang})`);
 
-            // Split into sentences
+            const rate = parseFloat(rateSlider.value);
+            const pitch = parseFloat(pitchSlider.value);
+            const volume = parseFloat(volumeSlider.value);
+
             const sentences = currentCleanText.split(/(?<=[.!?])\s+|\n/).filter(s => s.trim().length > 0);
-            log(`Speaking ${sentences.length} sentences.`);
+            if (sentences.length === 0) {
+                status.textContent = '❌ No sentences to speak.';
+                status.className = 'status error';
+                return;
+            }
 
-            let index = 0;
             isPlaying = true;
             playBtn.disabled = true;
             stopBtn.disabled = false;
-            status.textContent = '🔊 Speaking...';
+            status.textContent = `🔊 Speaking (${sentences.length} sentences)...`;
             status.className = 'status';
+
+            let index = 0;
 
             function speakNext() {
                 if (!isPlaying) {
-                    log('Stopped by user.');
                     status.textContent = '⏹ Stopped.';
                     status.className = 'status';
                     playBtn.disabled = false;
@@ -255,7 +281,6 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
                     return;
                 }
                 if (index >= sentences.length) {
-                    log('✅ All sentences spoken.');
                     status.textContent = '✅ Playback finished.';
                     status.className = 'status success';
                     playBtn.disabled = false;
@@ -264,19 +289,17 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
                     return;
                 }
                 const text = sentences[index];
-                log(`Speaking sentence ${index+1}: ${text.substring(0, 30)}...`);
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.voice = indianVoice;
-                utterance.rate = 0.9;
-                utterance.pitch = 1.0;
-                utterance.volume = 1;
+                utterance.voice = voice;
+                utterance.rate = rate;
+                utterance.pitch = pitch;
+                utterance.volume = volume;
                 utterance.onend = () => {
                     index++;
                     speakNext();
                 };
                 utterance.onerror = (err) => {
-                    log(`❌ Error on sentence ${index+1}: ${err.error || 'unknown'}`);
-                    // Skip this sentence and continue
+                    console.warn('TTS error on sentence', index, err);
                     index++;
                     speakNext();
                 };
@@ -286,64 +309,29 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
             speakNext();
         }
 
-        // ===== Stop =====
+        // ===== Stop TTS =====
         function stopTTS() {
-            if (speechSynth.speaking) {
-                speechSynth.cancel();
-            }
+            if (speechSynth.speaking) speechSynth.cancel();
             isPlaying = false;
-            log('Stopped by user.');
             status.textContent = '⏹ Stopped.';
             status.className = 'status';
             playBtn.disabled = false;
             stopBtn.disabled = true;
         }
 
-        // ===== Generate =====
-        async function generate() {
-            generateBtn.disabled = true;
-            playBtn.disabled = true;
-            stopBtn.disabled = true;
-            copyBtn.disabled = true;
-            status.textContent = '⏳ Generating Hinglish script...';
-            status.className = 'status';
-            scriptBox.innerHTML = '<span style="color:#5ac8fa;">⏳ Generating...</span>';
-
-            const prompt = `Write a complete anime radio show script in Hinglish (mix of Hindi and English) for "SensyCilva Anime Radio". The host is super energetic, uses lots of expressions like [shocked], [laughing], [dramatic pause], [excited], [softly], [whisper], [yawning], and interjections like "arre yaar", "ohho", "wah", "uhh", "hmm". Make it sound very realistic and human. Include: a greeting, news, featured anime (like Frieren, Spy x Family), recommendation, trivia, sign-off. At least 400 words.`;
-
-            try {
-                await loadPuter();
-                const response = await puter.ai.chat(prompt, {
-                    model: 'google/gemini-2.5-flash',
-                });
-                let text = response.message?.content || response;
-                if (text && text.length > 100) {
-                    currentScript = text;
-                    currentCleanText = cleanForTTS(text);
-                    scriptBox.textContent = text;
-                    status.textContent = `✅ Script generated (${text.length} characters)`;
-                    status.className = 'status success';
-                    playBtn.disabled = false;
-                    copyBtn.disabled = false;
-                    generateBtn.disabled = false;
-                    log('✅ Script generated.');
-                    return;
-                } else {
-                    throw new Error('Response too short');
-                }
-            } catch (err) {
-                console.warn('Puter failed, using offline fallback:', err.message);
-                const fallback = getOfflineScript();
-                currentScript = fallback;
-                currentCleanText = cleanForTTS(fallback);
-                scriptBox.textContent = fallback;
-                status.textContent = '⚠️ Using offline script (AI unavailable)';
-                status.className = 'status error';
-                playBtn.disabled = false;
-                copyBtn.disabled = false;
-                generateBtn.disabled = false;
-                log('⚠️ Using offline fallback.');
-            }
+        // ===== Generate (cycle through dummy scripts) =====
+        function generate() {
+            // Pick a random script from the dummy library
+            const script = dummyScripts[Math.floor(Math.random() * dummyScripts.length)];
+            currentScript = script;
+            currentCleanText = cleanForTTS(script);
+            scriptBox.textContent = script;
+            status.textContent = `✅ Script generated (${script.length} characters)`;
+            status.className = 'status success';
+            playBtn.disabled = false;
+            copyBtn.disabled = false;
+            // Save settings on generate
+            saveSettings();
         }
 
         // ===== Copy =====
@@ -374,24 +362,42 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
         playBtn.addEventListener('click', speakScript);
         stopBtn.addEventListener('click', stopTTS);
         copyBtn.addEventListener('click', copyScript);
-        testBtn.addEventListener('click', testTTS);
 
-        // Preload voices and log them
+        // Slider updates
+        rateSlider.addEventListener('input', () => {
+            rateVal.textContent = parseFloat(rateSlider.value).toFixed(2);
+            saveSettings();
+        });
+        pitchSlider.addEventListener('input', () => {
+            pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2);
+            saveSettings();
+        });
+        volumeSlider.addEventListener('input', () => {
+            volumeVal.textContent = parseFloat(volumeSlider.value).toFixed(2);
+            saveSettings();
+        });
+        voiceSelect.addEventListener('change', saveSettings);
+
+        // ===== Init =====
         if (speechSynth) {
-            speechSynth.getVoices();
             speechSynth.onvoiceschanged = () => {
-                const voices = speechSynth.getVoices();
-                log(`Voices loaded: ${voices.length} total.`);
-                const indian = voices.find(v => v.lang === 'en-IN');
-                if (indian) log(`Found Indian voice: ${indian.name}`);
-                else log('No en-IN voice found – using fallback.');
+                populateVoices();
+                loadSettings();
             };
+            // Also attempt immediately if voices already loaded
+            setTimeout(() => {
+                if (speechSynth.getVoices().length > 0) {
+                    populateVoices();
+                    loadSettings();
+                }
+            }, 100);
         }
 
         // Auto-generate on load
         generate();
 
-        console.log('🎙️ Debug version loaded – check console and logs.');
+        console.log('🎙️ Hinglish script generator loaded – expressions in <>.');
+        console.log('📝 Click "Generate" for a new dummy script.');
     })();
 </script>
 </body>

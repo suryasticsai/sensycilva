@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Radio – Humanized TTS</title>
+    <title>SensyCilva – Puter TTS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -92,17 +92,13 @@
         .voice-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
         .voice-group select { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none; }
-        .toggle-group { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-        .toggle-group label { color:#6a8a9a; font-size:12px; }
-        .toggle-group input[type="range"] { width:100px; }
-        .toggle-group input[type="checkbox"] { accent-color:#4cd964; width:18px; height:18px; cursor:pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>Humanized</span> AI Radio</h1>
-    <div class="sub">Natural pauses, fillers, and rhythm – 100% browser TTS</div>
+    <h1>🎙️ <span>SensyCilva</span> – Puter TTS</h1>
+    <div class="sub">Free, unlimited, high‑quality voices from ElevenLabs, OpenAI, Gemini</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -111,7 +107,7 @@
             <option value="hi">हिन्दी (Hindi)</option>
             <option value="te">తెలుగు (Telugu)</option>
         </select>
-        <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ AI: Puter.js</span>
+        <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ Puter.js</span>
         <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
     </div>
 
@@ -134,27 +130,31 @@
     </div>
 
     <div class="controls-row">
-        <label>Speed
-            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9" />
-            <span class="val" id="rateVal">0.90</span>
-        </label>
-        <label>Pitch
-            <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" />
-            <span class="val" id="pitchVal">1.00</span>
-        </label>
+        <div class="voice-group">
+            <label>Provider</label>
+            <select id="providerSelect">
+                <option value="elevenlabs">ElevenLabs (most human)</option>
+                <option value="openai">OpenAI</option>
+                <option value="gemini">Gemini (style instructions)</option>
+                <option value="aws">AWS Polly</option>
+            </select>
+        </div>
         <div class="voice-group">
             <label>Voice</label>
-            <select id="voiceSelect"></select>
+            <select id="voiceSelect">
+                <option value="21m00Tcm4TlvDq8ikWAM">Rachel (ElevenLabs)</option>
+                <option value="nova">Nova (OpenAI)</option>
+                <option value="Puck">Puck (Gemini)</option>
+                <option value="Joanna">Joanna (AWS Polly)</option>
+            </select>
         </div>
-        <div class="toggle-group">
-            <input type="checkbox" id="humanizeToggle" checked />
-            <label for="humanizeToggle">Humanize</label>
-            <input type="range" id="humanizeIntensity" min="0" max="100" value="50" />
-            <span class="val" id="humanizeVal">50</span>
+        <div class="voice-group" id="styleGroup">
+            <label>Style Instructions (Gemini)</label>
+            <input type="text" id="styleInput" placeholder="E.g. 'Speak in a warm, energetic radio host style'" style="background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; flex:2;" />
         </div>
     </div>
-    <div class="note">💡 Humanization adds pauses, fillers, and conversational rhythm for a more natural sound.</div>
-    <div class="footer">Puter.js (Gemini) + Browser TTS · No servers, no keys</div>
+    <div class="note">💡 Puter.js TTS – no API keys, no limits. Users must sign in to Puter (free) once.</div>
+    <div class="footer">Puter.js (Gemini) + TTS · 100% free</div>
 </div>
 
 <script>
@@ -174,26 +174,20 @@
         const scriptBox = document.getElementById('scriptBox');
         const status = document.getElementById('status');
         const langSelect = document.getElementById('langSelect');
-        const rateSlider = document.getElementById('rateSlider');
-        const pitchSlider = document.getElementById('pitchSlider');
+        const providerSelect = document.getElementById('providerSelect');
         const voiceSelect = document.getElementById('voiceSelect');
-        const rateVal = document.getElementById('rateVal');
-        const pitchVal = document.getElementById('pitchVal');
+        const styleInput = document.getElementById('styleInput');
         const puterStatus = document.getElementById('puterStatus');
-        const humanizeToggle = document.getElementById('humanizeToggle');
-        const humanizeIntensity = document.getElementById('humanizeIntensity');
-        const humanizeVal = document.getElementById('humanizeVal');
 
         // ===== State =====
         let currentScript = '';
         let currentCleanText = '';
-        let isSpeaking = false;
-        let utterance = null;
-        let speechSynth = window.speechSynthesis;
+        let isPlaying = false;
+        let audio = null;
         let isCustomMode = false;
         let puterLoaded = false;
 
-        // ===== Fallback scripts (same as before) =====
+        // ===== Fallback scripts =====
         const fallbackScripts = {
             en: [
                 `[Intro – energetic]
@@ -256,126 +250,26 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
 
         // ===== Load settings =====
         function loadSettings() {
-            const savedLang = localStorage.getItem('browser_tts_lang') || 'en';
-            const savedRate = parseFloat(localStorage.getItem('browser_tts_rate')) || 0.9;
-            const savedPitch = parseFloat(localStorage.getItem('browser_tts_pitch')) || 1.0;
-            const savedVoice = localStorage.getItem('browser_tts_voice') || '';
-            const savedHumanize = localStorage.getItem('browser_tts_humanize') !== 'false';
-            const savedIntensity = parseInt(localStorage.getItem('browser_tts_intensity')) || 50;
+            const savedLang = localStorage.getItem('sensy_lang') || 'en';
+            const savedProvider = localStorage.getItem('sensy_provider') || 'elevenlabs';
+            const savedVoice = localStorage.getItem('sensy_voice') || '21m00Tcm4TlvDq8ikWAM';
+            const savedStyle = localStorage.getItem('sensy_style') || '';
             langSelect.value = savedLang;
-            rateSlider.value = savedRate;
-            pitchSlider.value = savedPitch;
-            rateVal.textContent = savedRate.toFixed(2);
-            pitchVal.textContent = savedPitch.toFixed(2);
-            if (savedVoice) voiceSelect.value = savedVoice;
-            humanizeToggle.checked = savedHumanize;
-            humanizeIntensity.value = savedIntensity;
-            humanizeVal.textContent = savedIntensity;
+            providerSelect.value = savedProvider;
+            voiceSelect.value = savedVoice;
+            styleInput.value = savedStyle;
         }
 
         function saveSettings() {
-            localStorage.setItem('browser_tts_lang', langSelect.value);
-            localStorage.setItem('browser_tts_rate', rateSlider.value);
-            localStorage.setItem('browser_tts_pitch', pitchSlider.value);
-            localStorage.setItem('browser_tts_voice', voiceSelect.value);
-            localStorage.setItem('browser_tts_humanize', humanizeToggle.checked);
-            localStorage.setItem('browser_tts_intensity', humanizeIntensity.value);
+            localStorage.setItem('sensy_lang', langSelect.value);
+            localStorage.setItem('sensy_provider', providerSelect.value);
+            localStorage.setItem('sensy_voice', voiceSelect.value);
+            localStorage.setItem('sensy_style', styleInput.value);
         }
 
-        // ===== Populate voices =====
-        function populateVoices() {
-            const voices = speechSynth.getVoices();
-            voiceSelect.innerHTML = '';
-            const sorted = voices.sort((a, b) => {
-                if (a.lang.startsWith('en') && !b.lang.startsWith('en')) return -1;
-                if (!a.lang.startsWith('en') && b.lang.startsWith('en')) return 1;
-                return a.name.localeCompare(b.name);
-            });
-            sorted.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.voiceURI;
-                opt.text = `${v.name} (${v.lang})`;
-                voiceSelect.appendChild(opt);
-            });
-            const preferred = sorted.find(v => v.lang === 'en-IN') || sorted.find(v => v.lang === 'en-US');
-            if (preferred) voiceSelect.value = preferred.voiceURI;
-            const savedVoice = localStorage.getItem('browser_tts_voice');
-            if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
-                voiceSelect.value = savedVoice;
-            }
-        }
-
-        // ===== Clean text (strip tags) =====
+        // ===== Clean text =====
         function cleanForTTS(text) {
             return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-        }
-
-        // ===== Humanize text – add pauses, fillers, repetitions =====
-        function humanizeText(text, intensity) {
-            if (intensity === 0) return text;
-
-            // Split into sentences
-            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-            let result = [];
-
-            // Filler words
-            const fillers = ['um', 'uh', 'you know', 'like', 'well', 'actually', 'basically'];
-            const fillerCount = Math.max(1, Math.floor(intensity / 25)); // 1 to 4 fillers per sentence
-
-            sentences.forEach((sentence, idx) => {
-                let s = sentence.trim();
-                // Remove trailing punctuation for internal processing
-                const punctuation = s.match(/[.!?]+$/) || '';
-                s = s.replace(/[.!?]+$/, '').trim();
-
-                // Split into words
-                let words = s.split(/\s+/);
-                if (words.length < 3) {
-                    result.push(sentence);
-                    return;
-                }
-
-                // Add filler words at random positions
-                for (let i = 0; i < fillerCount; i++) {
-                    if (words.length < 3) break;
-                    const pos = Math.floor(Math.random() * (words.length - 1)) + 1;
-                    const filler = fillers[Math.floor(Math.random() * fillers.length)];
-                    words.splice(pos, 0, filler);
-                }
-
-                // Occasionally repeat a word for emphasis
-                if (Math.random() < intensity / 100 && words.length > 4) {
-                    const pos = Math.floor(Math.random() * (words.length - 2)) + 1;
-                    const word = words[pos];
-                    if (word.length > 2) {
-                        words.splice(pos, 0, word);
-                    }
-                }
-
-                // Add pauses: place commas after 5-8 words
-                let newWords = [];
-                let wordCount = 0;
-                for (let w of words) {
-                    newWords.push(w);
-                    wordCount++;
-                    if (wordCount > 4 && wordCount < 8 && Math.random() < intensity / 100) {
-                        newWords.push(',');
-                        wordCount = 0;
-                    }
-                }
-
-                let newSentence = newWords.join(' ');
-                // Add ellipsis at random places for longer pauses
-                if (Math.random() < intensity / 100 && newSentence.length > 30) {
-                    const pos = Math.floor(Math.random() * newSentence.length * 0.5) + 10;
-                    newSentence = newSentence.substring(0, pos) + '...' + newSentence.substring(pos);
-                }
-
-                // Reattach punctuation
-                result.push(newSentence + punctuation);
-            });
-
-            return result.join(' ');
         }
 
         // ===== Display script =====
@@ -395,7 +289,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             return new Promise((resolve, reject) => {
                 if (typeof puter !== 'undefined') {
                     puterLoaded = true;
-                    puterStatus.textContent = '⚡ AI: Puter loaded';
+                    puterStatus.textContent = '⚡ Puter.js loaded';
                     resolve();
                     return;
                 }
@@ -403,11 +297,11 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 script.src = 'https://js.puter.com/v2/';
                 script.onload = () => {
                     puterLoaded = true;
-                    puterStatus.textContent = '⚡ AI: Puter loaded';
+                    puterStatus.textContent = '⚡ Puter.js loaded';
                     resolve();
                 };
                 script.onerror = () => {
-                    puterStatus.textContent = '⚠️ AI: Puter failed';
+                    puterStatus.textContent = '⚠️ Puter load failed';
                     reject(new Error('Failed to load Puter'));
                 };
                 document.head.appendChild(script);
@@ -453,85 +347,92 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             status.className = 'status warning';
         }
 
-        // ===== Play with browser TTS =====
-        function playScript() {
+        // ===== Play with Puter TTS =====
+        async function playScript() {
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
                 status.className = 'status error';
                 return;
             }
-            if (isSpeaking) {
-                speechSynth.cancel();
-                isSpeaking = false;
+            if (isPlaying) {
+                if (audio) { audio.pause(); audio.currentTime = 0; }
+                isPlaying = false;
+                playBtn.textContent = '🔊 Play';
+                stopBtn.disabled = true;
+                status.textContent = '⏹ Stopped.';
+                status.className = 'status';
+                return;
             }
 
-            let textToSpeak = currentCleanText;
+            const provider = providerSelect.value;
+            const voice = voiceSelect.value;
+            const style = styleInput.value.trim();
 
-            // Apply humanization if enabled
-            if (humanizeToggle.checked) {
-                const intensity = parseInt(humanizeIntensity.value);
-                textToSpeak = humanizeText(textToSpeak, intensity);
+            // Build options for Puter TTS
+            let options = { provider, voice };
+            if (provider === 'gemini' && style) {
+                options.instructions = style;
             }
+            // For ElevenLabs, we can pass the voice ID directly
+            // For OpenAI, we can pass model and voice
 
-            const voiceURI = voiceSelect.value;
-            const voices = speechSynth.getVoices();
-            const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
-
-            // Split into sentences (for natural pauses)
-            const sentences = textToSpeak.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-
-            status.textContent = `🔊 Speaking ${sentences.length} sentences...`;
+            status.textContent = '🔊 Generating speech with Puter TTS...';
             status.className = 'status';
             playBtn.disabled = true;
             stopBtn.disabled = false;
 
-            let index = 0;
-            isSpeaking = true;
-
-            function speakNext() {
-                if (!isSpeaking || index >= sentences.length) {
-                    if (isSpeaking) {
-                        status.textContent = '✅ Playback finished.';
-                        status.className = 'status success';
-                    }
+            try {
+                const result = await puter.ai.txt2speech(currentCleanText, options);
+                audio = result; // audio is an HTMLAudioElement
+                audio.onplay = () => {
+                    status.textContent = '🔊 Playing...';
+                    status.className = 'status';
+                    playBtn.textContent = '⏹ Stop';
+                };
+                audio.onended = () => {
+                    isPlaying = false;
+                    status.textContent = '✅ Playback finished.';
+                    status.className = 'status success';
+                    playBtn.textContent = '🔊 Play';
                     playBtn.disabled = false;
                     stopBtn.disabled = true;
-                    isSpeaking = false;
-                    return;
-                }
-                const text = sentences[index];
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.voice = selectedVoice;
-                utterance.rate = parseFloat(rateSlider.value);
-                utterance.pitch = parseFloat(pitchSlider.value);
-                utterance.volume = 1;
-                utterance.onend = () => {
-                    index++;
-                    speakNext();
                 };
-                utterance.onerror = () => {
-                    status.textContent = '❌ TTS error.';
+                audio.onerror = (e) => {
+                    console.error('Audio error:', e);
+                    status.textContent = '❌ Playback error.';
                     status.className = 'status error';
+                    playBtn.textContent = '🔊 Play';
                     playBtn.disabled = false;
                     stopBtn.disabled = true;
-                    isSpeaking = false;
+                    isPlaying = false;
                 };
-                speechSynth.speak(utterance);
+                await audio.play();
+                isPlaying = true;
+                playBtn.textContent = '⏹ Stop';
+                stopBtn.disabled = false;
+            } catch (err) {
+                status.textContent = `❌ Error: ${err.message}`;
+                status.className = 'status error';
+                playBtn.textContent = '🔊 Play';
+                playBtn.disabled = false;
+                stopBtn.disabled = true;
+                isPlaying = false;
             }
-
-            speakNext();
         }
 
         // ===== Stop =====
         function stopAudio() {
-            if (speechSynth.speaking) {
-                speechSynth.cancel();
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                audio = null;
             }
-            isSpeaking = false;
-            status.textContent = '⏹ Stopped.';
-            status.className = 'status';
+            isPlaying = false;
+            playBtn.textContent = '🔊 Play';
             playBtn.disabled = false;
             stopBtn.disabled = true;
+            status.textContent = '⏹ Stopped.';
+            status.className = 'status';
         }
 
         // ===== Copy =====
@@ -593,45 +494,26 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             toggleCustomBtn.textContent = '📝 Paste Custom Script';
         });
 
-        rateSlider.addEventListener('input', () => {
-            rateVal.textContent = parseFloat(rateSlider.value).toFixed(2);
-            saveSettings();
-        });
-        pitchSlider.addEventListener('input', () => {
-            pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2);
-            saveSettings();
-        });
+        providerSelect.addEventListener('change', saveSettings);
         voiceSelect.addEventListener('change', saveSettings);
+        styleInput.addEventListener('change', saveSettings);
         langSelect.addEventListener('change', saveSettings);
-        humanizeToggle.addEventListener('change', saveSettings);
-        humanizeIntensity.addEventListener('input', () => {
-            humanizeVal.textContent = humanizeIntensity.value;
-            saveSettings();
-        });
 
         // ===== Init =====
-        // Preload voices
-        if (speechSynth) {
-            speechSynth.onvoiceschanged = () => {
-                populateVoices();
-                loadSettings();
-            };
-            setTimeout(() => {
-                if (speechSynth.getVoices().length > 0) {
-                    populateVoices();
-                    loadSettings();
-                }
-            }, 100);
+        loadSettings();
+
+        // Load Puter.js upfront
+        if (!puterLoaded) {
+            loadPuter().catch(() => {
+                puterStatus.textContent = '⚠️ Puter load failed – using fallback scripts';
+            });
         }
 
-        loadSettings();
+        // Generate initial script using fallback (will use Puter if available)
         useFallback();
 
-        if (!puterLoaded) {
-            loadPuter().catch(() => {});
-        }
-
-        console.log('🎙️ Humanized AI Radio loaded – browser TTS with natural rhythm.');
+        console.log('🎙️ SensyCilva Radio with Puter TTS loaded.');
+        console.log('🗣️ Providers: ElevenLabs, OpenAI, Gemini, AWS Polly – all free via Puter.');
     })();
 </script>
 </body>

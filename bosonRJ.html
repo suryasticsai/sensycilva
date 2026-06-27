@@ -3,167 +3,634 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Debug – Boson TTS</title>
-    <!-- (keep your existing styles – same as before) -->
+    <title>Radio – Boson TTS (Debug)</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background:#0b0d11; color:#b7e1fa; font-family:'Segoe UI',system-ui,sans-serif;
+            min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
+        }
+        .container {
+            background:#1a1e26; border-radius:24px; padding:32px; max-width:840px; width:100%;
+            border:1px solid #2a2f3a; box-shadow:0 20px 60px rgba(0,0,0,.6);
+        }
+        h1 { font-size:26px; font-weight:700; margin-bottom:2px; }
+        h1 span { color:#ff9500; }
+        .sub { color:#5a7a8a; font-size:14px; margin-bottom:16px; }
+        .lang-selector {
+            display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;
+        }
+        .lang-selector label { color:#6a8a9a; font-weight:600; font-size:13px; }
+        .lang-selector select {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:6px 16px; color:#c0d8ee; font-size:13px; outline:none; cursor:pointer;
+        }
+        .actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+        .actions button {
+            background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa;
+            padding:10px 20px; border-radius:30px; font-weight:600; font-size:14px;
+            cursor:pointer; transition:.2s; font-family:inherit;
+        }
+        .actions button:hover { background:#234a66; }
+        .actions button:disabled { opacity:0.5; cursor:not-allowed; }
+        .actions button.copy { background:#1f2935; border-color:#2f3a48; }
+        .actions button.copy:hover { background:#2a3645; }
+        .actions button.play { background:#1a3a2a; border-color:#4cd964; }
+        .actions button.play:hover { background:#2a4a3a; }
+        .actions button.stop { background:#3a1a1a; border-color:#ff4a3a; }
+        .actions button.stop:hover { background:#4a2a2a; }
+        .actions button.custom { background:#1a2a3a; border-color:#5ac8fa; }
+        .actions button.custom:hover { background:#2a3a4a; }
+        .status {
+            font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px;
+            word-break:break-word;
+        }
+        .status.error { color:#ff6a5a; }
+        .status.success { color:#4cd964; }
+        .status.warning { color:#ff9500; }
+        .script-box {
+            background:#0a0c10; border-radius:16px; padding:16px;
+            min-height:300px; max-height:400px; overflow-y:auto;
+            border:1px solid #1a212a; white-space:pre-wrap;
+            font-size:15px; line-height:1.7; color:#b7e1fa;
+        }
+        .custom-area {
+            margin-top:12px; display:none; flex-direction:column; gap:8px;
+        }
+        .custom-area textarea {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:12px;
+            padding:12px; color:#c0d8ee; font-size:14px; font-family:'Segoe UI',sans-serif;
+            min-height:150px; resize:vertical; outline:none;
+        }
+        .custom-area textarea:focus { border-color:#4a8fc0; }
+        .custom-area .custom-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .custom-area .custom-actions button {
+            background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa;
+            padding:8px 18px; border-radius:30px; font-weight:600; font-size:13px;
+            cursor:pointer; transition:.2s; font-family:inherit;
+        }
+        .custom-area .custom-actions button:hover { background:#234a66; }
+        .custom-area .custom-actions button.set { background:#1a3a2a; border-color:#4cd964; }
+        .custom-area .custom-actions button.set:hover { background:#2a4a3a; }
+        .controls-row {
+            display:flex; gap:16px; flex-wrap:wrap; align-items:center;
+            background:#0a0c10; border-radius:12px; padding:12px 16px;
+            margin-top:12px; border:1px solid #1a212a;
+        }
+        .controls-row label {
+            font-size:12px; color:#6a8a9a; display:flex; align-items:center; gap:6px;
+        }
+        .controls-row select, .controls-row input[type="range"] {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
+        }
+        .controls-row input[type="range"] { width:80px; padding:0; accent-color:#5ac8fa; }
+        .controls-row .val { color:#5ac8fa; font-size:12px; min-width:30px; }
+        .voice-group {
+            display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+        }
+        .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
+        .voice-group select {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
+        }
+        .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
+        .footer a { color:#5ac8fa; text-decoration:none; }
+        .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
+        .debug-log {
+            background:#0a0c10; border-radius:8px; padding:8px 12px; margin-top:8px;
+            font-size:11px; color:#6a8a9a; max-height:100px; overflow-y:auto;
+            border:1px solid #1a212a; font-family:monospace;
+        }
+    </style>
 </head>
 <body>
-    <!-- (keep your existing HTML structure – API key input removed) -->
-    <script>
-        (function() {
-            'use strict';
 
-            // ================================================================
-            //  CONFIGURATION – USE YOUR WORKER URL
-            // ================================================================
-            const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
+<div class="container">
+    <h1>🎙️ <span>Debug</span> – Boson TTS</h1>
+    <div class="sub">Using Cloudflare Worker proxy · Key stored securely</div>
 
-            // ================================================================
-            //  DOM refs (keep your existing refs)
-            // ================================================================
-            // ... (all your DOM refs remain the same)
+    <div class="lang-selector">
+        <label for="langSelect">🌐 Script Language</label>
+        <select id="langSelect">
+            <option value="en">English</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+        </select>
+        <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ AI: Puter.js</span>
+        <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
+    </div>
 
-            // ================================================================
-            //  Debug log helper
-            // ================================================================
-            function debug(msg) {
-                console.log('[DEBUG]', msg);
-                // also show in status if you want
-                // status.textContent = msg;
-            }
+    <div class="actions">
+        <button id="generateBtn">📝 Generate AI Script</button>
+        <button id="playBtn" class="play" disabled>🔊 Play</button>
+        <button id="stopBtn" class="stop" disabled>⏹ Stop</button>
+        <button id="copyBtn" class="copy" disabled>📋 Copy</button>
+    </div>
 
-            // ================================================================
-            //  Play via Worker – with detailed logging
-            // ================================================================
-            async function playScript() {
-                if (!currentCleanText) {
-                    status.textContent = '⚠️ No script.';
-                    status.className = 'status error';
+    <div class="status" id="status">Ready – generate a script</div>
+    <div class="script-box" id="scriptBox"><span class="empty">Click "Generate AI Script" to create a new script.</span></div>
+
+    <div class="custom-area" id="customArea">
+        <textarea id="customScriptText" placeholder="Paste your custom script here."></textarea>
+        <div class="custom-actions">
+            <button class="set" id="setCustomBtn">✅ Use This Script</button>
+            <button id="cancelCustomBtn">✖ Cancel</button>
+        </div>
+    </div>
+
+    <div class="controls-row">
+        <label>Speed
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="1.0" />
+            <span class="val" id="rateVal">1.00</span>
+        </label>
+        <div class="voice-group">
+            <label>Voice</label>
+            <select id="voiceSelect">
+                <option value="default">Default</option>
+                <option value="rachel">Rachel</option>
+            </select>
+        </div>
+        <div class="voice-group">
+            <label>Emotion</label>
+            <select id="emotionSelect">
+                <option value="neutral">Neutral</option>
+                <option value="cheerful">Cheerful</option>
+                <option value="excited">Excited</option>
+                <option value="sad">Sad</option>
+                <option value="angry">Angry</option>
+                <option value="surprised">Surprised</option>
+            </select>
+        </div>
+    </div>
+    <div class="note">💡 Check the console (F12) for detailed debug logs.</div>
+    <div class="debug-log" id="debugLog">⏳ Debug log will appear here...</div>
+    <div class="footer">Puter.js (Gemini) + Boson Higgs TTS · Worker proxy</div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ================================================================
+        //  WORKER URL – REPLACE IF DIFFERENT
+        // ================================================================
+        const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
+
+        // ================================================================
+        //  DOM REFS
+        // ================================================================
+        const generateBtn = document.getElementById('generateBtn');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const toggleCustomBtn = document.getElementById('toggleCustomBtn');
+        const customArea = document.getElementById('customArea');
+        const customScriptText = document.getElementById('customScriptText');
+        const setCustomBtn = document.getElementById('setCustomBtn');
+        const cancelCustomBtn = document.getElementById('cancelCustomBtn');
+        const scriptBox = document.getElementById('scriptBox');
+        const status = document.getElementById('status');
+        const langSelect = document.getElementById('langSelect');
+        const rateSlider = document.getElementById('rateSlider');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const emotionSelect = document.getElementById('emotionSelect');
+        const rateVal = document.getElementById('rateVal');
+        const puterStatus = document.getElementById('puterStatus');
+        const debugLog = document.getElementById('debugLog');
+
+        // ================================================================
+        //  STATE
+        // ================================================================
+        let currentScript = '';
+        let currentCleanText = '';
+        let isPlaying = false;
+        let audio = null;
+        let isCustomMode = false;
+        let puterLoaded = false;
+
+        // ================================================================
+        //  DEBUG LOGGER
+        // ================================================================
+        function debug(msg) {
+            const time = new Date().toLocaleTimeString();
+            const line = `[${time}] ${msg}`;
+            console.log('[DEBUG]', msg);
+            debugLog.textContent += line + '\n';
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+
+        // ================================================================
+        //  FALLBACK SCRIPTS (English, Hindi, Telugu)
+        // ================================================================
+        const fallbackScripts = {
+            en: [
+                `[Intro – energetic]
+Hey there, anime fam! Welcome to SensyCilva Anime Radio – the show that takes you into your favorite anime worlds! I'm your host, <excite> and today's episode is packed with excitement! <laugh> Let's get started!
+
+<news – dramatic>
+Whoa! First breaking news – Attack on Titan's finale is finally here! <shock> What did Eren do? Did Mikasa get her moment? <pause> We know, but we won't tell! <laugh> You'll have to watch!
+
+<featured – Frieren>
+Now let's talk about Frieren – <soft> this show is amazing. An elf who outlives her human companions – <emotion> and then learns that the little things in life are so important. <pause> Animation? Wow! Madhouse has done it again! <excite> If you haven't seen it, start now!
+
+<recommendation – Mashle>
+If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no magic, just muscles and cream puffs to solve everything! <shock> Seriously! Harry Potter meets One Punch Man – desi style!
+
+<trivia – fun fact>
+<whisper> Did you know – Sailor Moon's creator, Naoko Takeuchi, is married to Hunter x Hunter's creator, Yoshihiro Togashi! <excite> Wow! What a power couple!
+
+<signoff – warm>
+Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. And keep watching anime! Bye bye!`
+            ],
+            hi: [
+                `[Intro – energetic]
+अरे यार! क्या हाल है, anime lovers? SensyCilva Anime Radio में आपका स्वागत है – ये शो आपको आपकी पसंदीदा anime की दुनिया में ले जाता है! मैं हूँ आपका होस्ट, <excite> और आज का एपिसोड है full-on मसाला! <laugh> चलो शुरू करते हैं!
+
+<news – dramatic>
+ओहो! पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया! <shock> एरेन ने क्या किया? क्या मिकासा को मिला उसका मोमेंट? <pause> हमें तो पता है, पर हम नहीं बताएँगे! <laugh> देखना पड़ेगा!
+
+<featured – Frieren>
+अब बात करते हैं Frieren की – <soft> यार ये शो है कमाल का! एक elf जो अपने human companions को outlive करती है – <emotion> और फिर सीखती है कि life में छोटी छोटी चीज़ें कितनी important हैं। <pause> Animation? वाह! Madhouse ने फिर से धमाल कर दिया! <excite> अगर नहीं देखा तो अभी देखना start करो!
+
+<recommendation – Mashle>
+और agar comedy चाहिए तो Mashle: Magic and Muscles देखो! <laugh> इसमें hero magic नहीं, sirf muscles और cream puffs से सब कुछ solve करता है! <shock> Seriously! Harry Potter meets One Punch Man – but desi style!
+
+<trivia – fun fact>
+<whisper> सुनो सुनो – Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है! <excite> वाह! Kya power couple hai!
+
+<signoff – warm>
+चलो, आज के लिए इतना ही। <yawn> थोड़ा tired हूँ, पर आपके प्यार ने energy भर दी! <laugh> Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो! Bye bye!`
+            ],
+            te: [
+                `[Intro – energetic]
+అరెరే! ఎలా ఉన్నారు anime ప్రేమికులారా! SensyCilva Anime Radio కి స్వాగతం – మీకు నచ్చిన anime ప్రపంచంలోకి తీసుకెళ్ళే షో! నేను మీ హోస్ట్, <excite> ఈ రోజు ఎపిసోడ్ పూర్తి మసాలా! <laugh> ఇంకా ఏముంది చూద్దాం!
+
+<news – dramatic>
+ఓహో! మొదటి బ్రేకింగ్ న్యూస్ – Attack on Titan ఫినాలే వచ్చేసింది! <shock> ఏరెన్ ఏం చేశాడు? మికాసాకి ఆ క్షణం దొరికిందా? <pause> మాకు తెలుసు కానీ మీకు చెప్పం! <laugh> మీరే చూడాలి!
+
+<featured – Frieren>
+ఇప్పుడు Frieren గురించి మాట్లాడుకుందాం – <soft> ఈ షో అద్భుతం. ఒక elf తన human companions కంటే ఎక్కువ కాలం జీవిస్తుంది – <emotion> ఆ తర్వాత నేర్చుకుంటుంది lifeలో చిన్న చిన్న విషయాలు ఎంత ముఖ్యమో. <pause> Animation? వాహ్! Madhouse మళ్ళీ ధమాల్ చేసింది! <excite> ఇంకా చూడకపోతే ఇప్పుడే మొదలు పెట్టండి!
+
+<recommendation – Mashle>
+కామెడీ కావాలంటే Mashle: Magic and Muscles చూడండి! <laugh> ఇందులో హీరో magic లేదు, సాధారణ muscles మరియు cream puffs తో సమస్యలన్నీ పరిష్కరిస్తాడు! <shock> నిజంగా! Harry Potter కలిసి One Punch Man – కానీ desi స్టైల్!
+
+<trivia – fun fact>
+<whisper> వినండి – Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు! <excite> వాహ్! ఎంత power couple!
+
+<signoff – warm>
+సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`
+            ]
+        };
+
+        // ================================================================
+        //  LOAD SETTINGS FROM LOCALSTORAGE
+        // ================================================================
+        function loadSettings() {
+            const savedLang = localStorage.getItem('boson_lang') || 'en';
+            const savedVoice = localStorage.getItem('boson_voice') || 'default';
+            const savedEmotion = localStorage.getItem('boson_emotion') || 'neutral';
+            const savedRate = parseFloat(localStorage.getItem('boson_rate')) || 1.0;
+            langSelect.value = savedLang;
+            voiceSelect.value = savedVoice;
+            emotionSelect.value = savedEmotion;
+            rateSlider.value = savedRate;
+            rateVal.textContent = savedRate.toFixed(2);
+        }
+
+        function saveSettings() {
+            localStorage.setItem('boson_lang', langSelect.value);
+            localStorage.setItem('boson_voice', voiceSelect.value);
+            localStorage.setItem('boson_emotion', emotionSelect.value);
+            localStorage.setItem('boson_rate', rateSlider.value);
+        }
+
+        // ================================================================
+        //  CLEAN TEXT FOR TTS
+        // ================================================================
+        function cleanForTTS(text) {
+            text = text.replace(/\([^)]*\)/g, '');
+            text = text.replace(/\[[^\]]*\]/g, '');
+            text = text.replace(/<[^>]*>/g, '');
+            text = text.replace(/[^\w\s.!?;:,'"-]/g, ' ');
+            text = text.replace(/\s+/g, ' ').trim();
+            return text;
+        }
+
+        // ================================================================
+        //  DISPLAY SCRIPT
+        // ================================================================
+        function displayScript(script, isCustom = false) {
+            currentScript = script;
+            currentCleanText = cleanForTTS(script);
+            scriptBox.textContent = script;
+            status.textContent = `✅ ${isCustom ? 'Custom' : 'Generated'} script (${script.length} chars)`;
+            status.className = 'status success';
+            playBtn.disabled = false;
+            copyBtn.disabled = false;
+            isCustomMode = isCustom;
+            debug(`Script loaded: ${script.length} chars`);
+        }
+
+        // ================================================================
+        //  LOAD PUTER.JS
+        // ================================================================
+        function loadPuter() {
+            return new Promise((resolve, reject) => {
+                if (typeof puter !== 'undefined') {
+                    puterLoaded = true;
+                    puterStatus.textContent = '⚡ AI: Puter loaded';
+                    resolve();
                     return;
                 }
-                if (isPlaying) return;
+                const script = document.createElement('script');
+                script.src = 'https://js.puter.com/v2/';
+                script.onload = () => {
+                    puterLoaded = true;
+                    puterStatus.textContent = '⚡ AI: Puter loaded';
+                    resolve();
+                };
+                script.onerror = () => {
+                    puterStatus.textContent = '⚠️ AI: Puter failed';
+                    reject(new Error('Failed to load Puter'));
+                };
+                document.head.appendChild(script);
+            });
+        }
 
-                const voice = voiceSelect.value;
-                const emotion = emotionSelect.value;
-                const speed = parseFloat(rateSlider.value);
+        // ================================================================
+        //  GENERATE SCRIPT (Puter or fallback)
+        // ================================================================
+        async function generate() {
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generating...';
+            status.textContent = '⏳ Generating AI script...';
+            status.className = 'status';
+            scriptBox.textContent = '⏳ Generating...';
+            debug('Starting script generation...');
 
-                // Chunk text
-                const maxChunkSize = 500;
-                const chunks = [];
-                let text = currentCleanText;
-                while (text.length > 0) {
-                    let chunk = text.substring(0, maxChunkSize);
-                    let lastPunct = Math.max(chunk.lastIndexOf('.'), chunk.lastIndexOf('!'), chunk.lastIndexOf('?'));
-                    if (lastPunct > 50 && lastPunct < maxChunkSize) {
-                        chunk = chunk.substring(0, lastPunct + 1);
+            try {
+                if (!puterLoaded) {
+                    try { await loadPuter(); } catch(e) { debug('Puter load failed, using fallback'); useFallback(); return; }
+                }
+                const lang = langSelect.value;
+                const langName = lang === 'hi' ? 'Hindi' : lang === 'te' ? 'Telugu' : 'English';
+                const prompt = `Write a complete anime radio show script in ${langName} for "SensyCilva Anime Radio". At least 400 words. Use expressions like <shock>, <laugh>, <excite>, <pause>, <whisper>, <yawn>. Include greeting, news, featured anime, recommendation, trivia, sign-off. Make it energetic and conversational.`;
+                debug(`Sending prompt to Puter (${langName})`);
+                const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
+                let script = response.message?.content || response;
+                if (script && script.length > 100) {
+                    displayScript(script, false);
+                    debug('Script generated successfully');
+                } else {
+                    throw new Error('Short response');
+                }
+            } catch (err) {
+                debug(`Puter error: ${err.message}`);
+                useFallback();
+            }
+            generateBtn.disabled = false;
+            generateBtn.textContent = '📝 Generate AI Script';
+        }
+
+        function useFallback() {
+            const lang = langSelect.value;
+            const available = fallbackScripts[lang] || fallbackScripts.en;
+            const script = available[Math.floor(Math.random() * available.length)];
+            displayScript(script, false);
+            status.textContent = '⚠️ Using fallback script (AI unavailable)';
+            status.className = 'status warning';
+            debug('Fallback script used');
+        }
+
+        // ================================================================
+        //  PLAY VIA WORKER (with full debugging)
+        // ================================================================
+        async function playScript() {
+            if (!currentCleanText) {
+                status.textContent = '⚠️ No script. Generate or paste one first.';
+                status.className = 'status error';
+                return;
+            }
+            if (isPlaying) return;
+
+            const voice = voiceSelect.value;
+            const emotion = emotionSelect.value;
+            const speed = parseFloat(rateSlider.value);
+
+            debug(`Play requested. Voice: ${voice}, Emotion: ${emotion}, Speed: ${speed}`);
+
+            // Chunk the text
+            const maxChunkSize = 500;
+            const chunks = [];
+            let text = currentCleanText;
+            while (text.length > 0) {
+                let chunk = text.substring(0, maxChunkSize);
+                let lastPunct = Math.max(chunk.lastIndexOf('.'), chunk.lastIndexOf('!'), chunk.lastIndexOf('?'));
+                if (lastPunct > 50 && lastPunct < maxChunkSize) {
+                    chunk = chunk.substring(0, lastPunct + 1);
+                }
+                chunks.push(chunk);
+                text = text.substring(chunk.length).trim();
+            }
+            debug(`Split into ${chunks.length} chunks`);
+
+            status.textContent = `🔊 Speaking ${chunks.length} parts...`;
+            status.className = 'status';
+            playBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            let audioQueue = [];
+
+            for (let i = 0; i < chunks.length; i++) {
+                if (!isPlaying) break;
+                const chunkText = chunks[i];
+                debug(`Requesting chunk ${i+1}/${chunks.length}: "${chunkText.substring(0, 30)}..."`);
+
+                try {
+                    const response = await fetch(WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: chunkText,
+                            voice: voice,
+                            emotion: emotion,
+                            speed: speed,
+                        }),
+                    });
+
+                    debug(`Response status: ${response.status}`);
+                    if (!response.ok) {
+                        let errorMsg = `HTTP ${response.status}`;
+                        try {
+                            const errData = await response.json();
+                            errorMsg = errData.error || errorMsg;
+                        } catch (e) {}
+                        throw new Error(errorMsg);
                     }
-                    chunks.push(chunk);
-                    text = text.substring(chunk.length).trim();
+
+                    const contentType = response.headers.get('content-type');
+                    debug(`Content-Type: ${contentType}`);
+
+                    const blob = await response.blob();
+                    debug(`Blob size: ${blob.size} bytes`);
+                    if (blob.size === 0) throw new Error('Empty audio blob');
+
+                    const url = URL.createObjectURL(blob);
+                    const audio = new Audio(url);
+                    audioQueue.push(audio);
+
+                } catch (err) {
+                    debug(`❌ Error on chunk ${i+1}: ${err.message}`);
+                    status.textContent = `❌ Error: ${err.message}`;
+                    status.className = 'status error';
+                    playBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    isPlaying = false;
+                    return;
                 }
-
-                debug(`Chunks: ${chunks.length}`);
-                status.textContent = `🔊 Speaking ${chunks.length} parts...`;
-                status.className = 'status';
-                playBtn.disabled = true;
-                stopBtn.disabled = false;
-
-                let audioQueue = [];
-
-                for (let i = 0; i < chunks.length; i++) {
-                    if (!isPlaying) break;
-                    const chunkText = chunks[i];
-                    debug(`Requesting chunk ${i+1}/${chunks.length}: "${chunkText.substring(0, 30)}..."`);
-
-                    try {
-                        const response = await fetch(WORKER_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                text: chunkText,
-                                voice: voice,
-                                emotion: emotion,
-                                speed: speed,
-                            }),
-                        });
-
-                        debug(`Response status: ${response.status} ${response.statusText}`);
-                        if (!response.ok) {
-                            let errorMsg = `HTTP ${response.status}`;
-                            try {
-                                const errData = await response.json();
-                                errorMsg = errData.error || errorMsg;
-                            } catch (e) {}
-                            throw new Error(errorMsg);
-                        }
-
-                        // Check content-type
-                        const contentType = response.headers.get('content-type');
-                        debug(`Content-Type: ${contentType}`);
-
-                        const blob = await response.blob();
-                        debug(`Blob size: ${blob.size} bytes`);
-                        if (blob.size === 0) {
-                            throw new Error('Empty audio blob');
-                        }
-
-                        const url = URL.createObjectURL(blob);
-                        const audio = new Audio(url);
-                        audioQueue.push(audio);
-
-                    } catch (err) {
-                        debug(`❌ Error on chunk ${i+1}: ${err.message}`);
-                        status.textContent = `❌ Error: ${err.message}`;
-                        status.className = 'status error';
-                        playBtn.disabled = false;
-                        stopBtn.disabled = true;
-                        isPlaying = false;
-                        return;
-                    }
-                }
-
-                debug(`Audio queue built: ${audioQueue.length} files. Playing...`);
-
-                // Play sequentially
-                for (let i = 0; i < audioQueue.length; i++) {
-                    if (!isPlaying) break;
-                    const audio = audioQueue[i];
-                    debug(`Playing chunk ${i+1}/${audioQueue.length}`);
-                    try {
-                        await new Promise((resolve, reject) => {
-                            audio.onended = resolve;
-                            audio.onerror = (e) => {
-                                debug(`Audio error: ${e}`);
-                                reject(new Error('Audio playback error'));
-                            };
-                            audio.play().then(() => {
-                                debug(`Chunk ${i+1} started playing`);
-                            }).catch(err => {
-                                debug(`Play() failed: ${err.message}`);
-                                reject(err);
-                            });
-                        });
-                    } catch (err) {
-                        debug(`Playback error: ${err.message}`);
-                        status.textContent = `❌ Playback error: ${err.message}`;
-                        status.className = 'status error';
-                        break;
-                    }
-                    await new Promise(r => setTimeout(r, 300));
-                }
-
-                if (isPlaying) {
-                    status.textContent = '✅ Playback finished.';
-                    status.className = 'status success';
-                }
-                playBtn.disabled = false;
-                stopBtn.disabled = true;
-                isPlaying = false;
             }
 
-            // ================================================================
-            //  Rest of your code remains the same – generate, stop, copy, etc.
-            // ================================================================
+            debug(`Audio queue ready: ${audioQueue.length} chunks. Starting playback...`);
 
-        })();
-    </script>
+            // Play sequentially
+            for (let i = 0; i < audioQueue.length; i++) {
+                if (!isPlaying) break;
+                const audio = audioQueue[i];
+                debug(`Playing chunk ${i+1}/${audioQueue.length}`);
+                try {
+                    await new Promise((resolve, reject) => {
+                        audio.onended = resolve;
+                        audio.onerror = (e) => {
+                            debug(`Audio error: ${e}`);
+                            reject(new Error('Audio playback error'));
+                        };
+                        audio.play().then(() => {
+                            debug(`Chunk ${i+1} started playing`);
+                        }).catch(err => {
+                            debug(`Play() failed: ${err.message}`);
+                            reject(err);
+                        });
+                    });
+                } catch (err) {
+                    debug(`Playback error: ${err.message}`);
+                    status.textContent = `❌ Playback error: ${err.message}`;
+                    status.className = 'status error';
+                    break;
+                }
+                await new Promise(r => setTimeout(r, 300));
+            }
+
+            if (isPlaying) {
+                status.textContent = '✅ Playback finished.';
+                status.className = 'status success';
+                debug('Playback finished');
+            }
+            playBtn.disabled = false;
+            stopBtn.disabled = true;
+            isPlaying = false;
+        }
+
+        // ================================================================
+        //  STOP
+        // ================================================================
+        function stopAudio() {
+            if (audio) { audio.pause(); audio.currentTime = 0; audio = null; }
+            isPlaying = false;
+            status.textContent = '⏹ Stopped.';
+            status.className = 'status';
+            playBtn.disabled = false;
+            stopBtn.disabled = true;
+            debug('Stopped by user');
+        }
+
+        // ================================================================
+        //  COPY
+        // ================================================================
+        function copyScript() {
+            if (!currentScript) {
+                status.textContent = '⚠️ Nothing to copy.';
+                status.className = 'status error';
+                return;
+            }
+            navigator.clipboard.writeText(currentScript).then(() => {
+                status.textContent = '📋 Copied!';
+                status.className = 'status success';
+                setTimeout(() => status.textContent = `✅ Script ready (${currentScript.length} chars)`, 2000);
+            }).catch(() => {
+                const ta = document.createElement('textarea');
+                ta.value = currentScript;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                status.textContent = '📋 Copied!';
+                status.className = 'status success';
+            });
+        }
+
+        // ================================================================
+        //  CUSTOM SCRIPT
+        // ================================================================
+        function setCustomScript() {
+            const text = customScriptText.value.trim();
+            if (!text) {
+                status.textContent = '⚠️ Please paste some text first.';
+                status.className = 'status error';
+                return;
+            }
+            displayScript(text, true);
+            customArea.style.display = 'none';
+            toggleCustomBtn.textContent = '📝 Paste Custom Script';
+            debug('Custom script set');
+        }
+
+        function toggleCustom() {
+            if (customArea.style.display === 'flex') {
+                customArea.style.display = 'none';
+                toggleCustomBtn.textContent = '📝 Paste Custom Script';
+            } else {
+                customArea.style.display = 'flex';
+                toggleCustomBtn.textContent = '✖ Close Custom';
+                if (isCustomMode) customScriptText.value = currentScript;
+            }
+        }
+
+        // ================================================================
+        //  EVENT LISTENERS
+        // ================================================================
+        generateBtn.addEventListener('click', generate);
+        playBtn.addEventListener('click', playScript);
+        stopBtn.addEventListener('click', stopAudio);
+        copyBtn.addEventListener('click', copyScript);
+        toggleCustomBtn.addEventListener('click', toggleCustom);
+        setCustomBtn.addEventListener('click', setCustomScript);
+        cancelCustomBtn.addEventListener('click', () => {
+            customArea.style.display = 'none';
+            toggleCustomBtn.textContent = '📝 Paste Custom Script';
+        });
+
+        rateSlider.addEventListener('input', () => {
+            rateVal.textContent = parseFloat(rateSlider.value).toFixed(2);
+            saveSettings();
+        });
+        langSelect.addEventListener('change', saveSettings);
+        voiceSelect.addEventListener('change', saveSettings);
+        emotionSelect.addEventListener('change', saveSettings);
+
+        // ================================================================
+        //  INIT
+        // ================================================================
+        loadSettings();
+        useFallback(); // initial script
+
+        // Preload Puter in background
+        if (!puterLoaded) {
+            loadPuter().catch(() => { debug('Puter preload failed, will use fallback'); });
+        }
+
+        debug('Radio loaded. Click Generate or Play.');
+    })();
+</script>
 </body>
 </html>

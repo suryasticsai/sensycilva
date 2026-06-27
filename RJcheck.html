@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Expressive Hinglish Script + TTS</title>
+    <title>Hinglish Script + TTS (Debug)</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -31,7 +31,9 @@
         .actions button.play:hover { background:#2a4a3a; }
         .actions button.stop { background:#3a1a1a; border-color:#ff4a3a; }
         .actions button.stop:hover { background:#4a2a2a; }
-        .status { font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px; }
+        .actions button.test { background:#1a2a3a; border-color:#5ac8fa; }
+        .actions button.test:hover { background:#2a3a4a; }
+        .status { font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px; white-space:pre-wrap; }
         .status.error { color:#ff6a5a; }
         .status.success { color:#4cd964; }
         .script-box {
@@ -43,47 +45,58 @@
         .script-box .empty { color:#4a5a6a; font-style:italic; }
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
+        .log { color:#7a8a9a; font-size:12px; margin-top:8px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🎙️ <span>Hinglish</span> Anime Script</h1>
-    <div class="sub">Expressive scripts + Indian TTS – no API key</div>
+    <div class="sub">Debugging TTS – check console for logs</div>
 
     <div class="actions">
         <button id="generateBtn">📝 Generate Script</button>
         <button id="playBtn" class="play" disabled>🔊 Play</button>
         <button id="stopBtn" class="stop" disabled>⏹ Stop</button>
         <button id="copyBtn" class="copy" disabled>📋 Copy</button>
+        <button id="testBtn" class="test">🔊 Test TTS</button>
     </div>
 
     <div class="status" id="status">Ready – click "Generate"</div>
     <div class="script-box" id="scriptBox"><span class="empty">Click "Generate" to create a new Hinglish script.</span></div>
-    <div class="footer">Powered by <a href="https://puter.com" target="_blank">Puter.js</a> · TTS uses browser voices (en‑IN if available)</div>
+    <div class="footer">Powered by Puter.js · TTS: browser speech synthesis</div>
+    <div id="log" class="log"></div>
 </div>
 
 <script>
     (function() {
         // ============================================================
-        //  FREE – Puter.js (Gemini) + Indian TTS (en-IN)
+        //  DEBUG VERSION – logs everything to console and status
         // ============================================================
 
         const generateBtn = document.getElementById('generateBtn');
         const playBtn = document.getElementById('playBtn');
         const stopBtn = document.getElementById('stopBtn');
         const copyBtn = document.getElementById('copyBtn');
+        const testBtn = document.getElementById('testBtn');
         const scriptBox = document.getElementById('scriptBox');
         const status = document.getElementById('status');
+        const logDiv = document.getElementById('log');
 
         let currentScript = '';
         let currentCleanText = '';
         let utterance = null;
         let speechSynth = window.speechSynthesis;
-        let voicesLoaded = false;
         let isPlaying = false;
+        let debugLog = [];
 
-        // ===== Offline fallback scripts (Hinglish with expressions) =====
+        function log(msg) {
+            debugLog.push(msg);
+            console.log('[TTS Debug]', msg);
+            logDiv.textContent = debugLog.slice(-5).join('\n');
+        }
+
+        // ===== Offline scripts (same as before) =====
         const offlineScripts = [
             `[Intro – energetic, beat drops]
 Arre yaar! Kya haal hai, anime lovers? Welcome to SensyCilva Anime Radio – the show jo aapki favourite anime ki duniya mein le jaata hai! Main hoon aapka host, [excited] aur aaj ka episode hai full-on masala! [laughing] Chalo shuru karte hain!
@@ -143,120 +156,134 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
             });
         }
 
-        // ===== Wait for voices to be loaded =====
-        function waitForVoices() {
-            return new Promise((resolve) => {
-                if (speechSynth.getVoices().length > 0) {
-                    resolve();
-                    return;
-                }
-                speechSynth.onvoiceschanged = () => {
-                    resolve();
-                };
-            });
-        }
-
-        // ===== Clean script for TTS (remove bracketed expressions) =====
+        // ===== Clean script for TTS =====
         function cleanForTTS(text) {
             return text.replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
         }
 
-        // ===== Split long text into sentences for TTS (some browsers have length limits) =====
-        function splitSentences(text) {
-            // Split by . ! ? and newline
-            const parts = text.split(/(?<=[.!?])\s+|\n/).filter(s => s.trim().length > 0);
-            return parts;
+        // ===== Get available voices =====
+        function getVoices() {
+            return speechSynth.getVoices();
         }
 
-        // ===== Speak with Indian voice =====
-        function speakText(text) {
-            return new Promise((resolve, reject) => {
-                // Wait for voices
-                waitForVoices().then(() => {
-                    const voices = speechSynth.getVoices();
-                    let indianVoice = voices.find(v => v.lang === 'en-IN');
-                    if (!indianVoice) indianVoice = voices.find(v => v.lang.startsWith('en'));
-                    if (!indianVoice) {
-                        // Fallback: use the first available voice
-                        indianVoice = voices[0];
-                    }
+        // ===== Test TTS with a short phrase =====
+        function testTTS() {
+            log('🧪 Testing TTS...');
+            const testText = 'Hello, this is a test of the Indian voice.';
+            const voices = getVoices();
+            log(`Found ${voices.length} voices.`);
+            let indianVoice = voices.find(v => v.lang === 'en-IN');
+            if (!indianVoice) indianVoice = voices.find(v => v.lang.startsWith('en'));
+            if (!indianVoice) indianVoice = voices[0];
+            if (indianVoice) {
+                log(`Using voice: ${indianVoice.name} (${indianVoice.lang})`);
+            } else {
+                log('❌ No voice found!');
+                status.textContent = '❌ No voice available for TTS.';
+                status.className = 'status error';
+                return;
+            }
 
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = indianVoice ? indianVoice.lang : 'en-US';
-                    utterance.rate = 0.9;
-                    utterance.pitch = 1.0;
-                    utterance.volume = 1;
-                    if (indianVoice) utterance.voice = indianVoice;
-
-                    utterance.onstart = () => {
-                        status.textContent = '🔊 Speaking...';
-                        status.className = 'status';
-                        playBtn.disabled = true;
-                        stopBtn.disabled = false;
-                        isPlaying = true;
-                    };
-                    utterance.onend = () => {
-                        isPlaying = false;
-                        status.textContent = '✅ Playback finished';
-                        status.className = 'status success';
-                        playBtn.disabled = false;
-                        stopBtn.disabled = true;
-                        resolve();
-                    };
-                    utterance.onerror = (err) => {
-                        isPlaying = false;
-                        status.textContent = '❌ TTS error: ' + (err.error || 'unknown');
-                        status.className = 'status error';
-                        playBtn.disabled = false;
-                        stopBtn.disabled = true;
-                        reject(err);
-                    };
-                    speechSynth.speak(utterance);
-                });
-            });
+            const utterance = new SpeechSynthesisUtterance(testText);
+            utterance.voice = indianVoice;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1;
+            utterance.onstart = () => {
+                log('✅ TTS started playing.');
+                status.textContent = '🔊 Test TTS playing...';
+                status.className = 'status';
+            };
+            utterance.onend = () => {
+                log('✅ TTS finished.');
+                status.textContent = '✅ Test TTS finished.';
+                status.className = 'status success';
+            };
+            utterance.onerror = (err) => {
+                log('❌ TTS error: ' + (err.error || 'unknown'));
+                status.textContent = '❌ Test TTS error.';
+                status.className = 'status error';
+            };
+            speechSynth.speak(utterance);
         }
 
-        // ===== Play full script (split into sentences to avoid browser limits) =====
-        async function playFullScript() {
+        // ===== Speak the full script =====
+        function speakScript() {
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script to play. Generate first.';
                 status.className = 'status error';
                 return;
             }
             if (isPlaying) {
-                // If already playing, stop first? We'll just ignore.
+                log('Already playing, ignoring.');
                 return;
             }
-            // Cancel any ongoing speech
-            if (speechSynth.speaking) speechSynth.cancel();
+            if (speechSynth.speaking) {
+                speechSynth.cancel();
+            }
 
-            const sentences = splitSentences(currentCleanText);
-            // Speak sentence by sentence with small pauses
-            for (let i = 0; i < sentences.length; i++) {
+            const voices = getVoices();
+            let indianVoice = voices.find(v => v.lang === 'en-IN');
+            if (!indianVoice) indianVoice = voices.find(v => v.lang.startsWith('en'));
+            if (!indianVoice) indianVoice = voices[0];
+            if (!indianVoice) {
+                log('❌ No voice available.');
+                status.textContent = '❌ No voice available.';
+                status.className = 'status error';
+                return;
+            }
+            log(`Using voice: ${indianVoice.name} (${indianVoice.lang})`);
+
+            // Split into sentences
+            const sentences = currentCleanText.split(/(?<=[.!?])\s+|\n/).filter(s => s.trim().length > 0);
+            log(`Speaking ${sentences.length} sentences.`);
+
+            let index = 0;
+            isPlaying = true;
+            playBtn.disabled = true;
+            stopBtn.disabled = false;
+            status.textContent = '🔊 Speaking...';
+            status.className = 'status';
+
+            function speakNext() {
                 if (!isPlaying) {
-                    // Stop was pressed
-                    break;
+                    log('Stopped by user.');
+                    status.textContent = '⏹ Stopped.';
+                    status.className = 'status';
+                    playBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    return;
                 }
-                try {
-                    await speakText(sentences[i]);
-                } catch (err) {
-                    console.warn('Error speaking sentence:', err);
-                    break;
+                if (index >= sentences.length) {
+                    log('✅ All sentences spoken.');
+                    status.textContent = '✅ Playback finished.';
+                    status.className = 'status success';
+                    playBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    isPlaying = false;
+                    return;
                 }
+                const text = sentences[index];
+                log(`Speaking sentence ${index+1}: ${text.substring(0, 30)}...`);
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = indianVoice;
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1;
+                utterance.onend = () => {
+                    index++;
+                    speakNext();
+                };
+                utterance.onerror = (err) => {
+                    log(`❌ Error on sentence ${index+1}: ${err.error || 'unknown'}`);
+                    // Skip this sentence and continue
+                    index++;
+                    speakNext();
+                };
+                speechSynth.speak(utterance);
             }
-            if (!isPlaying) {
-                // Stopped by user
-                status.textContent = '⏹ Stopped';
-                status.className = 'status';
-                playBtn.disabled = false;
-                stopBtn.disabled = true;
-            } else {
-                status.textContent = '✅ Playback finished';
-                status.className = 'status success';
-                playBtn.disabled = false;
-                stopBtn.disabled = true;
-                isPlaying = false;
-            }
+
+            speakNext();
         }
 
         // ===== Stop =====
@@ -265,7 +292,8 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
                 speechSynth.cancel();
             }
             isPlaying = false;
-            status.textContent = '⏹ Stopped';
+            log('Stopped by user.');
+            status.textContent = '⏹ Stopped.';
             status.className = 'status';
             playBtn.disabled = false;
             stopBtn.disabled = true;
@@ -298,6 +326,7 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
                     playBtn.disabled = false;
                     copyBtn.disabled = false;
                     generateBtn.disabled = false;
+                    log('✅ Script generated.');
                     return;
                 } else {
                     throw new Error('Response too short');
@@ -313,6 +342,7 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
                 playBtn.disabled = false;
                 copyBtn.disabled = false;
                 generateBtn.disabled = false;
+                log('⚠️ Using offline fallback.');
             }
         }
 
@@ -324,12 +354,9 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
                 return;
             }
             navigator.clipboard.writeText(currentScript).then(() => {
-                status.textContent = '📋 Copied to clipboard!';
+                status.textContent = '📋 Copied!';
                 status.className = 'status success';
-                setTimeout(() => {
-                    status.textContent = `✅ Script ready (${currentScript.length} chars)`;
-                    status.className = 'status success';
-                }, 2000);
+                setTimeout(() => status.textContent = `✅ Script ready (${currentScript.length} chars)`, 2000);
             }).catch(() => {
                 const ta = document.createElement('textarea');
                 ta.value = currentScript;
@@ -344,20 +371,27 @@ Okay guys, time to sign off! [yawning] Thoda neend aa rahi hai, par aapke liye k
 
         // ===== Event listeners =====
         generateBtn.addEventListener('click', generate);
-        playBtn.addEventListener('click', playFullScript);
+        playBtn.addEventListener('click', speakScript);
         stopBtn.addEventListener('click', stopTTS);
         copyBtn.addEventListener('click', copyScript);
+        testBtn.addEventListener('click', testTTS);
 
-        // Preload voices
+        // Preload voices and log them
         if (speechSynth) {
             speechSynth.getVoices();
-            speechSynth.onvoiceschanged = () => { /* voices loaded */ };
+            speechSynth.onvoiceschanged = () => {
+                const voices = speechSynth.getVoices();
+                log(`Voices loaded: ${voices.length} total.`);
+                const indian = voices.find(v => v.lang === 'en-IN');
+                if (indian) log(`Found Indian voice: ${indian.name}`);
+                else log('No en-IN voice found – using fallback.');
+            };
         }
 
         // Auto-generate on load
         generate();
 
-        console.log('🎙️ Hinglish Anime Script Generator loaded (with robust TTS).');
+        console.log('🎙️ Debug version loaded – check console and logs.');
     })();
 </script>
 </body>

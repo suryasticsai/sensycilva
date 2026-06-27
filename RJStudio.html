@@ -245,6 +245,7 @@
         let isSpeaking = false;
         let isInterrupted = false;
         let puterLoaded = false;
+        let isCustomMode = false;  // <--- FIXED: declared here
         const speechSynth = window.speechSynthesis;
         let fillerUtterance = null;
         let isFillerPlaying = false;
@@ -511,7 +512,7 @@ Bye bye.`
             status.className = 'status success';
             playBtn.disabled = false;
             copyBtn.disabled = false;
-            isCustomMode = isCustom;
+            isCustomMode = isCustom;  // <--- FIXED: set the variable
             sentences = currentCleanText.match(/[^.!?]+[.!?]+/g) || [currentCleanText];
             currentSentenceIndex = 0;
             chatLog.innerHTML = '<div class="host">🎙️ New script loaded. Speak or type to interact!</div>';
@@ -635,7 +636,6 @@ Bye bye.`
         function speakText(text) {
             return new Promise((resolve) => {
                 if (speechSynth.speaking) speechSynth.cancel();
-                // Cancel filler if playing
                 if (isFillerPlaying) {
                     stopFiller();
                 }
@@ -751,7 +751,6 @@ Bye bye.`
 
             if (!puterLoaded) {
                 const fallbackReply = "Thanks for your message! I'm still loading my brain. Try again in a moment.";
-                // Wait a bit to make filler natural, then reply
                 setTimeout(async () => {
                     stopFiller();
                     addHostReply(fallbackReply);
@@ -777,7 +776,6 @@ Bye bye.`
                 }
                 if (reply.length > 250) reply = reply.substring(0, 250) + '...';
 
-                // Stop filler and speak reply
                 stopFiller();
                 addHostReply(reply);
                 await speakText(reply);
@@ -807,7 +805,6 @@ Bye bye.`
                 isInterrupted = true;
                 if (speechSynth.speaking) speechSynth.cancel();
             }
-            // If filler is playing, we'll let it continue; the new message will start a new filler
             await handleUserMessage();
         }
 

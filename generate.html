@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anime Script Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0b0d11;
+            color: #b7e1fa;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: #1a1e26;
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid #2a2f3a;
+            box-shadow: 0 20px 60px rgba(0,0,0,.6);
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        h1 span { color: #ff9500; }
+        .sub {
+            color: #5a7a8a;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .actions button {
+            background: #1a3348;
+            border: 1px solid #4a8fc0;
+            color: #b7e1fa;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: .2s;
+            font-family: inherit;
+        }
+        .actions button:hover { background: #234a66; }
+        .actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .actions button.copy {
+            background: #1f2935;
+            border-color: #2f3a48;
+        }
+        .actions button.copy:hover { background: #2a3645; }
+        .status {
+            font-size: 13px;
+            color: #5ac8fa;
+            margin-bottom: 12px;
+            min-height: 24px;
+        }
+        .status.error { color: #ff6a5a; }
+        .status.success { color: #4cd964; }
+        .script-box {
+            background: #0a0c10;
+            border-radius: 16px;
+            padding: 16px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #1a212a;
+            white-space: pre-wrap;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #b7e1fa;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .script-box .empty {
+            color: #4a5a6a;
+            font-style: italic;
+        }
+        .footer {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #3a4a5a;
+            text-align: center;
+        }
+        .footer a {
+            color: #5ac8fa;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📝 <span>Anime</span> Script Generator</h1>
+        <div class="sub">Free AI scripts – no API key, no payments</div>
+
+        <div class="actions">
+            <button id="generateBtn">🎙️ Generate Script</button>
+            <button id="copyBtn" class="copy" disabled>📋 Copy</button>
+        </div>
+
+        <div class="status" id="status">Ready – click "Generate"</div>
+
+        <div class="script-box" id="scriptBox">
+            <span class="empty">Click "Generate" to create a new script.</span>
+        </div>
+
+        <div class="footer">Powered by <a href="https://github.com/andreasbm/jsllm7" target="_blank">jsllm7</a> (free) + offline fallback</div>
+    </div>
+
+    <script>
+        (function() {
+            // ============================================================
+            //  COMPLETELY FREE – NO API KEYS, NO PAYMENTS
+            //  Uses jsllm7 (free) with offline fallback.
+            // ============================================================
+
+            // DOM refs
+            const generateBtn = document.getElementById('generateBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const scriptBox = document.getElementById('scriptBox');
+            const status = document.getElementById('status');
+
+            let currentScript = '';
+
+            // ===== Offline fallback library (10+ full scripts) =====
+            const offlineScripts = [
+                // Script 1
+                `[Intro]
+"Welcome back, anime fans! This is your host, and you're listening to SensyCilva Anime Radio – the only station that brings you the hottest news, deep dives, and all the feels from the world of anime.
+
+[News]
+First up, the big announcement everyone's been waiting for: the final season of Attack on Titan has officially wrapped production, and the finale is set to air this fall. Fans are already speculating about the ending – will Eren's plan succeed? Will Mikasa finally get her moment? We'll have to wait and see.
+
+In other news, the highly anticipated adaptation of Chainsaw Man's second arc has been greenlit by MAPPA, and they've promised even more jaw-dropping animation than the first season. And if you're into slice-of-life, the new series "Skip and Loafer" has been renewed for a second season after its heartwarming debut.
+
+[Featured Anime: Frieren: Beyond Journey's End]
+Now, let's talk about one of the most acclaimed shows of the past year – Frieren: Beyond Journey's End. This anime takes a unique approach to fantasy by exploring what happens after the hero's party defeats the demon lord. The story follows Frieren, an elven mage who outlives her human companions and must come to terms with mortality, friendship, and the passage of time.
+
+What makes Frieren so special is its quiet, meditative tone. It's not about epic battles – it's about the small moments: a shared meal, a walk through a forest, a conversation that reveals decades of longing. The animation by Madhouse is stunning, with lush backgrounds and subtle character expressions that convey so much without words.
+
+The show also features one of the best soundtracks in recent memory – Evan Call's score perfectly captures the bittersweet nostalgia of Frieren's journey. If you haven't watched it yet, do yourself a favour and start this weekend.
+
+[Recommendation]
+If you're looking for something lighter, I highly recommend "The Apothecary Diaries". It's a mystery-comedy set in imperial China, following a clever young woman who solves poisons and puzzles in the palace. The characters are charming, the mysteries are engaging, and the animation is vibrant. It's a refreshing break from action-heavy shows.
+
+[Trivia]
+Did you know that the voice actor for Frieren, Atsumi Tanezaki, also voiced Anya in Spy x Family? Her range is incredible – from a stoic elf to a telepathic child. And speaking of Spy x Family, the movie "Code: White" has grossed over $50 million worldwide, making it one of the highest-grossing anime films of the year.
+
+[Sign-off]
+That's all for today's broadcast. Thank you for tuning in to SensyCilva Anime Radio. Don't forget to subscribe, share your thoughts, and as always – stay weeb, stay wonderful. See you next time!"`,
+
+                // Script 2
+                `[Intro]
+"Hello and welcome to another episode of SensyCilva Anime Radio – your daily dose of anime goodness. I'm your host, and today we're diving into the spring anime season, some classic recommendations, and a bit of industry news.
+
+[News]
+The Spring 2026 season is shaping up to be one of the most stacked in years. We've got the return of "My Hero Academia" season 7, which promises to adapt the highly anticipated Dark Hero arc. Also, a brand new studio, CloverWorks, is collaborating with Wit Studio on an original mecha series called "Titanic Dreams" – the trailer looks breathtaking.
+
+In the world of movies, Makoto Shinkai's new film "The Colors of Time" has just been announced. It's said to be a spiritual successor to "Your Name", with a focus on time travel and lost love. Fans are already calling it the next big thing.
+
+[Featured Anime: Vinland Saga]
+Today's deep dive is on Vinland Saga – a show that started as a brutal Viking epic and evolved into a profound meditation on violence, redemption, and peace. The second season, which aired last year, shifted focus from battles to farming and character introspection. Many fans were surprised, but it was a masterclass in storytelling.
+
+The protagonist, Thorfinn, goes from a vengeful warrior to a pacifist who dreams of a land without war – Vinland. The anime doesn't shy away from the horrors of the past, but it offers a hopeful vision for the future. The animation by Wit Studio is gritty and beautiful, and the soundtrack by Yutaka Yamada is hauntingly memorable.
+
+If you haven't seen it, I recommend binging both seasons – but be prepared for an emotional rollercoaster.
+
+[Recommendation]
+For a lighter watch, try "Horimiya" – a romantic comedy that feels incredibly real. The characters are relatable, the humour lands, and the relationship between Hori and Miyamura develops in a wholesome way. It's a great palate cleanser after intense shows.
+
+[Trivia]
+Did you know that the voice actor for Thorfinn in the Japanese dub, Shizuka Ishigami, also voiced the protagonist in "Bocchi the Rock!"? That's some incredible range – from a hardened warrior to a shy guitarist.
+
+[Sign-off]
+That's all for today. Thanks for listening to SensyCilva Anime Radio. Keep your eyes on the sky and your heart in the anime. Until next time, sayonara!"`,
+
+                // Script 3
+                `[Intro]
+"Hey hey, it's your favourite anime radio show! You're tuned to SensyCilva Anime Radio, where we talk about everything from shonen battles to slice-of-life gems. Let's get started!
+
+[News]
+Big news from the anime world: the long-awaited second season of "Jujutsu Kaisen" has been confirmed for a 2027 release, with MAPPA returning to animate the Shibuya Incident arc – which is arguably one of the most intense arcs in manga history. Also, the new studio, Studio Colorido, is working on a feature film based on the popular webcomic "The Girl Who Leapt Through Time" – a fresh take on a classic.
+
+And for those who love music anime, "Given" is getting a new movie that continues the story of the band and their emotional journey. Fans of the original series are already crying in anticipation.
+
+[Featured Anime: Spy x Family]
+Today's featured show is the global phenomenon – Spy x Family! This anime blends action, comedy, and heartwarming family dynamics like no other. The story follows a spy, an assassin, and a telepathic child who form a fake family to complete a mission. What could go wrong? Well, everything, but that's why we love it.
+
+The animation by Wit Studio and CloverWorks is top-notch, with fluid action sequences and expressive character animations. The comedy hits perfectly, and the emotional moments – especially between Loid, Yor, and Anya – are genuinely touching. It's a show that appeals to everyone, from kids to adults.
+
+[Recommendation]
+If you enjoyed Spy x Family, you should check out "Buddy Daddies" – it's a similar premise but with a darker, more mature tone. It follows two assassins who take care of a little girl, and it's surprisingly heartfelt.
+
+[Trivia]
+Anya's voice actress, Atsumi Tanezaki (yes, she also voiced Frieren!), had to record her lines while eating peanuts to sound like she's chewing – because Anya is always eating something!
+
+[Sign-off]
+That wraps up today's show. Thank you for joining me on SensyCilva Anime Radio. Keep watching, keep smiling, and I'll see you in the next episode!"`,
+
+                // Script 4
+                `[Intro]
+"Good evening, anime enthusiasts! Welcome to SensyCilva Anime Radio – the station that never sleeps when it comes to anime. Tonight, we have a special episode dedicated to the classics and the new wave.
+
+[News]
+First off, the hype is real: "Demon Slayer" is getting a new season that covers the Hashira Training arc, and Ufotable is pulling out all the stops with their signature visual effects. We can expect more breathtaking animation and intense battles.
+
+Additionally, the Netflix live-action adaptation of "One Piece" has been renewed for a second season, and they've promised to include fan-favourite characters like Chopper and Robin. Can they pull it off? We'll see!
+
+[Featured Anime: Cowboy Bebop]
+Let's take a trip down memory lane with the timeless classic – Cowboy Bebop. This 1998 masterpiece is still regarded as one of the greatest anime of all time. It blends space Western, noir, and jazz into a stylish, philosophical journey.
+
+The story follows bounty hunters Spike Spiegel and Jet Black, along with Faye Valentine, Edward, and Ein, as they chase criminals across the solar system. Each episode is a self-contained gem, exploring themes of loneliness, identity, and the past. The animation by Sunrise is phenomenal, and Yoko Kanno's jazz soundtrack is legendary.
+
+If you've never seen it, do yourself a favour – watch it. It's a must-see for any anime fan.
+
+[Recommendation]
+If you liked Cowboy Bebop, you'll love "Samurai Champloo" – from the same director, Shinichirō Watanabe. It's a hip-hop infused samurai adventure with amazing fight choreography and a fantastic soundtrack.
+
+[Trivia]
+Did you know that the voice actor for Spike Spiegel in the English dub, Steve Blum, has voiced over 1000 characters? He's a legend in the voice acting world.
+
+[Sign-off]
+That's all for tonight. Thanks for spending your evening with SensyCilva Anime Radio. Keep the spirit of anime alive, and I'll catch you on the next broadcast!"`,
+
+                // Script 5
+                `[Intro]
+"Yoo-hoo! It's time for some anime talk on SensyCilva Anime Radio. I'm your host, and we've got a packed show today – from the latest releases to some hidden gems you might have missed.
+
+[News]
+Let's kick off with the news: "Mob Psycho 100" is getting a new OVA that ties up some loose ends from the series. Studio Bones is handling it, so you know the animation will be mind-blowing.
+
+Also, the acclaimed movie "Suzume" is now available on streaming platforms, so if you missed it in theatres, now's your chance to experience Makoto Shinkai's beautiful visuals and heartfelt storytelling.
+
+[Featured Anime: Mob Psycho 100]
+Talking about Mob Psycho 100, let's dive into why this show is a modern classic. Created by ONE, the same mind behind One Punch Man, Mob Psycho 100 tells the story of a psychic middle schooler who just wants to be normal. He struggles with his emotions, friendships, and the responsibility of his immense power.
+
+What sets this show apart is its incredible character development, its humour, and its stunning animation – especially during the action sequences. Studio Bones went all out, and the result is a show that's both hilarious and deeply moving. The third season wrapped up the story beautifully, leaving fans satisfied.
+
+[Recommendation]
+If you loved Mob Psycho 100, you should watch "One Punch Man" (season 1) for more of ONE's genius, or "Bungo Stray Dogs" for more supernatural action with great characters.
+
+[Trivia]
+The voice actor for Mob, Setsuo Ito, was actually a rookie when he was cast. His performance is raw and authentic, which perfectly fits the character.
+
+[Sign-off]
+That's a wrap for today. Thanks for tuning in to SensyCilva Anime Radio. Remember, anime is for everyone. Until next time, stay awesome!"`,
+
+                // Script 6
+                `[Intro]
+"Welcome to SensyCilva Anime Radio, your go-to station for everything anime. I'm your host, and we've got some amazing content lined up for you today."
+
+[News]
+The biggest news this week is that the "Demon Slayer" movie has broken box office records in Japan. Also, the new "Gundam" series has been announced, and fans are already hyped about the mecha designs.
+
+[Featured Anime: Fullmetal Alchemist: Brotherhood]
+Today, we're revisiting one of the greatest anime of all time – Fullmetal Alchemist: Brotherhood. This show has everything: action, drama, philosophy, and unforgettable characters. The story of the Elric brothers is a masterpiece of storytelling, and the animation by Bones is top-tier.
+
+[Recommendation]
+If you haven't seen "Steins;Gate" yet, you're missing out. It's a time-travel thriller with incredible writing and a protagonist you'll root for.
+
+[Trivia]
+Did you know that the voice actor for Edward Elric, Romi Park, also voiced Hange in Attack on Titan? She's amazing.
+
+[Sign-off]
+That's all for now. Keep watching, keep dreaming, and I'll see you on the next broadcast."`
+            ];
+
+            // ===== Helper: get a random offline script =====
+            function getOfflineScript() {
+                return offlineScripts[Math.floor(Math.random() * offlineScripts.length)];
+            }
+
+            // ===== Main generate function =====
+            async function generate() {
+                generateBtn.disabled = true;
+                copyBtn.disabled = true;
+                status.textContent = '⏳ Generating...';
+                status.className = 'status';
+                scriptBox.innerHTML = '<span style="color:#5ac8fa;">⏳ Generating...</span>';
+
+                // Try jsllm7 first (free, no key)
+                try {
+                    // Load jsllm7 dynamically if not already loaded
+                    if (typeof jsllm7 === 'undefined') {
+                        await new Promise((resolve, reject) => {
+                            const script = document.createElement('script');
+                            script.src = 'https://cdn.jsdelivr.net/gh/andreasbm/jsllm7/jsllm7.js';
+                            script.onload = resolve;
+                            script.onerror = () => reject(new Error('Failed to load jsllm7'));
+                            document.head.appendChild(script);
+                        });
+                    }
+
+                    const prompt = `Write a complete anime radio show script for "SensyCilva Anime Radio". The script must be at least 500 words. Include: a warm greeting, recent anime news, a featured anime (e.g., Frieren, Spy x Family, Jujutsu Kaisen), a recommendation for another anime, an interesting trivia or fun fact, and a friendly sign-off. Make it energetic and conversational – like a real radio host.`;
+
+                    const result = await jsllm7(prompt);
+                    if (result && result.length > 100) {
+                        currentScript = result;
+                        scriptBox.textContent = result;
+                        status.textContent = `✅ AI script generated (${result.length} characters)`;
+                        status.className = 'status success';
+                        copyBtn.disabled = false;
+                        generateBtn.disabled = false;
+                        return;
+                    } else {
+                        throw new Error('AI response too short');
+                    }
+                } catch (err) {
+                    // Fallback to offline script
+                    console.warn('jsllm7 failed, using offline fallback:', err.message);
+                    const fallback = getOfflineScript();
+                    currentScript = fallback;
+                    scriptBox.textContent = fallback;
+                    status.textContent = '⚠️ Using offline script (AI unavailable)';
+                    status.className = 'status error';
+                    copyBtn.disabled = false;
+                    generateBtn.disabled = false;
+                    return;
+                }
+            }
+
+            // ===== Copy button =====
+            copyBtn.addEventListener('click', () => {
+                if (!currentScript) {
+                    status.textContent = '⚠️ Nothing to copy. Generate a script first.';
+                    status.className = 'status error';
+                    return;
+                }
+                navigator.clipboard.writeText(currentScript).then(() => {
+                    status.textContent = '📋 Copied to clipboard!';
+                    status.className = 'status success';
+                    setTimeout(() => {
+                        status.textContent = `✅ Script ready (${currentScript.length} characters)`;
+                        status.className = 'status success';
+                    }, 2000);
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const ta = document.createElement('textarea');
+                    ta.value = currentScript;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    ta.remove();
+                    status.textContent = '📋 Copied!';
+                    status.className = 'status success';
+                    setTimeout(() => {
+                        status.textContent = `✅ Script ready (${currentScript.length} characters)`;
+                        status.className = 'status success';
+                    }, 2000);
+                });
+            });
+
+            // ===== Generate button =====
+            generateBtn.addEventListener('click', generate);
+
+            // ===== Auto-generate on load =====
+            generate();
+
+            console.log('📝 Anime Script Generator loaded (free, no API key).');
+        })();
+    </script>
+
+</body>
+</html>

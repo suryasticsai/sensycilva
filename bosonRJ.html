@@ -555,8 +555,8 @@ Bye bye.`
                 utterance.volume = volume;
 
                 if (randomize) {
-                    const rateOffset = (Math.random() - 0.5) * 2; 
-                    const pitchOffset = (Math.random() - 0.5) * 3;
+                    const rateOffset = (Math.random() - 0.5) * 0.15; // ±0.075
+                    const pitchOffset = (Math.random() - 0.5) * 0.3; // ±0.15
                     utterance.rate = Math.min(2, Math.max(0.5, baseRate + rateOffset));
                     utterance.pitch = Math.min(1.5, Math.max(0.5, basePitch + pitchOffset));
                 } else {
@@ -565,9 +565,9 @@ Bye bye.`
                 }
 
                 utterance.onend = () => {
-                    // Pause between sentences
+                    // Pause between sentences – decreased slightly
                     const wordCount = text.split(/\s+/).length;
-                    const pauseMs = wordCount < 8 ? 1500 : 1000;
+                    const pauseMs = wordCount < 8 ? 1200 : 800; // was 1500/1000
                     setTimeout(() => {
                         index++;
                         speakNext();

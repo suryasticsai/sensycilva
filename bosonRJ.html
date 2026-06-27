@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensyCilva – Browser TTS</title>
+    <title>SensyCilva – Clean TTS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -104,8 +104,8 @@
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>SensyCilva</span> – Browser TTS</h1>
-    <div class="sub">All voices · Rate · Pitch · Volume · Humanize · Free & unlimited</div>
+    <h1>🎙️ <span>SensyCilva</span> – Clean TTS</h1>
+    <div class="sub">All &lt;...&gt; tags stripped before speaking · Humanized + random voice</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -141,11 +141,11 @@
             <label>Voice</label>
             <select id="voiceSelect"></select>
         </div>
-        <label>Rate
+        <label>Rate (base)
             <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9" />
             <span class="val" id="rateVal">0.90</span>
         </label>
-        <label>Pitch
+        <label>Pitch (base)
             <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" />
             <span class="val" id="pitchVal">1.00</span>
         </label>
@@ -154,12 +154,16 @@
             <span class="val" id="volumeVal">1.00</span>
         </label>
         <div class="checkbox-group">
+            <input type="checkbox" id="randomizeToggle" checked />
+            <label for="randomizeToggle">Randomize voice</label>
+        </div>
+        <div class="checkbox-group">
             <input type="checkbox" id="humanizeToggle" checked />
             <label for="humanizeToggle">Humanize</label>
         </div>
     </div>
-    <div class="note">💡 Humanization adds fillers and pauses for a natural feel.</div>
-    <div class="footer">Browser TTS · No API keys · No limits · Works on GitHub Pages</div>
+    <div class="note">💡 Randomize: rate ±0.05, pitch ±0.1 per sentence. All &lt;...&gt; tags are stripped before TTS.</div>
+    <div class="footer">Browser TTS · No limits · Fluctuation makes it sound natural</div>
 </div>
 
 <script>
@@ -186,6 +190,7 @@
         const rateVal = document.getElementById('rateVal');
         const pitchVal = document.getElementById('pitchVal');
         const volumeVal = document.getElementById('volumeVal');
+        const randomizeToggle = document.getElementById('randomizeToggle');
         const humanizeToggle = document.getElementById('humanizeToggle');
         const puterStatus = document.getElementById('puterStatus');
 
@@ -198,11 +203,11 @@
         let puterLoaded = false;
         const speechSynth = window.speechSynthesis;
 
-        // ===== Fallback scripts =====
+        // ===== Fallback scripts (shortened for brevity) =====
         const fallbackScripts = {
             en: [
                 `[Intro – energetic]
-Hey there, anime fam! Welcome to SensyCilva Anime Radio – the show that takes you into your favorite anime worlds! I'm your host, <excite> and today's episode is packed with excitement! <laugh> Let's get started!
+Hey there, anime fam! Welcome to SensyCilva Anime Radio! <excite> I'm your host and today's episode is packed with excitement! <laugh> Let's get started!
 
 <news – dramatic>
 Whoa! First breaking news – Attack on Titan's finale is finally here! <shock> What did Eren do? Did Mikasa get her moment? <pause> We know, but we won't tell! <laugh> You'll have to watch!
@@ -211,13 +216,13 @@ Whoa! First breaking news – Attack on Titan's finale is finally here! <shock> 
 Now let's talk about Frieren – <soft> this show is amazing. An elf who outlives her human companions – <emotion> and then learns that the little things in life are so important. <pause> Animation? Wow! Madhouse has done it again! <excite> If you haven't seen it, start now!
 
 <recommendation – Mashle>
-If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no magic, just muscles and cream puffs to solve everything! <shock> Seriously! Harry Potter meets One Punch Man – desi style!
+If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no magic, just muscles and cream puffs! <shock> Seriously! Harry Potter meets One Punch Man – desi style!
 
 <trivia – fun fact>
 <whisper> Did you know – Sailor Moon's creator, Naoko Takeuchi, is married to Hunter x Hunter's creator, Yoshihiro Togashi! <excite> Wow! What a power couple!
 
 <signoff – warm>
-Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. And keep watching anime! Bye bye!`
+Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. Bye bye!`
             ],
             hi: [
                 `[Intro – energetic]
@@ -266,6 +271,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             const savedRate = parseFloat(localStorage.getItem('sensy_rate')) || 0.9;
             const savedPitch = parseFloat(localStorage.getItem('sensy_pitch')) || 1.0;
             const savedVolume = parseFloat(localStorage.getItem('sensy_volume')) || 1.0;
+            const savedRandomize = localStorage.getItem('sensy_randomize') !== 'false';
             const savedHumanize = localStorage.getItem('sensy_humanize') !== 'false';
             langSelect.value = savedLang;
             rateSlider.value = savedRate;
@@ -274,6 +280,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             rateVal.textContent = savedRate.toFixed(2);
             pitchVal.textContent = savedPitch.toFixed(2);
             volumeVal.textContent = savedVolume.toFixed(2);
+            randomizeToggle.checked = savedRandomize;
             humanizeToggle.checked = savedHumanize;
         }
 
@@ -283,6 +290,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             localStorage.setItem('sensy_rate', rateSlider.value);
             localStorage.setItem('sensy_pitch', pitchSlider.value);
             localStorage.setItem('sensy_volume', volumeSlider.value);
+            localStorage.setItem('sensy_randomize', randomizeToggle.checked);
             localStorage.setItem('sensy_humanize', humanizeToggle.checked);
         }
 
@@ -301,7 +309,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 opt.text = `${v.name} (${v.lang})`;
                 voiceSelect.appendChild(opt);
             });
-            // Try to select saved or default
             const savedVoice = localStorage.getItem('sensy_voice');
             if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
                 voiceSelect.value = savedVoice;
@@ -311,7 +318,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             }
         }
 
-        // ===== Clean text =====
+        // ===== Clean text: remove all <...> tags =====
         function cleanForTTS(text) {
             return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
         }
@@ -340,11 +347,12 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             return result.join(' ');
         }
 
-        // ===== Display script =====
+        // ===== Display script (raw) =====
         function displayScript(script, isCustom = false) {
             currentScript = script;
+            // Store cleaned version for TTS (tags removed)
             currentCleanText = cleanForTTS(script);
-            scriptBox.textContent = script;
+            scriptBox.textContent = script; // show raw with tags for human
             status.textContent = `✅ ${isCustom ? 'Custom' : 'Generated'} script (${script.length} chars)`;
             status.className = 'status success';
             playBtn.disabled = false;
@@ -352,7 +360,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             isCustomMode = isCustom;
         }
 
-        // ===== Load Puter.js for AI scripts =====
+        // ===== Load Puter.js =====
         function loadPuter() {
             return new Promise((resolve, reject) => {
                 if (typeof puter !== 'undefined') {
@@ -415,7 +423,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             status.className = 'status warning';
         }
 
-        // ===== Play with browser TTS =====
+        // ===== Play with fluctuating rate/pitch =====
         function playScript() {
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
@@ -432,17 +440,16 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 return;
             }
 
-            let textToSpeak = currentCleanText;
+            let textToSpeak = currentCleanText; // already stripped of <...>
             if (humanizeToggle.checked) {
                 textToSpeak = humanizeText(textToSpeak);
             }
 
-            // Get selected voice
             const voiceURI = voiceSelect.value;
             const voices = speechSynth.getVoices();
             const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
 
-            // Split into sentences for natural pauses
+            // Split into sentences
             const sentences = textToSpeak.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
 
             status.textContent = `🔊 Speaking ${sentences.length} sentences...`;
@@ -452,6 +459,12 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
 
             let index = 0;
             isSpeaking = true;
+
+            // Base values
+            const baseRate = parseFloat(rateSlider.value);
+            const basePitch = parseFloat(pitchSlider.value);
+            const volume = parseFloat(volumeSlider.value);
+            const randomize = randomizeToggle.checked;
 
             function speakNext() {
                 if (!isSpeaking || index >= sentences.length) {
@@ -465,16 +478,27 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                     isSpeaking = false;
                     return;
                 }
+
                 const text = sentences[index];
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.voice = selectedVoice;
-                utterance.rate = parseFloat(rateSlider.value);
-                utterance.pitch = parseFloat(pitchSlider.value);
-                utterance.volume = parseFloat(volumeSlider.value);
+                utterance.volume = volume;
+
+                // Apply fluctuation
+                if (randomize) {
+                    const rateOffset = (Math.random() - 0.5) * 0.1; // ±0.05
+                    const pitchOffset = (Math.random() - 0.5) * 0.2; // ±0.1
+                    utterance.rate = Math.min(2, Math.max(0.5, baseRate + rateOffset));
+                    utterance.pitch = Math.min(1.5, Math.max(0.5, basePitch + pitchOffset));
+                } else {
+                    utterance.rate = baseRate;
+                    utterance.pitch = basePitch;
+                }
+
                 utterance.onend = () => {
                     // Pause based on sentence length
                     const wordCount = text.split(/\s+/).length;
-                    let pauseMs = wordCount < 8 ? 1500 : 1000;
+                    const pauseMs = wordCount < 8 ? 1200 : 800;
                     setTimeout(() => {
                         index++;
                         speakNext();
@@ -579,6 +603,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         });
         voiceSelect.addEventListener('change', saveSettings);
         langSelect.addEventListener('change', saveSettings);
+        randomizeToggle.addEventListener('change', saveSettings);
         humanizeToggle.addEventListener('change', saveSettings);
 
         // ===== Init =====
@@ -604,7 +629,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             });
         }
 
-        console.log('🎙️ SensyCilva – Browser TTS loaded. Free, unlimited.');
+        console.log('🎙️ SensyCilva – Clean TTS loaded. All <...> tags stripped before speaking.');
     })();
 </script>
 </body>

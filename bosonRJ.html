@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Radio – Boson TTS (Debug)</title>
+    <title>AI Radio – Humanized TTS</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -43,7 +44,6 @@
         .actions button.custom:hover { background:#2a3a4a; }
         .status {
             font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px;
-            word-break:break-word;
         }
         .status.error { color:#ff6a5a; }
         .status.success { color:#4cd964; }
@@ -86,29 +86,23 @@
         }
         .controls-row input[type="range"] { width:80px; padding:0; accent-color:#5ac8fa; }
         .controls-row .val { color:#5ac8fa; font-size:12px; min-width:30px; }
-        .voice-group {
-            display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-        }
-        .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
-        .voice-group select {
-            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
-            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
-        }
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
-        .debug-log {
-            background:#0a0c10; border-radius:8px; padding:8px 12px; margin-top:8px;
-            font-size:11px; color:#6a8a9a; max-height:100px; overflow-y:auto;
-            border:1px solid #1a212a; font-family:monospace;
-        }
+        .voice-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
+        .voice-group select { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none; }
+        .toggle-group { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .toggle-group label { color:#6a8a9a; font-size:12px; }
+        .toggle-group input[type="range"] { width:100px; }
+        .toggle-group input[type="checkbox"] { accent-color:#4cd964; width:18px; height:18px; cursor:pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>Debug</span> – Boson TTS</h1>
-    <div class="sub">Using Cloudflare Worker proxy · Key stored securely</div>
+    <h1>🎙️ <span>Humanized</span> AI Radio</h1>
+    <div class="sub">Natural pauses, fillers, and rhythm – 100% browser TTS</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -141,45 +135,33 @@
 
     <div class="controls-row">
         <label>Speed
-            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="1.0" />
-            <span class="val" id="rateVal">1.00</span>
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9" />
+            <span class="val" id="rateVal">0.90</span>
+        </label>
+        <label>Pitch
+            <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" />
+            <span class="val" id="pitchVal">1.00</span>
         </label>
         <div class="voice-group">
             <label>Voice</label>
-            <select id="voiceSelect">
-                <option value="default">Default</option>
-                <option value="rachel">Rachel</option>
-            </select>
+            <select id="voiceSelect"></select>
         </div>
-        <div class="voice-group">
-            <label>Emotion</label>
-            <select id="emotionSelect">
-                <option value="neutral">Neutral</option>
-                <option value="cheerful">Cheerful</option>
-                <option value="excited">Excited</option>
-                <option value="sad">Sad</option>
-                <option value="angry">Angry</option>
-                <option value="surprised">Surprised</option>
-            </select>
+        <div class="toggle-group">
+            <input type="checkbox" id="humanizeToggle" checked />
+            <label for="humanizeToggle">Humanize</label>
+            <input type="range" id="humanizeIntensity" min="0" max="100" value="50" />
+            <span class="val" id="humanizeVal">50</span>
         </div>
     </div>
-    <div class="note">💡 Check the console (F12) for detailed debug logs.</div>
-    <div class="debug-log" id="debugLog">⏳ Debug log will appear here...</div>
-    <div class="footer">Puter.js (Gemini) + Boson Higgs TTS · Worker proxy</div>
+    <div class="note">💡 Humanization adds pauses, fillers, and conversational rhythm for a more natural sound.</div>
+    <div class="footer">Puter.js (Gemini) + Browser TTS · No servers, no keys</div>
 </div>
 
 <script>
     (function() {
         'use strict';
 
-        // ================================================================
-        //  WORKER URL – REPLACE IF DIFFERENT
-        // ================================================================
-        const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
-
-        // ================================================================
-        //  DOM REFS
-        // ================================================================
+        // ===== DOM refs =====
         const generateBtn = document.getElementById('generateBtn');
         const playBtn = document.getElementById('playBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -193,36 +175,25 @@
         const status = document.getElementById('status');
         const langSelect = document.getElementById('langSelect');
         const rateSlider = document.getElementById('rateSlider');
+        const pitchSlider = document.getElementById('pitchSlider');
         const voiceSelect = document.getElementById('voiceSelect');
-        const emotionSelect = document.getElementById('emotionSelect');
         const rateVal = document.getElementById('rateVal');
+        const pitchVal = document.getElementById('pitchVal');
         const puterStatus = document.getElementById('puterStatus');
-        const debugLog = document.getElementById('debugLog');
+        const humanizeToggle = document.getElementById('humanizeToggle');
+        const humanizeIntensity = document.getElementById('humanizeIntensity');
+        const humanizeVal = document.getElementById('humanizeVal');
 
-        // ================================================================
-        //  STATE
-        // ================================================================
+        // ===== State =====
         let currentScript = '';
         let currentCleanText = '';
-        let isPlaying = false;
-        let audio = null;
+        let isSpeaking = false;
+        let utterance = null;
+        let speechSynth = window.speechSynthesis;
         let isCustomMode = false;
         let puterLoaded = false;
 
-        // ================================================================
-        //  DEBUG LOGGER
-        // ================================================================
-        function debug(msg) {
-            const time = new Date().toLocaleTimeString();
-            const line = `[${time}] ${msg}`;
-            console.log('[DEBUG]', msg);
-            debugLog.textContent += line + '\n';
-            debugLog.scrollTop = debugLog.scrollHeight;
-        }
-
-        // ================================================================
-        //  FALLBACK SCRIPTS (English, Hindi, Telugu)
-        // ================================================================
+        // ===== Fallback scripts (same as before) =====
         const fallbackScripts = {
             en: [
                 `[Intro – energetic]
@@ -283,43 +254,131 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             ]
         };
 
-        // ================================================================
-        //  LOAD SETTINGS FROM LOCALSTORAGE
-        // ================================================================
+        // ===== Load settings =====
         function loadSettings() {
-            const savedLang = localStorage.getItem('boson_lang') || 'en';
-            const savedVoice = localStorage.getItem('boson_voice') || 'default';
-            const savedEmotion = localStorage.getItem('boson_emotion') || 'neutral';
-            const savedRate = parseFloat(localStorage.getItem('boson_rate')) || 1.0;
+            const savedLang = localStorage.getItem('browser_tts_lang') || 'en';
+            const savedRate = parseFloat(localStorage.getItem('browser_tts_rate')) || 0.9;
+            const savedPitch = parseFloat(localStorage.getItem('browser_tts_pitch')) || 1.0;
+            const savedVoice = localStorage.getItem('browser_tts_voice') || '';
+            const savedHumanize = localStorage.getItem('browser_tts_humanize') !== 'false';
+            const savedIntensity = parseInt(localStorage.getItem('browser_tts_intensity')) || 50;
             langSelect.value = savedLang;
-            voiceSelect.value = savedVoice;
-            emotionSelect.value = savedEmotion;
             rateSlider.value = savedRate;
+            pitchSlider.value = savedPitch;
             rateVal.textContent = savedRate.toFixed(2);
+            pitchVal.textContent = savedPitch.toFixed(2);
+            if (savedVoice) voiceSelect.value = savedVoice;
+            humanizeToggle.checked = savedHumanize;
+            humanizeIntensity.value = savedIntensity;
+            humanizeVal.textContent = savedIntensity;
         }
 
         function saveSettings() {
-            localStorage.setItem('boson_lang', langSelect.value);
-            localStorage.setItem('boson_voice', voiceSelect.value);
-            localStorage.setItem('boson_emotion', emotionSelect.value);
-            localStorage.setItem('boson_rate', rateSlider.value);
+            localStorage.setItem('browser_tts_lang', langSelect.value);
+            localStorage.setItem('browser_tts_rate', rateSlider.value);
+            localStorage.setItem('browser_tts_pitch', pitchSlider.value);
+            localStorage.setItem('browser_tts_voice', voiceSelect.value);
+            localStorage.setItem('browser_tts_humanize', humanizeToggle.checked);
+            localStorage.setItem('browser_tts_intensity', humanizeIntensity.value);
         }
 
-        // ================================================================
-        //  CLEAN TEXT FOR TTS
-        // ================================================================
+        // ===== Populate voices =====
+        function populateVoices() {
+            const voices = speechSynth.getVoices();
+            voiceSelect.innerHTML = '';
+            const sorted = voices.sort((a, b) => {
+                if (a.lang.startsWith('en') && !b.lang.startsWith('en')) return -1;
+                if (!a.lang.startsWith('en') && b.lang.startsWith('en')) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            sorted.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.voiceURI;
+                opt.text = `${v.name} (${v.lang})`;
+                voiceSelect.appendChild(opt);
+            });
+            const preferred = sorted.find(v => v.lang === 'en-IN') || sorted.find(v => v.lang === 'en-US');
+            if (preferred) voiceSelect.value = preferred.voiceURI;
+            const savedVoice = localStorage.getItem('browser_tts_voice');
+            if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
+                voiceSelect.value = savedVoice;
+            }
+        }
+
+        // ===== Clean text (strip tags) =====
         function cleanForTTS(text) {
-            text = text.replace(/\([^)]*\)/g, '');
-            text = text.replace(/\[[^\]]*\]/g, '');
-            text = text.replace(/<[^>]*>/g, '');
-            text = text.replace(/[^\w\s.!?;:,'"-]/g, ' ');
-            text = text.replace(/\s+/g, ' ').trim();
-            return text;
+            return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
         }
 
-        // ================================================================
-        //  DISPLAY SCRIPT
-        // ================================================================
+        // ===== Humanize text – add pauses, fillers, repetitions =====
+        function humanizeText(text, intensity) {
+            if (intensity === 0) return text;
+
+            // Split into sentences
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+            let result = [];
+
+            // Filler words
+            const fillers = ['um', 'uh', 'you know', 'like', 'well', 'actually', 'basically'];
+            const fillerCount = Math.max(1, Math.floor(intensity / 25)); // 1 to 4 fillers per sentence
+
+            sentences.forEach((sentence, idx) => {
+                let s = sentence.trim();
+                // Remove trailing punctuation for internal processing
+                const punctuation = s.match(/[.!?]+$/) || '';
+                s = s.replace(/[.!?]+$/, '').trim();
+
+                // Split into words
+                let words = s.split(/\s+/);
+                if (words.length < 3) {
+                    result.push(sentence);
+                    return;
+                }
+
+                // Add filler words at random positions
+                for (let i = 0; i < fillerCount; i++) {
+                    if (words.length < 3) break;
+                    const pos = Math.floor(Math.random() * (words.length - 1)) + 1;
+                    const filler = fillers[Math.floor(Math.random() * fillers.length)];
+                    words.splice(pos, 0, filler);
+                }
+
+                // Occasionally repeat a word for emphasis
+                if (Math.random() < intensity / 100 && words.length > 4) {
+                    const pos = Math.floor(Math.random() * (words.length - 2)) + 1;
+                    const word = words[pos];
+                    if (word.length > 2) {
+                        words.splice(pos, 0, word);
+                    }
+                }
+
+                // Add pauses: place commas after 5-8 words
+                let newWords = [];
+                let wordCount = 0;
+                for (let w of words) {
+                    newWords.push(w);
+                    wordCount++;
+                    if (wordCount > 4 && wordCount < 8 && Math.random() < intensity / 100) {
+                        newWords.push(',');
+                        wordCount = 0;
+                    }
+                }
+
+                let newSentence = newWords.join(' ');
+                // Add ellipsis at random places for longer pauses
+                if (Math.random() < intensity / 100 && newSentence.length > 30) {
+                    const pos = Math.floor(Math.random() * newSentence.length * 0.5) + 10;
+                    newSentence = newSentence.substring(0, pos) + '...' + newSentence.substring(pos);
+                }
+
+                // Reattach punctuation
+                result.push(newSentence + punctuation);
+            });
+
+            return result.join(' ');
+        }
+
+        // ===== Display script =====
         function displayScript(script, isCustom = false) {
             currentScript = script;
             currentCleanText = cleanForTTS(script);
@@ -329,12 +388,9 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             playBtn.disabled = false;
             copyBtn.disabled = false;
             isCustomMode = isCustom;
-            debug(`Script loaded: ${script.length} chars`);
         }
 
-        // ================================================================
-        //  LOAD PUTER.JS
-        // ================================================================
+        // ===== Load Puter.js =====
         function loadPuter() {
             return new Promise((resolve, reject) => {
                 if (typeof puter !== 'undefined') {
@@ -358,35 +414,30 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             });
         }
 
-        // ================================================================
-        //  GENERATE SCRIPT (Puter or fallback)
-        // ================================================================
+        // ===== Generate script =====
         async function generate() {
             generateBtn.disabled = true;
             generateBtn.textContent = '⏳ Generating...';
             status.textContent = '⏳ Generating AI script...';
             status.className = 'status';
             scriptBox.textContent = '⏳ Generating...';
-            debug('Starting script generation...');
 
             try {
                 if (!puterLoaded) {
-                    try { await loadPuter(); } catch(e) { debug('Puter load failed, using fallback'); useFallback(); return; }
+                    try { await loadPuter(); } catch(e) { useFallback(); return; }
                 }
                 const lang = langSelect.value;
                 const langName = lang === 'hi' ? 'Hindi' : lang === 'te' ? 'Telugu' : 'English';
                 const prompt = `Write a complete anime radio show script in ${langName} for "SensyCilva Anime Radio". At least 400 words. Use expressions like <shock>, <laugh>, <excite>, <pause>, <whisper>, <yawn>. Include greeting, news, featured anime, recommendation, trivia, sign-off. Make it energetic and conversational.`;
-                debug(`Sending prompt to Puter (${langName})`);
                 const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
                 let script = response.message?.content || response;
                 if (script && script.length > 100) {
                     displayScript(script, false);
-                    debug('Script generated successfully');
                 } else {
                     throw new Error('Short response');
                 }
             } catch (err) {
-                debug(`Puter error: ${err.message}`);
+                console.warn('Puter failed:', err);
                 useFallback();
             }
             generateBtn.disabled = false;
@@ -400,149 +451,90 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             displayScript(script, false);
             status.textContent = '⚠️ Using fallback script (AI unavailable)';
             status.className = 'status warning';
-            debug('Fallback script used');
         }
 
-        // ================================================================
-        //  PLAY VIA WORKER (with full debugging)
-        // ================================================================
-      async function playScript() {
+        // ===== Play with browser TTS =====
+        function playScript() {
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
                 status.className = 'status error';
                 return;
             }
-            if (isPlaying) return;
-        
-            const voice = voiceSelect.value;
-            const emotion = emotionSelect.value;
-            const speed = parseFloat(rateSlider.value);
-        
-            debug(`Play requested. Voice: ${voice}, Emotion: ${emotion}, Speed: ${speed}`);
-        
-            // Chunk the text (larger chunks = fewer chunks, less overhead)
-            const maxChunkSize = 800; // Increased from 500
-            const chunks = [];
-            let text = currentCleanText;
-            while (text.length > 0) {
-                let chunk = text.substring(0, maxChunkSize);
-                let lastPunct = Math.max(chunk.lastIndexOf('.'), chunk.lastIndexOf('!'), chunk.lastIndexOf('?'));
-                if (lastPunct > 50 && lastPunct < maxChunkSize) {
-                    chunk = chunk.substring(0, lastPunct + 1);
-                }
-                chunks.push(chunk);
-                text = text.substring(chunk.length).trim();
+            if (isSpeaking) {
+                speechSynth.cancel();
+                isSpeaking = false;
             }
-            debug(`Split into ${chunks.length} chunks`);
-        
-            status.textContent = `⏳ Fetching ${chunks.length} audio parts...`;
+
+            let textToSpeak = currentCleanText;
+
+            // Apply humanization if enabled
+            if (humanizeToggle.checked) {
+                const intensity = parseInt(humanizeIntensity.value);
+                textToSpeak = humanizeText(textToSpeak, intensity);
+            }
+
+            const voiceURI = voiceSelect.value;
+            const voices = speechSynth.getVoices();
+            const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+
+            // Split into sentences (for natural pauses)
+            const sentences = textToSpeak.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+
+            status.textContent = `🔊 Speaking ${sentences.length} sentences...`;
             status.className = 'status';
             playBtn.disabled = true;
             stopBtn.disabled = false;
-            isPlaying = true;
-        
-            // ----- FETCH ALL CHUNKS IN PARALLEL -----
-            const fetchPromises = chunks.map((chunk, i) => {
-                return fetch(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text: chunk,
-                        voice: voice,
-                        emotion: emotion,
-                        speed: speed,
-                    }),
-                })
-                .then(async (response) => {
-                    if (!response.ok) {
-                        let errorMsg = `HTTP ${response.status}`;
-                        try {
-                            const errData = await response.json();
-                            errorMsg = errData.error || errorMsg;
-                        } catch (_) {}
-                        throw new Error(`Chunk ${i+1}: ${errorMsg}`);
+
+            let index = 0;
+            isSpeaking = true;
+
+            function speakNext() {
+                if (!isSpeaking || index >= sentences.length) {
+                    if (isSpeaking) {
+                        status.textContent = '✅ Playback finished.';
+                        status.className = 'status success';
                     }
-                    const blob = await response.blob();
-                    if (blob.size === 0) throw new Error(`Chunk ${i+1}: empty audio`);
-                    const url = URL.createObjectURL(blob);
-                    return new Audio(url);
-                })
-                .catch(err => {
-                    debug(`❌ Chunk ${i+1} fetch error: ${err.message}`);
-                    throw err;
-                });
-            });
-        
-            let audioQueue = [];
-            try {
-                audioQueue = await Promise.all(fetchPromises);
-                debug(`All ${audioQueue.length} chunks fetched.`);
-            } catch (err) {
-                status.textContent = `❌ Error: ${err.message}`;
-                status.className = 'status error';
-                playBtn.disabled = false;
-                stopBtn.disabled = true;
-                isPlaying = false;
-                return;
-            }
-        
-            // ----- PLAY ALL CHUNKS SEQUENTIALLY -----
-            status.textContent = `🔊 Playing ${audioQueue.length} parts...`;
-            debug(`Starting playback of ${audioQueue.length} chunks.`);
-        
-            for (let i = 0; i < audioQueue.length; i++) {
-                if (!isPlaying) break;
-                const audio = audioQueue[i];
-                debug(`Playing chunk ${i+1}/${audioQueue.length}`);
-                try {
-                    await new Promise((resolve, reject) => {
-                        audio.onended = resolve;
-                        audio.onerror = (e) => {
-                            debug(`Audio error on chunk ${i+1}: ${e}`);
-                            reject(new Error('Audio playback error'));
-                        };
-                        audio.play().then(() => {
-                            debug(`Chunk ${i+1} started playing`);
-                        }).catch(err => {
-                            debug(`Play() failed on chunk ${i+1}: ${err.message}`);
-                            reject(err);
-                        });
-                    });
-                } catch (err) {
-                    debug(`Playback error: ${err.message}`);
-                    status.textContent = `❌ Playback error: ${err.message}`;
-                    status.className = 'status error';
-                    break;
+                    playBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    isSpeaking = false;
+                    return;
                 }
-                // tiny pause between chunks (optional)
-                await new Promise(r => setTimeout(r, 100));
+                const text = sentences[index];
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = selectedVoice;
+                utterance.rate = parseFloat(rateSlider.value);
+                utterance.pitch = parseFloat(pitchSlider.value);
+                utterance.volume = 1;
+                utterance.onend = () => {
+                    index++;
+                    speakNext();
+                };
+                utterance.onerror = () => {
+                    status.textContent = '❌ TTS error.';
+                    status.className = 'status error';
+                    playBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    isSpeaking = false;
+                };
+                speechSynth.speak(utterance);
             }
-        
-            if (isPlaying) {
-                status.textContent = '✅ Playback finished.';
-                status.className = 'status success';
-                debug('Playback finished');
-            }
-            playBtn.disabled = false;
-            stopBtn.disabled = true;
-            isPlaying = false;
+
+            speakNext();
         }
-        // ================================================================
-        //  STOP
-        // ================================================================
+
+        // ===== Stop =====
         function stopAudio() {
-            if (audio) { audio.pause(); audio.currentTime = 0; audio = null; }
-            isPlaying = false;
+            if (speechSynth.speaking) {
+                speechSynth.cancel();
+            }
+            isSpeaking = false;
             status.textContent = '⏹ Stopped.';
             status.className = 'status';
             playBtn.disabled = false;
             stopBtn.disabled = true;
-            debug('Stopped by user');
         }
 
-        // ================================================================
-        //  COPY
-        // ================================================================
+        // ===== Copy =====
         function copyScript() {
             if (!currentScript) {
                 status.textContent = '⚠️ Nothing to copy.';
@@ -565,9 +557,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             });
         }
 
-        // ================================================================
-        //  CUSTOM SCRIPT
-        // ================================================================
+        // ===== Custom script =====
         function setCustomScript() {
             const text = customScriptText.value.trim();
             if (!text) {
@@ -578,7 +568,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             displayScript(text, true);
             customArea.style.display = 'none';
             toggleCustomBtn.textContent = '📝 Paste Custom Script';
-            debug('Custom script set');
         }
 
         function toggleCustom() {
@@ -592,9 +581,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             }
         }
 
-        // ================================================================
-        //  EVENT LISTENERS
-        // ================================================================
+        // ===== Event listeners =====
         generateBtn.addEventListener('click', generate);
         playBtn.addEventListener('click', playScript);
         stopBtn.addEventListener('click', stopAudio);
@@ -610,22 +597,41 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             rateVal.textContent = parseFloat(rateSlider.value).toFixed(2);
             saveSettings();
         });
-        langSelect.addEventListener('change', saveSettings);
+        pitchSlider.addEventListener('input', () => {
+            pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2);
+            saveSettings();
+        });
         voiceSelect.addEventListener('change', saveSettings);
-        emotionSelect.addEventListener('change', saveSettings);
+        langSelect.addEventListener('change', saveSettings);
+        humanizeToggle.addEventListener('change', saveSettings);
+        humanizeIntensity.addEventListener('input', () => {
+            humanizeVal.textContent = humanizeIntensity.value;
+            saveSettings();
+        });
 
-        // ================================================================
-        //  INIT
-        // ================================================================
-        loadSettings();
-        useFallback(); // initial script
-
-        // Preload Puter in background
-        if (!puterLoaded) {
-            loadPuter().catch(() => { debug('Puter preload failed, will use fallback'); });
+        // ===== Init =====
+        // Preload voices
+        if (speechSynth) {
+            speechSynth.onvoiceschanged = () => {
+                populateVoices();
+                loadSettings();
+            };
+            setTimeout(() => {
+                if (speechSynth.getVoices().length > 0) {
+                    populateVoices();
+                    loadSettings();
+                }
+            }, 100);
         }
 
-        debug('Radio loaded. Click Generate or Play.');
+        loadSettings();
+        useFallback();
+
+        if (!puterLoaded) {
+            loadPuter().catch(() => {});
+        }
+
+        console.log('🎙️ Humanized AI Radio loaded – browser TTS with natural rhythm.');
     })();
 </script>
 </body>

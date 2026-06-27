@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Radio Audition – ElevenLabs</title>
+    <!-- Inline favicon to avoid 404 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -50,6 +52,7 @@
         }
         .status.error { color:#ff6a5a; }
         .status.success { color:#4cd964; }
+        .status.warning { color:#ff9500; }
         .script-box {
             background:#0a0c10; border-radius:16px; padding:16px;
             min-height:300px; max-height:400px; overflow-y:auto;
@@ -91,7 +94,6 @@
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
-        .custom-toggle { cursor:pointer; color:#5ac8fa; }
     </style>
 </head>
 <body>
@@ -108,14 +110,15 @@
             <option value="en" selected>English</option>
         </select>
         <span class="badge">🔊 ElevenLabs via Cloudflare</span>
+        <span id="workerStatus" class="badge">✅ Worker ready</span>
         <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
     </div>
 
     <div class="actions">
         <button id="generateBtn">📝 Generate Script</button>
-        <button id="playBtn" class="play" disabled>🔊 Play</button>
+        <button id="playBtn" class="play">🔊 Play</button>
         <button id="stopBtn" class="stop" disabled>⏹ Stop</button>
-        <button id="copyBtn" class="copy" disabled>📋 Copy</button>
+        <button id="copyBtn" class="copy">📋 Copy</button>
     </div>
 
     <div class="status" id="status">Ready – select language, then Generate</div>
@@ -123,7 +126,7 @@
 
     <!-- Custom Script Area -->
     <div class="custom-area" id="customArea">
-        <textarea id="customScriptText" placeholder="Paste your custom script here (with or without <expr> tags)."></textarea>
+        <textarea id="customScriptText" placeholder="Paste your custom script here (with or without &lt;expr&gt; tags)."></textarea>
         <div class="custom-actions">
             <button class="set" id="setCustomBtn">✅ Use This Script</button>
             <button id="cancelCustomBtn">✖ Cancel</button>
@@ -148,16 +151,16 @@
             <span class="val" id="pitchVal">1.00</span>
         </label>
     </div>
-    <div class="note">💡 Expressions like <shock> are visible – they are stripped before sending to ElevenLabs.</div>
+    <div class="note">💡 Expressions like &lt;shock&gt; are visible – they are stripped before sending to ElevenLabs.</div>
     <div class="footer">Powered by <a href="https://elevenlabs.io" target="_blank">ElevenLabs</a> · Free tier: 10k chars/month</div>
 </div>
 
 <script>
     (function() {
         // ================================================================
-        //  CLOUDFLARE WORKER URL – REPLACE WITH YOUR OWN
+        //  CORRECT WORKER URL – REPLACED WITH YOUR ACTUAL URL
         // ================================================================
-        const WORKER_URL = 'https://your-worker.workers.dev'; // <-- CHANGE THIS
+        const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
 
         // ================================================================
         //  DUMMY SCRIPTS – Telugu, Hindi, English (with <expr> tags)
@@ -289,6 +292,7 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
         const scriptBox = document.getElementById('scriptBox');
         const status = document.getElementById('status');
         const langSelect = document.getElementById('langSelect');
+        const workerStatus = document.getElementById('workerStatus');
         const stabilitySlider = document.getElementById('stabilitySlider');
         const boostSlider = document.getElementById('boostSlider');
         const rateSlider = document.getElementById('rateSlider');
@@ -303,6 +307,10 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
         let isPlaying = false;
         let audio = null;
         let isCustomMode = false;
+
+        // ===== Worker is ready (URL hardcoded) =====
+        workerStatus.textContent = '✅ Worker ready';
+        workerStatus.className = 'badge';
 
         // ===== Load settings =====
         function loadSettings() {
@@ -335,7 +343,7 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
             return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
         }
 
-        // ===== Display script in the box =====
+        // ===== Display script =====
         function displayScript(script, isCustom = false) {
             currentScript = script;
             currentCleanText = cleanForTTS(script);
@@ -354,7 +362,6 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
             const script = available[Math.floor(Math.random() * available.length)];
             displayScript(script, false);
             saveSettings();
-            // Hide custom area if open
             customArea.style.display = 'none';
             toggleCustomBtn.textContent = '📝 Paste Custom Script';
         }
@@ -380,7 +387,6 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
             } else {
                 customArea.style.display = 'flex';
                 toggleCustomBtn.textContent = '✖ Close Custom';
-                // If in custom mode, pre-fill with current script
                 if (isCustomMode) {
                     customScriptText.value = currentScript;
                 }
@@ -398,7 +404,7 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
 
             const stability = parseFloat(stabilitySlider.value);
             const boost = parseFloat(boostSlider.value);
-            const voiceId = 'EXAVITQu4L4qX8pF3eQ'; // Rachel – good for English/Hinglish
+            const voiceId = 'EXAVITQu4L4qX8pF3eQ'; // Rachel
 
             try {
                 playBtn.disabled = true;
@@ -530,7 +536,6 @@ Okay guys, time to sign off! <yawn> I'm feeling sleepy, but anything for you! <l
 
         // ===== Init =====
         loadSettings();
-        // Auto‑generate initial script
         generate();
 
         console.log('🎙️ Radio Audition loaded.');

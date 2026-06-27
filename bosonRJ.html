@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensyCilva – Full TTS Controls</title>
+    <title>SensyCilva – Browser TTS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -104,8 +104,8 @@
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>SensyCilva</span> – Full TTS Controls</h1>
-    <div class="sub">All browser voices · Rate · Pitch · Volume · Fallback</div>
+    <h1>🎙️ <span>SensyCilva</span> – Browser TTS</h1>
+    <div class="sub">All voices · Rate · Pitch · Volume · Humanize · Free & unlimited</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -114,7 +114,7 @@
             <option value="hi">हिन्दी (Hindi)</option>
             <option value="te">తెలుగు (Telugu)</option>
         </select>
-        <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ Puter.js</span>
+        <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ Puter.js (AI scripts)</span>
         <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
     </div>
 
@@ -159,7 +159,7 @@
         </div>
     </div>
     <div class="note">💡 Humanization adds fillers and pauses for a natural feel.</div>
-    <div class="footer">Puter TTS (test mode) + Browser TTS fallback · All settings persist</div>
+    <div class="footer">Browser TTS · No API keys · No limits · Works on GitHub Pages</div>
 </div>
 
 <script>
@@ -192,11 +192,11 @@
         // ===== State =====
         let currentScript = '';
         let currentCleanText = '';
-        let isPlaying = false;
-        let audio = null;
+        let isSpeaking = false;
+        let currentUtterance = null;
         let isCustomMode = false;
         let puterLoaded = false;
-        let speechSynth = window.speechSynthesis;
+        const speechSynth = window.speechSynthesis;
 
         // ===== Fallback scripts =====
         const fallbackScripts = {
@@ -275,7 +275,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             pitchVal.textContent = savedPitch.toFixed(2);
             volumeVal.textContent = savedVolume.toFixed(2);
             humanizeToggle.checked = savedHumanize;
-            // Voice will be set after populateVoices()
         }
 
         function saveSettings() {
@@ -318,9 +317,8 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         }
 
         // ===== Humanize text =====
-        function humanizeText(text, intensity) {
+        function humanizeText(text) {
             if (!humanizeToggle.checked) return text;
-            // Simple humanization: add filler words and pauses
             const fillers = ['um', 'uh', 'you know', 'like', 'well', 'actually'];
             const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
             let result = [];
@@ -354,7 +352,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             isCustomMode = isCustom;
         }
 
-        // ===== Load Puter.js =====
+        // ===== Load Puter.js for AI scripts =====
         function loadPuter() {
             return new Promise((resolve, reject) => {
                 if (typeof puter !== 'undefined') {
@@ -417,46 +415,16 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             status.className = 'status warning';
         }
 
-        // ===== Browser TTS with full settings =====
-        function speakWithBrowserTTS(text) {
-            return new Promise((resolve, reject) => {
-                const synth = window.speechSynthesis;
-                if (!synth) {
-                    reject(new Error('Browser TTS not supported'));
-                    return;
-                }
-                // Cancel any ongoing speech
-                synth.cancel();
-
-                const utterance = new SpeechSynthesisUtterance(text);
-                // Set voice
-                const voiceURI = voiceSelect.value;
-                const voices = synth.getVoices();
-                const selectedVoice = voices.find(v => v.voiceURI === voiceURI);
-                if (selectedVoice) utterance.voice = selectedVoice;
-
-                utterance.rate = parseFloat(rateSlider.value);
-                utterance.pitch = parseFloat(pitchSlider.value);
-                utterance.volume = parseFloat(volumeSlider.value);
-                utterance.onend = resolve;
-                utterance.onerror = (event) => {
-                    reject(new Error(event.error || 'Browser TTS error'));
-                };
-                synth.speak(utterance);
-            });
-        }
-
-        // ===== Main play =====
-        async function playScript() {
+        // ===== Play with browser TTS =====
+        function playScript() {
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
                 status.className = 'status error';
                 return;
             }
-            if (isPlaying) {
-                if (audio) { audio.pause(); audio.currentTime = 0; }
-                if (speechSynth) speechSynth.cancel();
-                isPlaying = false;
+            if (isSpeaking) {
+                speechSynth.cancel();
+                isSpeaking = false;
                 playBtn.textContent = '🔊 Play';
                 stopBtn.disabled = true;
                 status.textContent = '⏹ Stopped.';
@@ -466,75 +434,71 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
 
             let textToSpeak = currentCleanText;
             if (humanizeToggle.checked) {
-                textToSpeak = humanizeText(textToSpeak, 50);
+                textToSpeak = humanizeText(textToSpeak);
             }
 
-            status.textContent = '🔊 Generating speech (Puter TTS)...';
+            // Get selected voice
+            const voiceURI = voiceSelect.value;
+            const voices = speechSynth.getVoices();
+            const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+
+            // Split into sentences for natural pauses
+            const sentences = textToSpeak.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+
+            status.textContent = `🔊 Speaking ${sentences.length} sentences...`;
             status.className = 'status';
             playBtn.disabled = true;
             stopBtn.disabled = false;
 
-            try {
-                // Try Puter TTS in test mode
-                const result = await puter.ai.txt2speech(textToSpeak, {
-                    testMode: true,
-                    voice: '21m00Tcm4TlvDq8ikWAM', // Rachel
-                    provider: 'elevenlabs'
-                });
-                audio = result;
-                audio.onplay = () => {
-                    status.textContent = '🔊 Playing (Puter)';
-                    status.className = 'status';
-                    playBtn.textContent = '⏹ Stop';
-                };
-                audio.onended = () => {
-                    isPlaying = false;
-                    status.textContent = '✅ Playback finished.';
-                    status.className = 'status success';
+            let index = 0;
+            isSpeaking = true;
+
+            function speakNext() {
+                if (!isSpeaking || index >= sentences.length) {
+                    if (isSpeaking) {
+                        status.textContent = '✅ Playback finished.';
+                        status.className = 'status success';
+                    }
                     playBtn.textContent = '🔊 Play';
                     playBtn.disabled = false;
                     stopBtn.disabled = true;
+                    isSpeaking = false;
+                    return;
+                }
+                const text = sentences[index];
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = selectedVoice;
+                utterance.rate = parseFloat(rateSlider.value);
+                utterance.pitch = parseFloat(pitchSlider.value);
+                utterance.volume = parseFloat(volumeSlider.value);
+                utterance.onend = () => {
+                    // Pause based on sentence length
+                    const wordCount = text.split(/\s+/).length;
+                    let pauseMs = wordCount < 8 ? 1500 : 1000;
+                    setTimeout(() => {
+                        index++;
+                        speakNext();
+                    }, pauseMs);
                 };
-                audio.onerror = (e) => {
-                    console.warn('Puter TTS error, falling back to browser TTS:', e);
-                    fallbackToBrowser();
+                utterance.onerror = (event) => {
+                    status.textContent = `❌ TTS error: ${event.error || 'Unknown'}`;
+                    status.className = 'status error';
+                    playBtn.textContent = '🔊 Play';
+                    playBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    isSpeaking = false;
                 };
-                await audio.play();
-                isPlaying = true;
-                playBtn.textContent = '⏹ Stop';
-                stopBtn.disabled = false;
-            } catch (err) {
-                console.warn('Puter TTS error, falling back to browser TTS:', err);
-                fallbackToBrowser();
+                currentUtterance = utterance;
+                speechSynth.speak(utterance);
             }
 
-            async function fallbackToBrowser() {
-                status.textContent = '🔄 Fallback: using browser TTS...';
-                status.className = 'status warning';
-                try {
-                    await speakWithBrowserTTS(textToSpeak);
-                    status.textContent = '✅ Playback finished (browser TTS).';
-                    status.className = 'status success';
-                } catch (browserErr) {
-                    status.textContent = `❌ Browser TTS error: ${browserErr.message || 'Unknown error'}`;
-                    status.className = 'status error';
-                }
-                playBtn.textContent = '🔊 Play';
-                playBtn.disabled = false;
-                stopBtn.disabled = true;
-                isPlaying = false;
-            }
+            speakNext();
         }
 
         // ===== Stop =====
         function stopAudio() {
-            if (audio) {
-                audio.pause();
-                audio.currentTime = 0;
-                audio = null;
-            }
-            if (speechSynth) speechSynth.cancel();
-            isPlaying = false;
+            if (speechSynth.speaking) speechSynth.cancel();
+            isSpeaking = false;
             playBtn.textContent = '🔊 Play';
             playBtn.disabled = false;
             stopBtn.disabled = true;
@@ -618,7 +582,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         humanizeToggle.addEventListener('change', saveSettings);
 
         // ===== Init =====
-        // Populate voices after they're loaded
         if (speechSynth) {
             speechSynth.onvoiceschanged = () => {
                 populateVoices();
@@ -637,12 +600,11 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
 
         if (!puterLoaded) {
             loadPuter().catch(() => {
-                puterStatus.textContent = '⚠️ Puter load failed – browser TTS only';
+                puterStatus.textContent = '⚠️ Puter load failed – fallback scripts only';
             });
         }
 
-        console.log('🎙️ SensyCilva – Full TTS Controls loaded.');
-        console.log('🗣️ All browser voices available in the dropdown.');
+        console.log('🎙️ SensyCilva – Browser TTS loaded. Free, unlimited.');
     })();
 </script>
 </body>

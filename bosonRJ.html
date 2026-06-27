@@ -30,6 +30,10 @@
             background:#1a3a2a; color:#4cd964; font-size:11px; padding:2px 12px;
             border-radius:20px; border:1px solid #4cd96444;
         }
+        .lang-selector .worker-status {
+            background:#1a2a1a; color:#4cd964; font-size:10px; padding:2px 10px;
+            border-radius:20px; border:1px solid #4cd96444; display:inline-block;
+        }
         .actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
         .actions button {
             background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa;
@@ -101,17 +105,13 @@
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
-        .worker-status {
-            background:#1a2a1a; color:#4cd964; font-size:10px; padding:2px 10px;
-            border-radius:20px; border:1px solid #4cd96444; display:inline-block;
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🎙️ <span>AI</span> Radio – Boson Higgs TTS</h1>
-    <div class="sub">Puter.js for scripts · Boson TTS via Cloudflare (key hidden)</div>
+    <div class="sub">Puter.js (Gemini) for scripts · Boson via Cloudflare (key hidden)</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -210,64 +210,65 @@
         let puterLoaded = false;
 
         // ================================================================
-        //  Fallback scripts (English, Hindi, Telugu)
+        //  FALLBACK SCRIPTS – English, Hindi, Telugu
+        //  These match the style that Puter.js generates.
         // ================================================================
         const fallbackScripts = {
             en: [
                 `[Intro – energetic]
 Hey there, anime fam! Welcome to SensyCilva Anime Radio – the show that takes you into your favorite anime worlds! I'm your host, <excite> and today's episode is packed with excitement! <laugh> Let's get started!
 
-<news – dramatic>
+[News – dramatic]
 Whoa! First breaking news – Attack on Titan's finale is finally here! <shock> What did Eren do? Did Mikasa get her moment? <pause> We know, but we won't tell! <laugh> You'll have to watch!
 
-<featured – Frieren>
+[Featured Anime – Frieren]
 Now let's talk about Frieren – <soft> this show is amazing. An elf who outlives her human companions – <emotion> and then learns that the little things in life are so important. <pause> Animation? Wow! Madhouse has done it again! <excite> If you haven't seen it, start now!
 
-<recommendation – Mashle>
+[Recommendation – Mashle]
 If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no magic, just muscles and cream puffs to solve everything! <shock> Seriously! Harry Potter meets One Punch Man – desi style!
 
-<trivia – fun fact>
+[Trivia – fun fact]
 <whisper> Did you know – Sailor Moon's creator, Naoko Takeuchi, is married to Hunter x Hunter's creator, Yoshihiro Togashi! <excite> Wow! What a power couple!
 
-<signoff – warm>
+[Sign-off – warm]
 Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. And keep watching anime! Bye bye!`
             ],
             hi: [
                 `[Intro – energetic]
 अरे यार! क्या हाल है, anime lovers? SensyCilva Anime Radio में आपका स्वागत है – ये शो आपको आपकी पसंदीदा anime की दुनिया में ले जाता है! मैं हूँ आपका होस्ट, <excite> और आज का एपिसोड है full-on मसाला! <laugh> चलो शुरू करते हैं!
 
-<news – dramatic>
+[News – dramatic]
 ओहो! पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया! <shock> एरेन ने क्या किया? क्या मिकासा को मिला उसका मोमेंट? <pause> हमें तो पता है, पर हम नहीं बताएँगे! <laugh> देखना पड़ेगा!
 
-<featured – Frieren>
+[Featured Anime – Frieren]
 अब बात करते हैं Frieren की – <soft> यार ये शो है कमाल का! एक elf जो अपने human companions को outlive करती है – <emotion> और फिर सीखती है कि life में छोटी छोटी चीज़ें कितनी important हैं। <pause> Animation? वाह! Madhouse ने फिर से धमाल कर दिया! <excite> अगर नहीं देखा तो अभी देखना start करो!
 
-<recommendation – Mashle>
+[Recommendation – Mashle]
 और agar comedy चाहिए तो Mashle: Magic and Muscles देखो! <laugh> इसमें hero magic नहीं, sirf muscles और cream puffs से सब कुछ solve करता है! <shock> Seriously! Harry Potter meets One Punch Man – but desi style!
 
-<trivia – fun fact>
+[Trivia – fun fact]
 <whisper> सुनो सुनो – Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है! <excite> वाह! Kya power couple hai!
 
-<signoff – warm>
+[Sign-off – warm]
 चलो, आज के लिए इतना ही। <yawn> थोड़ा tired हूँ, पर आपके प्यार ने energy भर दी! <laugh> Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो! Bye bye!`
             ],
             te: [
                 `[Intro – energetic]
 అరెరే! ఎలా ఉన్నారు anime ప్రేమికులారా! SensyCilva Anime Radio కి స్వాగతం – మీకు నచ్చిన anime ప్రపంచంలోకి తీసుకెళ్ళే షో! నేను మీ హోస్ట్, <excite> ఈ రోజు ఎపిసోడ్ పూర్తి మసాలా! <laugh> ఇంకా ఏముంది చూద్దాం!
 
-<news – dramatic>
+[News – dramatic]
 ఓహో! మొదటి బ్రేకింగ్ న్యూస్ – Attack on Titan ఫినాలే వచ్చేసింది! <shock> ఏరెన్ ఏం చేశాడు? మికాసాకి ఆ క్షణం దొరికిందా? <pause> మాకు తెలుసు కానీ మీకు చెప్పం! <laugh> మీరే చూడాలి!
 
-<featured – Frieren>
+[Featured Anime – Frieren]
 ఇప్పుడు Frieren గురించి మాట్లాడుకుందాం – <soft> ఈ షో అద్భుతం. ఒక elf తన human companions కంటే ఎక్కువ కాలం జీవిస్తుంది – <emotion> ఆ తర్వాత నేర్చుకుంటుంది lifeలో చిన్న చిన్న విషయాలు ఎంత ముఖ్యమో. <pause> Animation? వాహ్! Madhouse మళ్ళీ ధమాల్ చేసింది! <excite> ఇంకా చూడకపోతే ఇప్పుడే మొదలు పెట్టండి!
 
-<recommendation – Mashle>
+[Recommendation – Mashle]
 కామెడీ కావాలంటే Mashle: Magic and Muscles చూడండి! <laugh> ఇందులో హీరో magic లేదు, సాధారణ muscles మరియు cream puffs తో సమస్యలన్నీ పరిష్కరిస్తాడు! <shock> నిజంగా! Harry Potter కలిసి One Punch Man – కానీ desi స్టైల్!
 
-<trivia – fun fact>
+[Trivia – fun fact]
 <whisper> వినండి – Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు! <excite> వాహ్! ఎంత power couple!
 
-<signoff – warm>
+[Sign-off – warm]
 సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`
             ]
         };
@@ -566,6 +567,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         console.log('🎙️ Boson test loaded (Worker proxy).');
         console.log(`🔗 Worker URL: ${WORKER_URL}`);
         console.log('🔑 Key is stored securely in Cloudflare Worker secret.');
+        console.log('📝 Sample script style: [Intro], <shock>, <laugh> – Puter generates the same.');
     })();
 </script>
 </body>

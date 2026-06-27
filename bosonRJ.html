@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensyCilva – Puter TTS + Fallback</title>
+    <title>SensyCilva – Full TTS Controls</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -91,7 +91,11 @@
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
         .voice-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
-        .voice-group select { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none; }
+        .voice-group select {
+            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
+            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
+            max-width:220px;
+        }
         .checkbox-group { display:flex; align-items:center; gap:6px; }
         .checkbox-group input[type="checkbox"] { accent-color:#4cd964; width:16px; height:16px; cursor:pointer; }
         .checkbox-group label { font-size:12px; color:#6a8a9a; cursor:pointer; }
@@ -100,8 +104,8 @@
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>SensyCilva</span> – Puter TTS</h1>
-    <div class="sub">High‑quality voices · Test mode · Fallback to browser TTS</div>
+    <h1>🎙️ <span>SensyCilva</span> – Full TTS Controls</h1>
+    <div class="sub">All browser voices · Rate · Pitch · Volume · Fallback</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -134,34 +138,28 @@
 
     <div class="controls-row">
         <div class="voice-group">
-            <label>Provider</label>
-            <select id="providerSelect">
-                <option value="elevenlabs">ElevenLabs</option>
-                <option value="openai">OpenAI</option>
-                <option value="gemini">Gemini</option>
-                <option value="aws">AWS Polly</option>
-            </select>
-        </div>
-        <div class="voice-group">
             <label>Voice</label>
-            <select id="voiceSelect">
-                <option value="21m00Tcm4TlvDq8ikWAM">Rachel (ElevenLabs)</option>
-                <option value="nova">Nova (OpenAI)</option>
-                <option value="Puck">Puck (Gemini)</option>
-                <option value="Joanna">Joanna (AWS Polly)</option>
-            </select>
+            <select id="voiceSelect"></select>
         </div>
-        <div class="voice-group" id="styleGroup">
-            <label>Style (Gemini)</label>
-            <input type="text" id="styleInput" placeholder="E.g. 'Warm, energetic radio host'" style="background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; flex:1; width:140px;" />
-        </div>
+        <label>Rate
+            <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9" />
+            <span class="val" id="rateVal">0.90</span>
+        </label>
+        <label>Pitch
+            <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" />
+            <span class="val" id="pitchVal">1.00</span>
+        </label>
+        <label>Volume
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0" />
+            <span class="val" id="volumeVal">1.00</span>
+        </label>
         <div class="checkbox-group">
-            <input type="checkbox" id="testModeToggle" checked />
-            <label for="testModeToggle">Test mode (no credits)</label>
+            <input type="checkbox" id="humanizeToggle" checked />
+            <label for="humanizeToggle">Humanize</label>
         </div>
     </div>
-    <div class="note">💡 If Puter TTS fails, the browser's built‑in TTS will be used (free, unlimited).</div>
-    <div class="footer">Puter.js TTS + fallback · 100% free</div>
+    <div class="note">💡 Humanization adds fillers and pauses for a natural feel.</div>
+    <div class="footer">Puter TTS (test mode) + Browser TTS fallback · All settings persist</div>
 </div>
 
 <script>
@@ -181,10 +179,14 @@
         const scriptBox = document.getElementById('scriptBox');
         const status = document.getElementById('status');
         const langSelect = document.getElementById('langSelect');
-        const providerSelect = document.getElementById('providerSelect');
         const voiceSelect = document.getElementById('voiceSelect');
-        const styleInput = document.getElementById('styleInput');
-        const testModeToggle = document.getElementById('testModeToggle');
+        const rateSlider = document.getElementById('rateSlider');
+        const pitchSlider = document.getElementById('pitchSlider');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const rateVal = document.getElementById('rateVal');
+        const pitchVal = document.getElementById('pitchVal');
+        const volumeVal = document.getElementById('volumeVal');
+        const humanizeToggle = document.getElementById('humanizeToggle');
         const puterStatus = document.getElementById('puterStatus');
 
         // ===== State =====
@@ -194,6 +196,7 @@
         let audio = null;
         let isCustomMode = false;
         let puterLoaded = false;
+        let speechSynth = window.speechSynthesis;
 
         // ===== Fallback scripts =====
         const fallbackScripts = {
@@ -259,28 +262,84 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         // ===== Load settings =====
         function loadSettings() {
             const savedLang = localStorage.getItem('sensy_lang') || 'en';
-            const savedProvider = localStorage.getItem('sensy_provider') || 'elevenlabs';
-            const savedVoice = localStorage.getItem('sensy_voice') || '21m00Tcm4TlvDq8ikWAM';
-            const savedStyle = localStorage.getItem('sensy_style') || '';
-            const savedTestMode = localStorage.getItem('sensy_testmode') !== 'false';
+            const savedVoice = localStorage.getItem('sensy_voice') || '';
+            const savedRate = parseFloat(localStorage.getItem('sensy_rate')) || 0.9;
+            const savedPitch = parseFloat(localStorage.getItem('sensy_pitch')) || 1.0;
+            const savedVolume = parseFloat(localStorage.getItem('sensy_volume')) || 1.0;
+            const savedHumanize = localStorage.getItem('sensy_humanize') !== 'false';
             langSelect.value = savedLang;
-            providerSelect.value = savedProvider;
-            voiceSelect.value = savedVoice;
-            styleInput.value = savedStyle;
-            testModeToggle.checked = savedTestMode;
+            rateSlider.value = savedRate;
+            pitchSlider.value = savedPitch;
+            volumeSlider.value = savedVolume;
+            rateVal.textContent = savedRate.toFixed(2);
+            pitchVal.textContent = savedPitch.toFixed(2);
+            volumeVal.textContent = savedVolume.toFixed(2);
+            humanizeToggle.checked = savedHumanize;
+            // Voice will be set after populateVoices()
         }
 
         function saveSettings() {
             localStorage.setItem('sensy_lang', langSelect.value);
-            localStorage.setItem('sensy_provider', providerSelect.value);
             localStorage.setItem('sensy_voice', voiceSelect.value);
-            localStorage.setItem('sensy_style', styleInput.value);
-            localStorage.setItem('sensy_testmode', testModeToggle.checked);
+            localStorage.setItem('sensy_rate', rateSlider.value);
+            localStorage.setItem('sensy_pitch', pitchSlider.value);
+            localStorage.setItem('sensy_volume', volumeSlider.value);
+            localStorage.setItem('sensy_humanize', humanizeToggle.checked);
+        }
+
+        // ===== Populate voices =====
+        function populateVoices() {
+            const voices = speechSynth.getVoices();
+            voiceSelect.innerHTML = '';
+            const sorted = voices.sort((a, b) => {
+                if (a.lang.startsWith('en') && !b.lang.startsWith('en')) return -1;
+                if (!a.lang.startsWith('en') && b.lang.startsWith('en')) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            sorted.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.voiceURI;
+                opt.text = `${v.name} (${v.lang})`;
+                voiceSelect.appendChild(opt);
+            });
+            // Try to select saved or default
+            const savedVoice = localStorage.getItem('sensy_voice');
+            if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
+                voiceSelect.value = savedVoice;
+            } else {
+                const preferred = sorted.find(v => v.lang === 'en-IN') || sorted.find(v => v.lang === 'en-US');
+                if (preferred) voiceSelect.value = preferred.voiceURI;
+            }
         }
 
         // ===== Clean text =====
         function cleanForTTS(text) {
             return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        }
+
+        // ===== Humanize text =====
+        function humanizeText(text, intensity) {
+            if (!humanizeToggle.checked) return text;
+            // Simple humanization: add filler words and pauses
+            const fillers = ['um', 'uh', 'you know', 'like', 'well', 'actually'];
+            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+            let result = [];
+            sentences.forEach(sentence => {
+                let s = sentence.trim();
+                const punctuation = s.match(/[.!?]+$/) || '';
+                s = s.replace(/[.!?]+$/, '').trim();
+                let words = s.split(/\s+/);
+                if (words.length > 3 && Math.random() > 0.6) {
+                    const pos = Math.floor(Math.random() * (words.length - 1)) + 1;
+                    words.splice(pos, 0, fillers[Math.floor(Math.random() * fillers.length)]);
+                }
+                if (words.length > 4 && Math.random() > 0.7) {
+                    const pos = Math.floor(words.length / 2);
+                    words.splice(pos, 0, ',');
+                }
+                result.push(words.join(' ') + punctuation);
+            });
+            return result.join(' ');
         }
 
         // ===== Display script =====
@@ -358,7 +417,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             status.className = 'status warning';
         }
 
-        // ===== Browser TTS fallback =====
+        // ===== Browser TTS with full settings =====
         function speakWithBrowserTTS(text) {
             return new Promise((resolve, reject) => {
                 const synth = window.speechSynthesis;
@@ -366,20 +425,28 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                     reject(new Error('Browser TTS not supported'));
                     return;
                 }
+                // Cancel any ongoing speech
+                synth.cancel();
+
                 const utterance = new SpeechSynthesisUtterance(text);
+                // Set voice
+                const voiceURI = voiceSelect.value;
                 const voices = synth.getVoices();
-                const selectedVoice = voices.find(v => v.lang === 'en-IN') || voices.find(v => v.lang === 'en-US') || voices[0];
+                const selectedVoice = voices.find(v => v.voiceURI === voiceURI);
                 if (selectedVoice) utterance.voice = selectedVoice;
-                utterance.rate = 0.9;
-                utterance.pitch = 1.0;
-                utterance.volume = 1;
+
+                utterance.rate = parseFloat(rateSlider.value);
+                utterance.pitch = parseFloat(pitchSlider.value);
+                utterance.volume = parseFloat(volumeSlider.value);
                 utterance.onend = resolve;
-                utterance.onerror = reject;
+                utterance.onerror = (event) => {
+                    reject(new Error(event.error || 'Browser TTS error'));
+                };
                 synth.speak(utterance);
             });
         }
 
-        // ===== Play with Puter TTS (or fallback) =====
+        // ===== Main play =====
         async function playScript() {
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
@@ -388,6 +455,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             }
             if (isPlaying) {
                 if (audio) { audio.pause(); audio.currentTime = 0; }
+                if (speechSynth) speechSynth.cancel();
                 isPlaying = false;
                 playBtn.textContent = '🔊 Play';
                 stopBtn.disabled = true;
@@ -396,28 +464,23 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 return;
             }
 
-            const provider = providerSelect.value;
-            const voice = voiceSelect.value;
-            const style = styleInput.value.trim();
-            const testMode = testModeToggle.checked;
-
-            // Build options
-            let options = { provider, voice };
-            if (provider === 'gemini' && style) {
-                options.instructions = style;
-            }
-            if (testMode) {
-                options.testMode = true;
+            let textToSpeak = currentCleanText;
+            if (humanizeToggle.checked) {
+                textToSpeak = humanizeText(textToSpeak, 50);
             }
 
-            status.textContent = '🔊 Generating speech... (Puter TTS)';
+            status.textContent = '🔊 Generating speech (Puter TTS)...';
             status.className = 'status';
             playBtn.disabled = true;
             stopBtn.disabled = false;
 
             try {
-                // Try Puter TTS
-                const result = await puter.ai.txt2speech(currentCleanText, options);
+                // Try Puter TTS in test mode
+                const result = await puter.ai.txt2speech(textToSpeak, {
+                    testMode: true,
+                    voice: '21m00Tcm4TlvDq8ikWAM', // Rachel
+                    provider: 'elevenlabs'
+                });
                 audio = result;
                 audio.onplay = () => {
                     status.textContent = '🔊 Playing (Puter)';
@@ -449,11 +512,11 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 status.textContent = '🔄 Fallback: using browser TTS...';
                 status.className = 'status warning';
                 try {
-                    await speakWithBrowserTTS(currentCleanText);
+                    await speakWithBrowserTTS(textToSpeak);
                     status.textContent = '✅ Playback finished (browser TTS).';
                     status.className = 'status success';
                 } catch (browserErr) {
-                    status.textContent = `❌ Browser TTS error: ${browserErr.message}`;
+                    status.textContent = `❌ Browser TTS error: ${browserErr.message || 'Unknown error'}`;
                     status.className = 'status error';
                 }
                 playBtn.textContent = '🔊 Play';
@@ -470,10 +533,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 audio.currentTime = 0;
                 audio = null;
             }
-            // Also cancel browser TTS if running
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-            }
+            if (speechSynth) speechSynth.cancel();
             isPlaying = false;
             playBtn.textContent = '🔊 Play';
             playBtn.disabled = false;
@@ -541,25 +601,48 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             toggleCustomBtn.textContent = '📝 Paste Custom Script';
         });
 
-        providerSelect.addEventListener('change', saveSettings);
+        rateSlider.addEventListener('input', () => {
+            rateVal.textContent = parseFloat(rateSlider.value).toFixed(2);
+            saveSettings();
+        });
+        pitchSlider.addEventListener('input', () => {
+            pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2);
+            saveSettings();
+        });
+        volumeSlider.addEventListener('input', () => {
+            volumeVal.textContent = parseFloat(volumeSlider.value).toFixed(2);
+            saveSettings();
+        });
         voiceSelect.addEventListener('change', saveSettings);
-        styleInput.addEventListener('change', saveSettings);
-        testModeToggle.addEventListener('change', saveSettings);
         langSelect.addEventListener('change', saveSettings);
+        humanizeToggle.addEventListener('change', saveSettings);
 
         // ===== Init =====
+        // Populate voices after they're loaded
+        if (speechSynth) {
+            speechSynth.onvoiceschanged = () => {
+                populateVoices();
+                loadSettings();
+            };
+            setTimeout(() => {
+                if (speechSynth.getVoices().length > 0) {
+                    populateVoices();
+                    loadSettings();
+                }
+            }, 200);
+        }
+
         loadSettings();
+        useFallback();
 
         if (!puterLoaded) {
             loadPuter().catch(() => {
-                puterStatus.textContent = '⚠️ Puter load failed – using browser TTS only';
+                puterStatus.textContent = '⚠️ Puter load failed – browser TTS only';
             });
         }
 
-        useFallback();
-
-        console.log('🎙️ SensyCilva Radio with Puter TTS + Browser fallback loaded.');
-        console.log('🧪 Test mode ON – no credits used.');
+        console.log('🎙️ SensyCilva – Full TTS Controls loaded.');
+        console.log('🗣️ All browser voices available in the dropdown.');
     })();
 </script>
 </body>

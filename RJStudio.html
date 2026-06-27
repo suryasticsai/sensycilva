@@ -3,35 +3,20 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensyCilva – Voice Radio</title>
+    <title>SensyCilva – Live Call with Filler</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            background:#0b0d11; color:#b7e1fa; font-family:'Segoe UI',system-ui,sans-serif;
-            min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px;
-        }
-        .container {
-            background:#1a1e26; border-radius:24px; padding:32px; max-width:840px; width:100%;
-            border:1px solid #2a2f3a; box-shadow:0 20px 60px rgba(0,0,0,.6);
-        }
+        body { background:#0b0d11; color:#b7e1fa; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; }
+        .container { background:#1a1e26; border-radius:24px; padding:32px; max-width:840px; width:100%; border:1px solid #2a2f3a; box-shadow:0 20px 60px rgba(0,0,0,.6); }
         h1 { font-size:26px; font-weight:700; margin-bottom:2px; }
         h1 span { color:#ff9500; }
         .sub { color:#5a7a8a; font-size:14px; margin-bottom:16px; }
-        .lang-selector {
-            display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;
-        }
+        .lang-selector { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
         .lang-selector label { color:#6a8a9a; font-weight:600; font-size:13px; }
-        .lang-selector select {
-            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
-            padding:6px 16px; color:#c0d8ee; font-size:13px; outline:none; cursor:pointer;
-        }
+        .lang-selector select { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:6px 16px; color:#c0d8ee; font-size:13px; outline:none; cursor:pointer; }
         .actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
-        .actions button {
-            background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa;
-            padding:10px 20px; border-radius:30px; font-weight:600; font-size:14px;
-            cursor:pointer; transition:.2s; font-family:inherit;
-        }
+        .actions button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:10px 20px; border-radius:30px; font-weight:600; font-size:14px; cursor:pointer; transition:.2s; font-family:inherit; }
         .actions button:hover { background:#234a66; }
         .actions button:disabled { opacity:0.5; cursor:not-allowed; }
         .actions button.copy { background:#1f2935; border-color:#2f3a48; }
@@ -42,48 +27,25 @@
         .actions button.stop:hover { background:#4a2a2a; }
         .actions button.custom { background:#1a2a3a; border-color:#5ac8fa; }
         .actions button.custom:hover { background:#2a3a4a; }
-        .status {
-            font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px;
-        }
+        .status { font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px; transition:0.2s; }
+        .status.thinking { color:#ff9500; animation: pulse-text 1s infinite; }
         .status.error { color:#ff6a5a; }
         .status.success { color:#4cd964; }
         .status.warning { color:#ff9500; }
-        .script-box {
-            background:#0a0c10; border-radius:16px; padding:16px;
-            min-height:300px; max-height:400px; overflow-y:auto;
-            border:1px solid #1a212a; white-space:pre-wrap;
-            font-size:15px; line-height:1.7; color:#b7e1fa;
-        }
-        .custom-area {
-            margin-top:12px; display:none; flex-direction:column; gap:8px;
-        }
-        .custom-area textarea {
-            background:#0a0c10; border:1px solid #252e3a; border-radius:12px;
-            padding:12px; color:#c0d8ee; font-size:14px; font-family:'Segoe UI',sans-serif;
-            min-height:150px; resize:vertical; outline:none;
-        }
+        @keyframes pulse-text { 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
+
+        .script-box { background:#0a0c10; border-radius:16px; padding:16px; min-height:300px; max-height:400px; overflow-y:auto; border:1px solid #1a212a; white-space:pre-wrap; font-size:15px; line-height:1.7; color:#b7e1fa; }
+        .custom-area { margin-top:12px; display:none; flex-direction:column; gap:8px; }
+        .custom-area textarea { background:#0a0c10; border:1px solid #252e3a; border-radius:12px; padding:12px; color:#c0d8ee; font-size:14px; font-family:'Segoe UI',sans-serif; min-height:150px; resize:vertical; outline:none; }
         .custom-area textarea:focus { border-color:#4a8fc0; }
         .custom-area .custom-actions { display:flex; gap:10px; flex-wrap:wrap; }
-        .custom-area .custom-actions button {
-            background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa;
-            padding:8px 18px; border-radius:30px; font-weight:600; font-size:13px;
-            cursor:pointer; transition:.2s; font-family:inherit;
-        }
+        .custom-area .custom-actions button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:8px 18px; border-radius:30px; font-weight:600; font-size:13px; cursor:pointer; transition:.2s; font-family:inherit; }
         .custom-area .custom-actions button:hover { background:#234a66; }
         .custom-area .custom-actions button.set { background:#1a3a2a; border-color:#4cd964; }
         .custom-area .custom-actions button.set:hover { background:#2a4a3a; }
-        .controls-row {
-            display:flex; gap:16px; flex-wrap:wrap; align-items:center;
-            background:#0a0c10; border-radius:12px; padding:12px 16px;
-            margin-top:12px; border:1px solid #1a212a;
-        }
-        .controls-row label {
-            font-size:12px; color:#6a8a9a; display:flex; align-items:center; gap:6px;
-        }
-        .controls-row select, .controls-row input[type="range"] {
-            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
-            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
-        }
+        .controls-row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; background:#0a0c10; border-radius:12px; padding:12px 16px; margin-top:12px; border:1px solid #1a212a; }
+        .controls-row label { font-size:12px; color:#6a8a9a; display:flex; align-items:center; gap:6px; }
+        .controls-row select, .controls-row input[type="range"] { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none; }
         .controls-row input[type="range"] { width:80px; padding:0; accent-color:#5ac8fa; }
         .controls-row .val { color:#5ac8fa; font-size:12px; min-width:30px; }
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
@@ -91,11 +53,7 @@
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
         .voice-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
         .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
-        .voice-group select {
-            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
-            padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
-            max-width:220px;
-        }
+        .voice-group select { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none; max-width:220px; }
         .checkbox-group { display:flex; align-items:center; gap:6px; }
         .checkbox-group input[type="checkbox"] { accent-color:#4cd964; width:16px; height:16px; cursor:pointer; }
         .checkbox-group label { font-size:12px; color:#6a8a9a; cursor:pointer; }
@@ -105,6 +63,7 @@
         .chat-log .user { color:#5ac8fa; }
         .chat-log .host { color:#4cd964; }
         .chat-log .system { color:#6a7a8a; font-style:italic; }
+        .chat-log .filler { color:#ff9500; font-style:italic; animation: pulse-text 1s infinite; }
 
         .chat-input { display:flex; gap:10px; align-items:center; }
         .chat-input input { flex:1; background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:8px 16px; color:#c0d8ee; font-size:14px; outline:none; }
@@ -134,6 +93,10 @@
         .waveform-container.active .bar {
             animation: wave-bounce 0.4s infinite alternate ease-in-out;
         }
+        .waveform-container.thinking .bar {
+            animation: wave-bounce 0.6s infinite alternate ease-in-out;
+            background:#ff9500;
+        }
         .waveform-container .bar:nth-child(1) { animation-delay:0.0s; }
         .waveform-container .bar:nth-child(2) { animation-delay:0.1s; }
         .waveform-container .bar:nth-child(3) { animation-delay:0.2s; }
@@ -146,6 +109,13 @@
         @keyframes wave-bounce {
             0% { height:6px; background:#4a6a8a; }
             100% { height:28px; background:#5ac8fa; }
+        }
+        .waveform-container.thinking .bar {
+            animation: wave-bounce-think 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes wave-bounce-think {
+            0% { height:6px; background:#6a4a2a; }
+            100% { height:28px; background:#ff9500; }
         }
 
         .transcript-display {
@@ -160,20 +130,18 @@
             font-style:italic;
             transition:0.2s;
         }
-        .transcript-display.active {
-            border-color:#5ac8fa;
-            color:#5ac8fa;
-        }
+        .transcript-display.active { border-color:#5ac8fa; color:#5ac8fa; }
         .transcript-display .interim { color:#5ac8fa; }
         .transcript-display .final { color:#4cd964; }
         .transcript-display .error { color:#ff6a5a; }
+        .transcript-display .thinking { color:#ff9500; animation: pulse-text 1s infinite; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>SensyCilva</span> – Voice Radio</h1>
-    <div class="sub">Speak – see the waveform and transcript live!</div>
+    <h1>🎙️ <span>SensyCilva</span> – Live Call</h1>
+    <div class="sub">Filler covers latency – feels like a real call!</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -212,20 +180,17 @@
         <div class="checkbox-group"><input type="checkbox" id="randomizeToggle" checked /><label for="randomizeToggle">Randomize voice</label></div>
     </div>
 
-    <!-- Chat Section -->
     <div class="chat-section">
         <div class="chat-log" id="chatLog">
             <div class="host">🎙️ Welcome! Speak or type – the host will reply.</div>
         </div>
 
-        <!-- Waveform -->
         <div class="waveform-container" id="waveformContainer">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
             <span class="bar"></span><span class="bar"></span>
         </div>
 
-        <!-- Live transcript display -->
         <div class="transcript-display" id="transcriptDisplay">
             🎤 Press the mic button and speak...
         </div>
@@ -237,8 +202,8 @@
         </div>
     </div>
 
-    <div class="note">💡 Click 🎤 and speak – the waveform animates and your words appear live.</div>
-    <div class="footer">Browser TTS · Puter AI · Voice input (Chrome/Edge recommended)</div>
+    <div class="note">💡 Host says a filler while thinking – feels live.</div>
+    <div class="footer">Browser TTS · Puter AI · Live call experience</div>
 </div>
 
 <script>
@@ -278,153 +243,90 @@
         let currentScript = '';
         let currentCleanText = '';
         let isSpeaking = false;
-        let currentUtterance = null;
-        let isCustomMode = false;
+        let isInterrupted = false;
         let puterLoaded = false;
         const speechSynth = window.speechSynthesis;
+        let fillerUtterance = null;
+        let isFillerPlaying = false;
 
         let sentences = [];
         let currentSentenceIndex = 0;
-        let isInterrupted = false;
-        let isPausedForReply = false;
 
         // ===== Speech Recognition =====
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let recognition = null;
         let isListening = false;
 
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.continuous = false;
-            recognition.interimResults = true;
-            recognition.maxAlternatives = 1;
+        // ===== Filler phrases =====
+        const fillerPhrases = [
+            "Hmmmmm... I see we have a request.",
+            "Uh, let me think about that...",
+            "Interesting... give me a moment.",
+            "Okay, let me process that...",
+            "Hmm, that's a good question.",
+            "Ah, I see what you mean.",
+            "Let me gather my thoughts on that.",
+            "Right, I'm with you."
+        ];
 
-            recognition.onstart = () => {
-                isListening = true;
-                micBtn.classList.add('listening');
-                micBtn.textContent = '🔴';
-                waveformContainer.classList.add('active');
-                transcriptDisplay.classList.add('active');
-                transcriptDisplay.textContent = '🎤 Listening...';
-                status.textContent = '🎤 Listening...';
-                status.className = 'status';
-            };
-
-            recognition.onresult = (event) => {
-                let interim = '';
-                let final = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        final += transcript;
-                    } else {
-                        interim += transcript;
-                    }
-                }
-                if (final) {
-                    transcriptDisplay.innerHTML = `<span class="final">✅ ${final}</span>`;
-                    userMessageInput.value = final;
-                    setTimeout(() => {
-                        sendMessageBtn.click();
-                    }, 300);
-                } else if (interim) {
-                    transcriptDisplay.innerHTML = `<span class="interim">🎤 ${interim}</span>`;
-                    userMessageInput.value = interim;
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.warn('Speech recognition error:', event.error);
-                let errorMsg = '';
-                let statusMsg = '';
-
-                if (event.error === 'not-allowed') {
-                    errorMsg = '⚠️ Microphone access denied. Please allow microphone permissions.';
-                    statusMsg = '❌ Microphone access denied.';
-                    status.className = 'status error';
-                } else if (event.error === 'no-speech') {
-                    errorMsg = '⏹ No speech detected. Try again.';
-                    statusMsg = '⏹ No speech detected.';
-                    status.className = 'status warning';
-                } else if (event.error === 'network') {
-                    errorMsg = '🌐 Network error. Please check your internet connection and try again.';
-                    statusMsg = '🌐 Network error – check your connection.';
-                    status.className = 'status error';
-                } else if (event.error === 'audio-capture') {
-                    errorMsg = '🎤 No microphone found. Please connect a microphone.';
-                    statusMsg = '🎤 No microphone found.';
-                    status.className = 'status error';
-                } else if (event.error === 'aborted') {
-                    errorMsg = '⏹ Listening was cancelled.';
-                    statusMsg = '⏹ Cancelled.';
-                    status.className = 'status';
-                } else {
-                    errorMsg = `❌ Speech recognition error: ${event.error}`;
-                    statusMsg = `❌ Error: ${event.error}`;
-                    status.className = 'status error';
-                }
-
-                // Show in transcript display
-                transcriptDisplay.innerHTML = `<span class="error">${errorMsg}</span>`;
-                status.textContent = statusMsg;
-
-                micBtn.classList.remove('listening');
-                micBtn.textContent = '🎤';
-                waveformContainer.classList.remove('active');
-                transcriptDisplay.classList.remove('active');
-                isListening = false;
-
-                // If it's a network error, show a persistent message and allow typing
-                if (event.error === 'network') {
-                    transcriptDisplay.innerHTML = `<span class="error">🌐 Network error – typing is still available!</span>`;
-                }
-            };
-
-            recognition.onend = () => {
-                micBtn.classList.remove('listening');
-                micBtn.textContent = '🎤';
-                waveformContainer.classList.remove('active');
-                transcriptDisplay.classList.remove('active');
-                isListening = false;
-                if (!transcriptDisplay.textContent.includes('✅') &&
-                    !transcriptDisplay.textContent.includes('Error') &&
-                    !transcriptDisplay.textContent.includes('Network')) {
-                    transcriptDisplay.textContent = '🎤 Press the mic button and speak...';
-                }
-            };
-        } else {
-            micBtn.disabled = true;
-            micBtn.title = 'Speech recognition not supported';
-            micBtn.style.opacity = '0.5';
-            transcriptDisplay.textContent = '⚠️ Speech recognition not supported. Type instead.';
+        function getRandomFiller() {
+            return fillerPhrases[Math.floor(Math.random() * fillerPhrases.length)];
         }
 
-        // ===== Mic button =====
-        micBtn.addEventListener('click', () => {
-            if (!recognition) return;
-            if (isListening) {
-                recognition.stop();
-                micBtn.classList.remove('listening');
-                micBtn.textContent = '🎤';
-                waveformContainer.classList.remove('active');
-                transcriptDisplay.classList.remove('active');
-                isListening = false;
-                userMessageInput.placeholder = 'Type or speak...';
-                status.textContent = '⏹ Stopped listening.';
-                status.className = 'status';
-                return;
+        // ===== Filler functions =====
+        function playFiller() {
+            if (isFillerPlaying) return;
+            const fillerText = getRandomFiller();
+            // Add to chat log as filler
+            const fillerDiv = document.createElement('div');
+            fillerDiv.className = 'filler';
+            fillerDiv.textContent = `🎙️ Host: ${fillerText}`;
+            chatLog.appendChild(fillerDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            const voiceURI = voiceSelect.value;
+            const voices = speechSynth.getVoices();
+            const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+
+            const utterance = new SpeechSynthesisUtterance(fillerText);
+            utterance.voice = selectedVoice;
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = parseFloat(volumeSlider.value);
+
+            utterance.onstart = () => {
+                isFillerPlaying = true;
+                status.textContent = '🎙️ Host is thinking...';
+                status.className = 'status thinking';
+                waveformContainer.className = 'waveform-container thinking';
+                transcriptDisplay.textContent = '🤔 Host is thinking...';
+                transcriptDisplay.className = 'transcript-display thinking';
+            };
+            utterance.onend = () => {
+                isFillerPlaying = false;
+                // If no real reply came, we might keep the filler text but we'll handle that in stopFiller.
+            };
+            utterance.onerror = () => {
+                isFillerPlaying = false;
+            };
+            fillerUtterance = utterance;
+            speechSynth.speak(utterance);
+        }
+
+        function stopFiller() {
+            if (fillerUtterance && isFillerPlaying) {
+                speechSynth.cancel();
+                isFillerPlaying = false;
+                fillerUtterance = null;
             }
-            transcriptDisplay.textContent = '🎤 Listening...';
-            try {
-                recognition.start();
-            } catch (err) {
-                console.warn('Could not start speech recognition:', err);
-                status.textContent = '❌ Could not start microphone.';
-                status.className = 'status error';
-                transcriptDisplay.innerHTML = `<span class="error">❌ Could not start microphone. Try typing instead.</span>`;
-            }
-        });
+            // Remove filler from chat log? We'll keep it for transparency.
+            // Reset UI
+            status.textContent = '⏹ Thinking stopped.';
+            status.className = 'status';
+            waveformContainer.className = 'waveform-container';
+            transcriptDisplay.textContent = '💬 Ready.';
+            transcriptDisplay.className = 'transcript-display';
+        }
 
         // ===== Fallback scripts (short lines, no emotions) =====
         const fallbackScripts = {
@@ -463,7 +365,6 @@ And keep watching anime.
 Bye bye.`
             ],
             hi: [
-                // (Hindi scripts - shortened for brevity)
                 `अरे यार, anime प्रेमियों.
 SensyCilva Anime Radio में आपका स्वागत है.
 मैं आपका होस्ट हूँ.
@@ -577,7 +478,7 @@ Bye bye.`
             }
         }
 
-        // ===== Clean text: remove ALL emotions, interjections, tags =====
+        // ===== Clean text =====
         function cleanForTTS(text) {
             let cleaned = text.replace(/<[^>]*>/g, '');
             const interjections = [
@@ -596,13 +497,11 @@ Bye bye.`
             return cleaned;
         }
 
-        // ===== Format script with short lines =====
         function formatShortLines(text) {
             let sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
             return sentences.map(s => s.trim()).join('\n');
         }
 
-        // ===== Display script =====
         function displayScript(script, isCustom = false) {
             currentScript = script;
             currentCleanText = cleanForTTS(script);
@@ -687,11 +586,14 @@ Bye bye.`
             status.className = 'status warning';
         }
 
-        // ===== Speak a single sentence =====
-        function speakSentence(text, callback) {
+        // ===== Speak a single sentence (with retry) =====
+        function speakSentence(text, callback, retryCount = 0) {
             const voiceURI = voiceSelect.value;
             const voices = speechSynth.getVoices();
-            const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+            let selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+            if (!selectedVoice) {
+                selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+            }
 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.voice = selectedVoice;
@@ -713,27 +615,40 @@ Bye bye.`
                 if (callback) callback();
             };
             utterance.onerror = (event) => {
-                console.warn('TTS error:', event);
+                console.warn('TTS error:', event.error);
+                if (retryCount < 3) {
+                    console.log('Retrying with fallback voice...');
+                    const allVoices = speechSynth.getVoices();
+                    const fallbackVoice = allVoices.find(v => v.voiceURI !== voiceURI && v.lang.startsWith('en')) || allVoices[0];
+                    if (fallbackVoice) {
+                        voiceSelect.value = fallbackVoice.voiceURI;
+                        saveSettings();
+                        speakSentence(text, callback, retryCount + 1);
+                        return;
+                    }
+                }
                 if (callback) callback();
             };
-            currentUtterance = utterance;
             speechSynth.speak(utterance);
         }
 
-        // ===== Speak text (for replies) =====
         function speakText(text) {
             return new Promise((resolve) => {
                 if (speechSynth.speaking) speechSynth.cancel();
+                // Cancel filler if playing
+                if (isFillerPlaying) {
+                    stopFiller();
+                }
                 speakSentence(text, () => {
                     resolve();
                 });
             });
         }
 
-        // ===== Play the whole script =====
+        // ===== Play script =====
         function playScript() {
             if (!currentCleanText) {
-                status.textContent = '⚠️ No script. Generate or paste one first.';
+                status.textContent = '⚠️ No script.';
                 status.className = 'status error';
                 return;
             }
@@ -746,7 +661,6 @@ Bye bye.`
                 status.className = 'status';
                 currentSentenceIndex = 0;
                 isInterrupted = false;
-                isPausedForReply = false;
                 return;
             }
 
@@ -755,7 +669,6 @@ Bye bye.`
             }
 
             isInterrupted = false;
-            isPausedForReply = false;
             status.textContent = `🔊 Speaking from sentence ${currentSentenceIndex+1}...`;
             status.className = 'status';
             playBtn.disabled = true;
@@ -767,10 +680,7 @@ Bye bye.`
 
         function speakNextSentence() {
             if (!isSpeaking) return;
-
-            if (isInterrupted) {
-                return;
-            }
+            if (isInterrupted) return;
 
             if (currentSentenceIndex >= sentences.length) {
                 status.textContent = '✅ Playback finished.';
@@ -799,12 +709,11 @@ Bye bye.`
             });
         }
 
-        // ===== Stop =====
         function stopAudio() {
             if (speechSynth.speaking) speechSynth.cancel();
+            if (isFillerPlaying) stopFiller();
             isSpeaking = false;
             isInterrupted = false;
-            isPausedForReply = false;
             playBtn.textContent = '🔊 Play';
             playBtn.disabled = false;
             stopBtn.disabled = true;
@@ -829,7 +738,7 @@ Bye bye.`
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        // ===== Handle user message (text or voice) =====
+        // ===== Handle user message with filler =====
         async function handleUserMessage() {
             const msg = userMessageInput.value.trim();
             if (!msg) return;
@@ -837,11 +746,18 @@ Bye bye.`
 
             addUserMessage(msg);
 
+            // Play filler immediately
+            playFiller();
+
             if (!puterLoaded) {
                 const fallbackReply = "Thanks for your message! I'm still loading my brain. Try again in a moment.";
-                addHostReply(fallbackReply);
-                await speakText(fallbackReply);
-                resumeScript();
+                // Wait a bit to make filler natural, then reply
+                setTimeout(async () => {
+                    stopFiller();
+                    addHostReply(fallbackReply);
+                    await speakText(fallbackReply);
+                    resumeScript();
+                }, 1500);
                 return;
             }
 
@@ -860,11 +776,15 @@ Bye bye.`
                     reply = "Thanks for your question! I appreciate you reaching out. Let's keep the conversation going. " + reply;
                 }
                 if (reply.length > 250) reply = reply.substring(0, 250) + '...';
+
+                // Stop filler and speak reply
+                stopFiller();
                 addHostReply(reply);
                 await speakText(reply);
                 resumeScript();
             } catch (err) {
                 console.warn('Reply generation failed:', err);
+                stopFiller();
                 const fallbackReply = "Thanks for your message! I'll get back to you in a moment. Let's continue with the show.";
                 addHostReply(fallbackReply);
                 await speakText(fallbackReply);
@@ -882,14 +802,141 @@ Bye bye.`
             }
         }
 
-        // ===== Interrupt handler for messages =====
         async function handleIncomingMessage() {
             if (isSpeaking) {
                 isInterrupted = true;
                 if (speechSynth.speaking) speechSynth.cancel();
             }
+            // If filler is playing, we'll let it continue; the new message will start a new filler
             await handleUserMessage();
         }
+
+        // ===== Speech Recognition setup =====
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('listening');
+                micBtn.textContent = '🔴';
+                waveformContainer.classList.add('active');
+                transcriptDisplay.classList.add('active');
+                transcriptDisplay.textContent = '🎤 Listening...';
+                status.textContent = '🎤 Listening...';
+                status.className = 'status';
+            };
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        final += transcript;
+                    } else {
+                        interim += transcript;
+                    }
+                }
+                if (final) {
+                    transcriptDisplay.innerHTML = `<span class="final">✅ ${final}</span>`;
+                    userMessageInput.value = final;
+                    setTimeout(() => {
+                        sendMessageBtn.click();
+                    }, 300);
+                } else if (interim) {
+                    transcriptDisplay.innerHTML = `<span class="interim">🎤 ${interim}</span>`;
+                    userMessageInput.value = interim;
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.warn('Speech recognition error:', event.error);
+                let errorMsg = '';
+                let statusMsg = '';
+                if (event.error === 'not-allowed') {
+                    errorMsg = '⚠️ Microphone access denied.';
+                    statusMsg = '❌ Mic denied.';
+                    status.className = 'status error';
+                } else if (event.error === 'no-speech') {
+                    errorMsg = '⏹ No speech detected.';
+                    statusMsg = '⏹ No speech.';
+                    status.className = 'status warning';
+                } else if (event.error === 'network') {
+                    errorMsg = '🌐 Network error – typing is still available!';
+                    statusMsg = '🌐 Network error.';
+                    status.className = 'status error';
+                } else if (event.error === 'audio-capture') {
+                    errorMsg = '🎤 No microphone found.';
+                    statusMsg = '🎤 No mic.';
+                    status.className = 'status error';
+                } else if (event.error === 'aborted') {
+                    errorMsg = '⏹ Cancelled.';
+                    statusMsg = '⏹ Cancelled.';
+                    status.className = 'status';
+                } else {
+                    errorMsg = `❌ Error: ${event.error}`;
+                    statusMsg = `❌ ${event.error}`;
+                    status.className = 'status error';
+                }
+                transcriptDisplay.innerHTML = `<span class="error">${errorMsg}</span>`;
+                status.textContent = statusMsg;
+                micBtn.classList.remove('listening');
+                micBtn.textContent = '🎤';
+                waveformContainer.classList.remove('active');
+                transcriptDisplay.classList.remove('active');
+                isListening = false;
+                if (event.error === 'network') {
+                    transcriptDisplay.innerHTML = `<span class="error">🌐 Network error – typing is still available!</span>`;
+                }
+            };
+
+            recognition.onend = () => {
+                micBtn.classList.remove('listening');
+                micBtn.textContent = '🎤';
+                waveformContainer.classList.remove('active');
+                transcriptDisplay.classList.remove('active');
+                isListening = false;
+                if (!transcriptDisplay.textContent.includes('✅') &&
+                    !transcriptDisplay.textContent.includes('Error') &&
+                    !transcriptDisplay.textContent.includes('Network')) {
+                    transcriptDisplay.textContent = '🎤 Press the mic button and speak...';
+                }
+            };
+        } else {
+            micBtn.disabled = true;
+            micBtn.title = 'Speech recognition not supported';
+            micBtn.style.opacity = '0.5';
+            transcriptDisplay.textContent = '⚠️ Speech recognition not supported. Type instead.';
+        }
+
+        micBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            if (isListening) {
+                recognition.stop();
+                micBtn.classList.remove('listening');
+                micBtn.textContent = '🎤';
+                waveformContainer.classList.remove('active');
+                transcriptDisplay.classList.remove('active');
+                isListening = false;
+                userMessageInput.placeholder = 'Type or speak...';
+                status.textContent = '⏹ Stopped listening.';
+                status.className = 'status';
+                return;
+            }
+            transcriptDisplay.textContent = '🎤 Listening...';
+            try {
+                recognition.start();
+            } catch (err) {
+                console.warn('Could not start speech recognition:', err);
+                status.textContent = '❌ Could not start microphone.';
+                status.className = 'status error';
+                transcriptDisplay.innerHTML = `<span class="error">❌ Could not start microphone. Try typing instead.</span>`;
+            }
+        });
 
         // ===== Event listeners =====
         sendMessageBtn.addEventListener('click', handleIncomingMessage);
@@ -997,8 +1044,7 @@ Bye bye.`
             });
         }
 
-        console.log('🎙️ SensyCilva – Voice Radio with improved error handling.');
-        console.log('💡 If speech recognition fails, you can still type messages.');
+        console.log('🎙️ SensyCilva – Live Call with filler sounds loaded.');
     })();
 </script>
 </body>

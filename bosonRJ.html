@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test – Boson Higgs TTS + Puter</title>
+    <title>Test – Boson Higgs TTS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -117,11 +117,11 @@
 
 <div class="container">
     <h1>🎙️ <span>Test</span> – Boson Higgs TTS</h1>
-    <div class="sub">Enter your Boson API key, then generate and play</div>
+    <div class="sub">Enter your Boson API key (starts with bai_ or boson_)</div>
 
     <!-- API Key Input -->
     <div class="key-section">
-        <input type="text" id="apiKeyInput" placeholder="Paste your Boson API key (starts with boson_)" />
+        <input type="text" id="apiKeyInput" placeholder="Paste your Boson API key" />
         <button id="setKeyBtn">🔑 Set Key</button>
         <span id="keyStatus" class="status">⭕ Not set</span>
     </div>
@@ -165,7 +165,6 @@
             <label>Voice</label>
             <select id="voiceSelect">
                 <option value="default">Default</option>
-                <!-- Add more voice IDs if you have them -->
                 <option value="rachel">Rachel (example)</option>
             </select>
         </div>
@@ -227,7 +226,6 @@
         // ================================================================
         const fallbackScripts = {
             en: [
-                // ... (include your English fallback script – long one)
                 `[Intro – energetic]
 Hey there, anime fam! Welcome to SensyCilva Anime Radio – the show that takes you into your favorite anime worlds! I'm your host, <excite> and today's episode is packed with excitement! <laugh> Let's get started!
 
@@ -247,10 +245,44 @@ If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no
 Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. And keep watching anime! Bye bye!`
             ],
             hi: [
-                // ... Hindi fallback
+                // Hindi fallback (short version for space)
+                `[Intro – energetic]
+अरे यार! क्या हाल है, anime lovers? SensyCilva Anime Radio में आपका स्वागत है – ये शो आपको आपकी पसंदीदा anime की दुनिया में ले जाता है! मैं हूँ आपका होस्ट, <excite> और आज का एपिसोड है full-on मसाला! <laugh> चलो शुरू करते हैं!
+
+<news – dramatic>
+ओहो! पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया! <shock> एरेन ने क्या किया? क्या मिकासा को मिला उसका मोमेंट? <pause> हमें तो पता है, पर हम नहीं बताएँगे! <laugh> देखना पड़ेगा!
+
+<featured – Frieren>
+अब बात करते हैं Frieren की – <soft> यार ये शो है कमाल का! एक elf जो अपने human companions को outlive करती है – <emotion> और फिर सीखती है कि life में छोटी छोटी चीज़ें कितनी important हैं। <pause> Animation? वाह! Madhouse ने फिर से धमाल कर दिया! <excite> अगर नहीं देखा तो अभी देखना start करो!
+
+<recommendation – Mashle>
+और agar comedy चाहिए तो Mashle: Magic and Muscles देखो! <laugh> इसमें hero magic नहीं, sirf muscles और cream puffs से सब कुछ solve करता है! <shock> Seriously! Harry Potter meets One Punch Man – but desi style!
+
+<trivia – fun fact>
+<whisper> सुनो सुनो – Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है! <excite> वाह! Kya power couple hai!
+
+<signoff – warm>
+चलो, आज के लिए इतना ही। <yawn> थोड़ा tired हूँ, पर आपके प्यार ने energy भर दी! <laugh> Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो! Bye bye!`
             ],
             te: [
-                // ... Telugu fallback
+                // Telugu fallback
+                `[Intro – energetic]
+అరెరే! ఎలా ఉన్నారు anime ప్రేమికులారా! SensyCilva Anime Radio కి స్వాగతం – మీకు నచ్చిన anime ప్రపంచంలోకి తీసుకెళ్ళే షో! నేను మీ హోస్ట్, <excite> ఈ రోజు ఎపిసోడ్ పూర్తి మసాలా! <laugh> ఇంకా ఏముంది చూద్దాం!
+
+<news – dramatic>
+ఓహో! మొదటి బ్రేకింగ్ న్యూస్ – Attack on Titan ఫినాలే వచ్చేసింది! <shock> ఏరెన్ ఏం చేశాడు? మికాసాకి ఆ క్షణం దొరికిందా? <pause> మాకు తెలుసు కానీ మీకు చెప్పం! <laugh> మీరే చూడాలి!
+
+<featured – Frieren>
+ఇప్పుడు Frieren గురించి మాట్లాడుకుందాం – <soft> ఈ షో అద్భుతం. ఒక elf తన human companions కంటే ఎక్కువ కాలం జీవిస్తుంది – <emotion> ఆ తర్వాత నేర్చుకుంటుంది lifeలో చిన్న చిన్న విషయాలు ఎంత ముఖ్యమో. <pause> Animation? వాహ్! Madhouse మళ్ళీ ధమాల్ చేసింది! <excite> ఇంకా చూడకపోతే ఇప్పుడే మొదలు పెట్టండి!
+
+<recommendation – Mashle>
+కామెడీ కావాలంటే Mashle: Magic and Muscles చూడండి! <laugh> ఇందులో హీరో magic లేదు, సాధారణ muscles మరియు cream puffs తో సమస్యలన్నీ పరిష్కరిస్తాడు! <shock> నిజంగా! Harry Potter కలిసి One Punch Man – కానీ desi స్టైల్!
+
+<trivia – fun fact>
+<whisper> వినండి – Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు! <excite> వాహ్! ఎంత power couple!
+
+<signoff – warm>
+సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`
             ]
         };
 
@@ -285,12 +317,12 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         }
 
         // ================================================================
-        //  Set API Key
+        //  Set API Key (supports bai_ and boson_ prefixes)
         // ================================================================
         setKeyBtn.addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
-            if (!key.startsWith('boson_')) {
-                status.textContent = '⚠️ Invalid key – must start with boson_';
+            if (!key.startsWith('bai_') && !key.startsWith('boson_')) {
+                status.textContent = '⚠️ Invalid key – must start with bai_ or boson_';
                 status.className = 'status error';
                 return;
             }

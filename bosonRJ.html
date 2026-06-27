@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test – Boson Higgs TTS</title>
+    <title>AI Radio – Boson Higgs TTS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -18,20 +18,6 @@
         h1 { font-size:26px; font-weight:700; margin-bottom:2px; }
         h1 span { color:#ff9500; }
         .sub { color:#5a7a8a; font-size:14px; margin-bottom:16px; }
-        .key-section {
-            display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap;
-        }
-        .key-section input {
-            flex:1; min-width:200px;
-            background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
-            padding:8px 16px; color:#c0d8ee; font-size:14px; outline:none;
-        }
-        .key-section input:focus { border-color:#4a8fc0; }
-        .key-section .status {
-            font-size:12px; padding:4px 12px; border-radius:20px;
-            background:#1a1f2a; color:#6a7a8a;
-        }
-        .key-section .status.ready { background:#1a3a2a; color:#4cd964; border:1px solid #4cd96444; }
         .lang-selector {
             display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;
         }
@@ -39,6 +25,10 @@
         .lang-selector select {
             background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
             padding:6px 16px; color:#c0d8ee; font-size:13px; outline:none; cursor:pointer;
+        }
+        .lang-selector .badge {
+            background:#1a3a2a; color:#4cd964; font-size:11px; padding:2px 12px;
+            border-radius:20px; border:1px solid #4cd96444;
         }
         .actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
         .actions button {
@@ -111,20 +101,17 @@
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
+        .worker-status {
+            background:#1a2a1a; color:#4cd964; font-size:10px; padding:2px 10px;
+            border-radius:20px; border:1px solid #4cd96444; display:inline-block;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>Test</span> – Boson Higgs TTS</h1>
-    <div class="sub">Enter your Boson API key (starts with bai_ or boson_)</div>
-
-    <!-- API Key Input -->
-    <div class="key-section">
-        <input type="text" id="apiKeyInput" placeholder="Paste your Boson API key" />
-        <button id="setKeyBtn">🔑 Set Key</button>
-        <span id="keyStatus" class="status">⭕ Not set</span>
-    </div>
+    <h1>🎙️ <span>AI</span> Radio – Boson Higgs TTS</h1>
+    <div class="sub">Puter.js for scripts · Boson TTS via Cloudflare (key hidden)</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -133,7 +120,8 @@
             <option value="hi">हिन्दी (Hindi)</option>
             <option value="te">తెలుగు (Telugu)</option>
         </select>
-        <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ AI: Puter.js</span>
+        <span class="badge">🔊 Boson via Worker</span>
+        <span class="worker-status">✅ Key stored securely in Worker</span>
         <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
     </div>
 
@@ -144,7 +132,7 @@
         <button id="copyBtn" class="copy" disabled>📋 Copy</button>
     </div>
 
-    <div class="status" id="status">Ready – set API key, then generate</div>
+    <div class="status" id="status">Ready – click "Generate AI Script"</div>
     <div class="script-box" id="scriptBox"><span class="empty">Click "Generate AI Script" to create a new script.</span></div>
 
     <!-- Custom Script Area -->
@@ -181,17 +169,19 @@
         </div>
     </div>
     <div class="note">💡 Expressions like &lt;shock&gt; are stripped before TTS.</div>
-    <div class="footer">Puter.js (Gemini) + Boson Higgs TTS · 100% free for non‑commercial use</div>
+    <div class="footer">Puter.js (Gemini) + Boson Higgs TTS via Cloudflare · 100% free for non‑commercial use</div>
 </div>
 
 <script>
     (function() {
         // ================================================================
+        //  CONFIGURATION – Worker URL (holds your secret key)
+        // ================================================================
+        const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
+
+        // ================================================================
         //  DOM refs
         // ================================================================
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const setKeyBtn = document.getElementById('setKeyBtn');
-        const keyStatus = document.getElementById('keyStatus');
         const generateBtn = document.getElementById('generateBtn');
         const playBtn = document.getElementById('playBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -208,7 +198,6 @@
         const voiceSelect = document.getElementById('voiceSelect');
         const emotionSelect = document.getElementById('emotionSelect');
         const rateVal = document.getElementById('rateVal');
-        const puterStatus = document.getElementById('puterStatus');
 
         // ================================================================
         //  State
@@ -219,7 +208,6 @@
         let audio = null;
         let isCustomMode = false;
         let puterLoaded = false;
-        let bosonApiKey = '';
 
         // ================================================================
         //  Fallback scripts (English, Hindi, Telugu)
@@ -245,7 +233,6 @@ If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no
 Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. And keep watching anime! Bye bye!`
             ],
             hi: [
-                // Hindi fallback (short version for space)
                 `[Intro – energetic]
 अरे यार! क्या हाल है, anime lovers? SensyCilva Anime Radio में आपका स्वागत है – ये शो आपको आपकी पसंदीदा anime की दुनिया में ले जाता है! मैं हूँ आपका होस्ट, <excite> और आज का एपिसोड है full-on मसाला! <laugh> चलो शुरू करते हैं!
 
@@ -265,7 +252,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
 चलो, आज के लिए इतना ही। <yawn> थोड़ा tired हूँ, पर आपके प्यार ने energy भर दी! <laugh> Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो! Bye bye!`
             ],
             te: [
-                // Telugu fallback
                 `[Intro – energetic]
 అరెరే! ఎలా ఉన్నారు anime ప్రేమికులారా! SensyCilva Anime Radio కి స్వాగతం – మీకు నచ్చిన anime ప్రపంచంలోకి తీసుకెళ్ళే షో! నేను మీ హోస్ట్, <excite> ఈ రోజు ఎపిసోడ్ పూర్తి మసాలా! <laugh> ఇంకా ఏముంది చూద్దాం!
 
@@ -290,26 +276,18 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         //  Load settings from localStorage
         // ================================================================
         function loadSettings() {
-            const savedKey = localStorage.getItem('boson_api_key') || '';
             const savedLang = localStorage.getItem('boson_lang') || 'en';
             const savedVoice = localStorage.getItem('boson_voice') || 'default';
             const savedEmotion = localStorage.getItem('boson_emotion') || 'neutral';
             const savedRate = parseFloat(localStorage.getItem('boson_rate')) || 1.0;
-            apiKeyInput.value = savedKey;
             langSelect.value = savedLang;
             voiceSelect.value = savedVoice;
             emotionSelect.value = savedEmotion;
             rateSlider.value = savedRate;
             rateVal.textContent = savedRate.toFixed(2);
-            if (savedKey) {
-                bosonApiKey = savedKey;
-                keyStatus.textContent = '✅ Key loaded';
-                keyStatus.className = 'status ready';
-            }
         }
 
         function saveSettings() {
-            localStorage.setItem('boson_api_key', apiKeyInput.value);
             localStorage.setItem('boson_lang', langSelect.value);
             localStorage.setItem('boson_voice', voiceSelect.value);
             localStorage.setItem('boson_emotion', emotionSelect.value);
@@ -317,25 +295,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         }
 
         // ================================================================
-        //  Set API Key (supports bai_ and boson_ prefixes)
-        // ================================================================
-        setKeyBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (!key.startsWith('bai_') && !key.startsWith('boson_')) {
-                status.textContent = '⚠️ Invalid key – must start with bai_ or boson_';
-                status.className = 'status error';
-                return;
-            }
-            bosonApiKey = key;
-            keyStatus.textContent = '✅ Key set';
-            keyStatus.className = 'status ready';
-            saveSettings();
-            status.textContent = '✅ API key saved. Generate a script.';
-            status.className = 'status success';
-        });
-
-        // ================================================================
-        //  Clean text for TTS
+        //  Clean text for TTS (remove tags, parentheses, etc.)
         // ================================================================
         function cleanForTTS(text) {
             text = text.replace(/\([^)]*\)/g, '');
@@ -367,21 +327,13 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             return new Promise((resolve, reject) => {
                 if (typeof puter !== 'undefined') {
                     puterLoaded = true;
-                    puterStatus.textContent = '⚡ AI: Puter loaded';
                     resolve();
                     return;
                 }
                 const script = document.createElement('script');
                 script.src = 'https://js.puter.com/v2/';
-                script.onload = () => {
-                    puterLoaded = true;
-                    puterStatus.textContent = '⚡ AI: Puter loaded';
-                    resolve();
-                };
-                script.onerror = () => {
-                    puterStatus.textContent = '⚠️ AI: Puter failed';
-                    reject(new Error('Failed to load Puter'));
-                };
+                script.onload = () => { puterLoaded = true; resolve(); };
+                script.onerror = () => reject(new Error('Failed to load Puter'));
                 document.head.appendChild(script);
             });
         }
@@ -428,14 +380,9 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         }
 
         // ================================================================
-        //  Play via Boson TTS (chunked)
+        //  Play via Cloudflare Worker (Boson TTS)
         // ================================================================
         async function playScript() {
-            if (!bosonApiKey) {
-                status.textContent = '⚠️ Please set your Boson API key first.';
-                status.className = 'status error';
-                return;
-            }
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
                 status.className = 'status error';
@@ -447,7 +394,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             const emotion = emotionSelect.value;
             const speed = parseFloat(rateSlider.value);
 
-            // Chunk the text
+            // Chunk the text (Worker will forward to Boson)
             const maxChunkSize = 500;
             const chunks = [];
             let text = currentCleanText;
@@ -471,24 +418,19 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             for (let i = 0; i < chunks.length; i++) {
                 if (!isPlaying) break;
                 try {
-                    const response = await fetch('https://api.boson.ai/v1/audio/speech', {
+                    const response = await fetch(WORKER_URL, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${bosonApiKey}`,
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            model: 'higgs-tts-3-4b',
-                            input: chunks[i],
+                            text: chunks[i],
                             voice: voice,
-                            response_format: 'mp3',
-                            speed: speed,
                             emotion: emotion,
+                            speed: speed,
                         }),
                     });
                     if (!response.ok) {
                         const errData = await response.json();
-                        throw new Error(errData.error?.message || `HTTP ${response.status}`);
+                        throw new Error(errData.error || `HTTP ${response.status}`);
                     }
                     const blob = await response.blob();
                     const url = URL.createObjectURL(blob);
@@ -621,8 +563,9 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             loadPuter().catch(() => {});
         }
 
-        console.log('🎙️ Boson test loaded.');
-        console.log('🔑 Paste your Boson API key and click "Set Key".');
+        console.log('🎙️ Boson test loaded (Worker proxy).');
+        console.log(`🔗 Worker URL: ${WORKER_URL}`);
+        console.log('🔑 Key is stored securely in Cloudflare Worker secret.');
     })();
 </script>
 </body>

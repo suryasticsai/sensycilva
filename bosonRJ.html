@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensyCilva – Clean TTS</title>
+    <title>SensyCilva – Plain TTS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -104,8 +104,8 @@
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>SensyCilva</span> – Clean TTS</h1>
-    <div class="sub">All &lt;...&gt; tags stripped before speaking · Humanized + random voice</div>
+    <h1>🎙️ <span>SensyCilva</span> – Plain TTS</h1>
+    <div class="sub">All emotions, expressions, and tags stripped – just plain factual text</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
@@ -157,13 +157,9 @@
             <input type="checkbox" id="randomizeToggle" checked />
             <label for="randomizeToggle">Randomize voice</label>
         </div>
-        <div class="checkbox-group">
-            <input type="checkbox" id="humanizeToggle" checked />
-            <label for="humanizeToggle">Humanize</label>
-        </div>
     </div>
-    <div class="note">💡 Randomize: rate ±0.05, pitch ±0.1 per sentence. All &lt;...&gt; tags are stripped before TTS.</div>
-    <div class="footer">Browser TTS · No limits · Fluctuation makes it sound natural</div>
+    <div class="note">💡 All emotional expressions and interjections are removed before TTS. Only plain, factual content remains.</div>
+    <div class="footer">Browser TTS · No limits · Clean, plain text only</div>
 </div>
 
 <script>
@@ -191,7 +187,6 @@
         const pitchVal = document.getElementById('pitchVal');
         const volumeVal = document.getElementById('volumeVal');
         const randomizeToggle = document.getElementById('randomizeToggle');
-        const humanizeToggle = document.getElementById('humanizeToggle');
         const puterStatus = document.getElementById('puterStatus');
 
         // ===== State =====
@@ -203,64 +198,64 @@
         let puterLoaded = false;
         const speechSynth = window.speechSynthesis;
 
-        // ===== Fallback scripts (shortened for brevity) =====
+        // ===== Fallback scripts (plain, minimal emotions) =====
         const fallbackScripts = {
             en: [
                 `[Intro – energetic]
-Hey there, anime fam! Welcome to SensyCilva Anime Radio! <excite> I'm your host and today's episode is packed with excitement! <laugh> Let's get started!
+Hey there, anime fans. Welcome to SensyCilva Anime Radio. I'm your host and today's episode is packed with excitement. Let's get started.
 
-<news – dramatic>
-Whoa! First breaking news – Attack on Titan's finale is finally here! <shock> What did Eren do? Did Mikasa get her moment? <pause> We know, but we won't tell! <laugh> You'll have to watch!
+[News – dramatic]
+First breaking news – Attack on Titan's finale is finally here. What did Eren do? Did Mikasa get her moment? We know, but we won't tell. You'll have to watch.
 
-<featured – Frieren>
-Now let's talk about Frieren – <soft> this show is amazing. An elf who outlives her human companions – <emotion> and then learns that the little things in life are so important. <pause> Animation? Wow! Madhouse has done it again! <excite> If you haven't seen it, start now!
+[Featured – Frieren]
+Now let's talk about Frieren. This show is amazing. An elf who outlives her human companions and then learns that the little things in life are so important. Animation? Madhouse has done it again. If you haven't seen it, start now.
 
-<recommendation – Mashle>
-If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no magic, just muscles and cream puffs! <shock> Seriously! Harry Potter meets One Punch Man – desi style!
+[Recommendation – Mashle]
+If you want comedy, check out Mashle: Magic and Muscles. The hero has no magic, just muscles and cream puffs. Seriously. Harry Potter meets One Punch Man – desi style.
 
-<trivia – fun fact>
-<whisper> Did you know – Sailor Moon's creator, Naoko Takeuchi, is married to Hunter x Hunter's creator, Yoshihiro Togashi! <excite> Wow! What a power couple!
+[Trivia – fun fact]
+Did you know Sailor Moon's creator, Naoko Takeuchi, is married to Hunter x Hunter's creator, Yoshihiro Togashi. What a power couple.
 
-<signoff – warm>
-Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. Bye bye!`
+[Sign-off – warm]
+That's all for today. Follow us @SensyCilvaRadio. And keep watching anime. Bye bye.`
             ],
             hi: [
                 `[Intro – energetic]
-अरे यार! क्या हाल है, anime lovers? SensyCilva Anime Radio में आपका स्वागत है – ये शो आपको आपकी पसंदीदा anime की दुनिया में ले जाता है! मैं हूँ आपका होस्ट, <excite> और आज का एपिसोड है full-on मसाला! <laugh> चलो शुरू करते हैं!
+नमस्ते, anime प्रेमियों। SensyCilva Anime Radio में आपका स्वागत है। मैं आपका होस्ट हूँ और आज का एपिसोड बहुत रोचक है। चलो शुरू करते हैं।
 
-<news – dramatic>
-ओहो! पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया! <shock> एरेन ने क्या किया? क्या मिकासा को मिला उसका मोमेंट? <pause> हमें तो पता है, पर हम नहीं बताएँगे! <laugh> देखना पड़ेगा!
+[News – dramatic]
+पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया। एरेन ने क्या किया? क्या मिकासा को मिला उसका मोमेंट? हमें पता है पर हम नहीं बताएँगे। आपको देखना पड़ेगा।
 
-<featured – Frieren>
-अब बात करते हैं Frieren की – <soft> यार ये शो है कमाल का! एक elf जो अपने human companions को outlive करती है – <emotion> और फिर सीखती है कि life में छोटी छोटी चीज़ें कितनी important हैं। <pause> Animation? वाह! Madhouse ने फिर से धमाल कर दिया! <excite> अगर नहीं देखा तो अभी देखना start करो!
+[Featured – Frieren]
+अब बात करते हैं Frieren की। ये शो कमाल का है। एक elf जो अपने human companions को outlive करती है और फिर सीखती है कि life में छोटी चीज़ें कितनी important हैं। Animation? Madhouse ने धमाल कर दिया है। अगर नहीं देखा तो अभी देखना शुरू करो।
 
-<recommendation – Mashle>
-और agar comedy चाहिए तो Mashle: Magic and Muscles देखो! <laugh> इसमें hero magic नहीं, sirf muscles और cream puffs से सब कुछ solve करता है! <shock> Seriously! Harry Potter meets One Punch Man – but desi style!
+[Recommendation – Mashle]
+अगर comedy चाहिए तो Mashle: Magic and Muscles देखो। hero magic नहीं, sirf muscles और cream puffs से सब कुछ solve करता है। Seriously. Harry Potter meets One Punch Man – but desi style.
 
-<trivia – fun fact>
-<whisper> सुनो सुनो – Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है! <excite> वाह! Kya power couple hai!
+[Trivia – fun fact]
+Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है। Kya power couple hai.
 
-<signoff – warm>
-चलो, आज के लिए इतना ही। <yawn> थोड़ा tired हूँ, पर आपके प्यार ने energy भर दी! <laugh> Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो! Bye bye!`
+[Sign-off – warm]
+चलो, आज के लिए इतना ही। Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो। Bye bye.`
             ],
             te: [
                 `[Intro – energetic]
-అరెరే! ఎలా ఉన్నారు anime ప్రేమికులారా! SensyCilva Anime Radio కి స్వాగతం – మీకు నచ్చిన anime ప్రపంచంలోకి తీసుకెళ్ళే షో! నేను మీ హోస్ట్, <excite> ఈ రోజు ఎపిసోడ్ పూర్తి మసాలా! <laugh> ఇంకా ఏముంది చూద్దాం!
+అరెరే, anime ప్రేమికులారా. SensyCilva Anime Radio కి స్వాగతం. నేను మీ హోస్ట్ మరియు ఈ రోజు ఎపిసోడ్ చాలా exciting. ఇంకా ఏముంది చూద్దాం.
 
-<news – dramatic>
-ఓహో! మొదటి బ్రేకింగ్ న్యూస్ – Attack on Titan ఫినాలే వచ్చేసింది! <shock> ఏరెన్ ఏం చేశాడు? మికాసాకి ఆ క్షణం దొరికిందా? <pause> మాకు తెలుసు కానీ మీకు చెప్పం! <laugh> మీరే చూడాలి!
+[News – dramatic]
+మొదటి బ్రేకింగ్ న్యూస్ – Attack on Titan ఫినాలే వచ్చేసింది. ఏరెన్ ఏం చేశాడు? మికాసాకి ఆ క్షణం దొరికిందా? మాకు తెలుసు కానీ మీకు చెప్పం. మీరే చూడాలి.
 
-<featured – Frieren>
-ఇప్పుడు Frieren గురించి మాట్లాడుకుందాం – <soft> ఈ షో అద్భుతం. ఒక elf తన human companions కంటే ఎక్కువ కాలం జీవిస్తుంది – <emotion> ఆ తర్వాత నేర్చుకుంటుంది lifeలో చిన్న చిన్న విషయాలు ఎంత ముఖ్యమో. <pause> Animation? వాహ్! Madhouse మళ్ళీ ధమాల్ చేసింది! <excite> ఇంకా చూడకపోతే ఇప్పుడే మొదలు పెట్టండి!
+[Featured – Frieren]
+ఇప్పుడు Frieren గురించి మాట్లాడుకుందాం. ఈ షో అద్భుతం. ఒక elf తన human companions కంటే ఎక్కువ కాలం జీవిస్తుంది మరియు lifeలో చిన్న విషయాలు ఎంత ముఖ్యమో నేర్చుకుంటుంది. Animation? Madhouse మళ్ళీ ధమాల్ చేసింది. ఇంకా చూడకపోతే ఇప్పుడే మొదలు పెట్టండి.
 
-<recommendation – Mashle>
-కామెడీ కావాలంటే Mashle: Magic and Muscles చూడండి! <laugh> ఇందులో హీరో magic లేదు, సాధారణ muscles మరియు cream puffs తో సమస్యలన్నీ పరిష్కరిస్తాడు! <shock> నిజంగా! Harry Potter కలిసి One Punch Man – కానీ desi స్టైల్!
+[Recommendation – Mashle]
+కామెడీ కావాలంటే Mashle: Magic and Muscles చూడండి. హీరో magic లేదు, సాధారణ muscles మరియు cream puffs తో సమస్యలన్నీ పరిష్కరిస్తాడు. Seriously. Harry Potter కలిసి One Punch Man – కానీ desi స్టైల్.
 
-<trivia – fun fact>
-<whisper> వినండి – Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు! <excite> వాహ్! ఎంత power couple!
+[Trivia – fun fact]
+Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు. ఎంత power couple.
 
-<signoff – warm>
-సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`
+[Sign-off – warm]
+సరే, ఈ రోజుకి ఇంతే. @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి. Bye bye.`
             ]
         };
 
@@ -272,7 +267,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             const savedPitch = parseFloat(localStorage.getItem('sensy_pitch')) || 1.0;
             const savedVolume = parseFloat(localStorage.getItem('sensy_volume')) || 1.0;
             const savedRandomize = localStorage.getItem('sensy_randomize') !== 'false';
-            const savedHumanize = localStorage.getItem('sensy_humanize') !== 'false';
             langSelect.value = savedLang;
             rateSlider.value = savedRate;
             pitchSlider.value = savedPitch;
@@ -281,7 +275,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             pitchVal.textContent = savedPitch.toFixed(2);
             volumeVal.textContent = savedVolume.toFixed(2);
             randomizeToggle.checked = savedRandomize;
-            humanizeToggle.checked = savedHumanize;
         }
 
         function saveSettings() {
@@ -291,7 +284,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             localStorage.setItem('sensy_pitch', pitchSlider.value);
             localStorage.setItem('sensy_volume', volumeSlider.value);
             localStorage.setItem('sensy_randomize', randomizeToggle.checked);
-            localStorage.setItem('sensy_humanize', humanizeToggle.checked);
         }
 
         // ===== Populate voices =====
@@ -318,39 +310,45 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             }
         }
 
-        // ===== Clean text: remove all <...> tags =====
+        // ===== Clean text: remove ALL emotions, interjections, tags =====
         function cleanForTTS(text) {
-            return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-        }
+            // 1. Remove all <...> tags
+            let cleaned = text.replace(/<[^>]*>/g, '');
 
-        // ===== Humanize text =====
-        function humanizeText(text) {
-            if (!humanizeToggle.checked) return text;
-            const fillers = ['um', 'uh', 'you know', 'like', 'well', 'actually'];
-            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-            let result = [];
-            sentences.forEach(sentence => {
-                let s = sentence.trim();
-                const punctuation = s.match(/[.!?]+$/) || '';
-                s = s.replace(/[.!?]+$/, '').trim();
-                let words = s.split(/\s+/);
-                if (words.length > 3 && Math.random() > 0.6) {
-                    const pos = Math.floor(Math.random() * (words.length - 1)) + 1;
-                    words.splice(pos, 0, fillers[Math.floor(Math.random() * fillers.length)]);
-                }
-                if (words.length > 4 && Math.random() > 0.7) {
-                    const pos = Math.floor(words.length / 2);
-                    words.splice(pos, 0, ',');
-                }
-                result.push(words.join(' ') + punctuation);
+            // 2. Remove common emotional interjections (English, Hindi, Telugu)
+            const interjections = [
+                // English
+                /\b(whoa|wow|oh|ah|uh|um|hmm|hey|hello|hi|okay|alright|well|so|now)\b/gi,
+                // Hindi
+                /\b(अरे|यार|वाह|ओहो|हाँ|अच्छा|चलो|क्या|हाय)\b/gi,
+                // Telugu
+                /\b(అరెరే|అయ్యో|ఓహో|వాహ్|ఏంటి|కదా|రేయ్)\b/gi,
+                // Sound effects with punctuation
+                /(whoa!|wow!|oh!|ah!|uh!|um!|hey!|hello!|hi!|okay!|alright!|well!|so!|now!|arre!|yaar!|wah!|oho!)/gi,
+                // Remove any standalone "!" or "?" that might be left
+                /(!|\.\.\.|…)/g
+            ];
+
+            interjections.forEach(pattern => {
+                cleaned = cleaned.replace(pattern, '');
             });
-            return result.join(' ');
+
+            // 3. Remove [Intro], [News], [Featured], etc. (section headers)
+            cleaned = cleaned.replace(/\[.*?\]/g, '');
+
+            // 4. Remove extra spaces
+            cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+            // 5. Remove leading/trailing punctuation
+            cleaned = cleaned.replace(/^[.!?,;:\s]+/, '').replace(/[.!?,;:\s]+$/, '');
+
+            return cleaned;
         }
 
         // ===== Display script (raw) =====
         function displayScript(script, isCustom = false) {
             currentScript = script;
-            // Store cleaned version for TTS (tags removed)
+            // Store cleaned version for TTS (emotions removed)
             currentCleanText = cleanForTTS(script);
             scriptBox.textContent = script; // show raw with tags for human
             status.textContent = `✅ ${isCustom ? 'Custom' : 'Generated'} script (${script.length} chars)`;
@@ -440,10 +438,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 return;
             }
 
-            let textToSpeak = currentCleanText; // already stripped of <...>
-            if (humanizeToggle.checked) {
-                textToSpeak = humanizeText(textToSpeak);
-            }
+            let textToSpeak = currentCleanText; // already stripped of all emotions
 
             const voiceURI = voiceSelect.value;
             const voices = speechSynth.getVoices();
@@ -451,6 +446,12 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
 
             // Split into sentences
             const sentences = textToSpeak.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+
+            if (sentences.length === 0) {
+                status.textContent = '⚠️ No text to speak after cleaning.';
+                status.className = 'status error';
+                return;
+            }
 
             status.textContent = `🔊 Speaking ${sentences.length} sentences...`;
             status.className = 'status';
@@ -460,7 +461,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             let index = 0;
             isSpeaking = true;
 
-            // Base values
             const baseRate = parseFloat(rateSlider.value);
             const basePitch = parseFloat(pitchSlider.value);
             const volume = parseFloat(volumeSlider.value);
@@ -484,10 +484,9 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 utterance.voice = selectedVoice;
                 utterance.volume = volume;
 
-                // Apply fluctuation
                 if (randomize) {
-                    const rateOffset = (Math.random() - 0.5) * 0.1; // ±0.05
-                    const pitchOffset = (Math.random() - 0.5) * 0.2; // ±0.1
+                    const rateOffset = (Math.random() - 0.5) * 0.1;
+                    const pitchOffset = (Math.random() - 0.5) * 0.2;
                     utterance.rate = Math.min(2, Math.max(0.5, baseRate + rateOffset));
                     utterance.pitch = Math.min(1.5, Math.max(0.5, basePitch + pitchOffset));
                 } else {
@@ -496,7 +495,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
                 }
 
                 utterance.onend = () => {
-                    // Pause based on sentence length
                     const wordCount = text.split(/\s+/).length;
                     const pauseMs = wordCount < 8 ? 1200 : 800;
                     setTimeout(() => {
@@ -604,7 +602,6 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         voiceSelect.addEventListener('change', saveSettings);
         langSelect.addEventListener('change', saveSettings);
         randomizeToggle.addEventListener('change', saveSettings);
-        humanizeToggle.addEventListener('change', saveSettings);
 
         // ===== Init =====
         if (speechSynth) {
@@ -629,7 +626,7 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
             });
         }
 
-        console.log('🎙️ SensyCilva – Clean TTS loaded. All <...> tags stripped before speaking.');
+        console.log('🎙️ SensyCilva – Plain TTS loaded. All emotions, interjections, and tags stripped.');
     })();
 </script>
 </body>

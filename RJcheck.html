@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Radio Audition – Bhashini</title>
+    <title>Radio – Puter + Bhashini</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -101,35 +101,40 @@
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
+        .puter-status {
+            background:#1a2a1a; color:#4cd964; font-size:10px; padding:2px 10px;
+            border-radius:20px; border:1px solid #4cd96444; display:inline-block;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>Radio Audition</span> – Bhashini</h1>
-    <div class="sub">Free Indian Govt TTS · 22 Languages</div>
+    <h1>🎙️ <span>AI</span> Radio – Puter + Bhashini</h1>
+    <div class="sub">AI script generation (Gemini) · Indian Govt TTS (22 languages)</div>
 
     <div class="lang-selector">
         <label for="langSelect">🌐 Script Language</label>
         <select id="langSelect">
-            <option value="te">తెలుగు (Telugu)</option>
+            <option value="en">English</option>
             <option value="hi">हिन्दी (Hindi)</option>
-            <option value="en" selected>English</option>
+            <option value="te">తెలుగు (Telugu)</option>
         </select>
         <span class="badge">🔊 Bhashini via Cloudflare</span>
         <span id="workerStatus" class="badge">✅ Worker ready</span>
+        <span id="puterStatus" class="puter-status">⚡ AI: Puter.js</span>
         <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
     </div>
 
     <div class="actions">
-        <button id="generateBtn">📝 Generate Script</button>
-        <button id="playBtn" class="play">🔊 Play</button>
+        <button id="generateBtn">📝 Generate AI Script</button>
+        <button id="playBtn" class="play" disabled>🔊 Play</button>
         <button id="stopBtn" class="stop" disabled>⏹ Stop</button>
-        <button id="copyBtn" class="copy">📋 Copy</button>
+        <button id="copyBtn" class="copy" disabled>📋 Copy</button>
     </div>
 
-    <div class="status" id="status">Ready – select language, then Generate</div>
-    <div class="script-box" id="scriptBox"><span class="empty">Click "Generate" to see a new script.</span></div>
+    <div class="status" id="status">Ready – click "Generate AI Script"</div>
+    <div class="script-box" id="scriptBox"><span class="empty">Click "Generate AI Script" to create a new script.</span></div>
 
     <!-- Custom Script Area -->
     <div class="custom-area" id="customArea">
@@ -172,21 +177,59 @@
             </select>
         </div>
     </div>
-    <div class="note">💡 Expressions like &lt;shock&gt; are visible – they are stripped before sending.</div>
-    <div class="footer">Powered by Bhashini (Govt of India) · Free · No API key required</div>
+    <div class="note">💡 Expressions like &lt;shock&gt; are visible – they are stripped before sending to TTS.</div>
+    <div class="footer">Powered by <a href="https://puter.com" target="_blank">Puter.js</a> (Gemini) + Bhashini (Govt of India) · 100% Free</div>
 </div>
 
 <script>
     (function() {
         // ================================================================
-        //  WORKER URL (points to your Cloudflare Worker)
+        //  CONFIGURATION
         // ================================================================
         const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
 
         // ================================================================
-        //  DUMMY SCRIPTS (Telugu, Hindi, English)
+        //  FALLBACK SCRIPTS (if Puter.js fails)
         // ================================================================
-        const scripts = {
+        const fallbackScripts = {
+            en: [
+                `<intro – energetic>
+Hey there, anime fam! Welcome to SensyCilva Anime Radio – the show that takes you into your favorite anime worlds! I'm your host, <excite> and today's episode is packed with excitement! <laugh> Let's get started!
+
+<news – dramatic>
+Whoa! First breaking news – Attack on Titan's finale is finally here! <shock> What did Eren do? Did Mikasa get her moment? <pause> We know, but we won't tell! <laugh> You'll have to watch!
+
+<featured – Frieren>
+Now let's talk about Frieren – <soft> this show is amazing. An elf who outlives her human companions – <emotion> and then learns that the little things in life are so important. <pause> Animation? Wow! Madhouse has done it again! <excite> If you haven't seen it, start now!
+
+<recommendation – Mashle>
+If you want comedy, check out Mashle: Magic and Muscles! <laugh> The hero has no magic, just muscles and cream puffs to solve everything! <shock> Seriously! Harry Potter meets One Punch Man – desi style!
+
+<trivia – fun fact>
+<whisper> Did you know – Sailor Moon's creator, Naoko Takeuchi, is married to Hunter x Hunter's creator, Yoshihiro Togashi! <excite> Wow! What a power couple!
+
+<signoff – warm>
+Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me energy! <laugh> Follow us @SensyCilvaRadio. And keep watching anime! Bye bye!`
+            ],
+            hi: [
+                `<intro – energetic>
+अरे यार! क्या हाल है, anime lovers? SensyCilva Anime Radio में आपका स्वागत है – ये शो आपको आपकी पसंदीदा anime की दुनिया में ले जाता है! मैं हूँ आपका होस्ट, <excite> और आज का एपिसोड है full-on मसाला! <laugh> चलो शुरू करते हैं!
+
+<news – dramatic>
+ओहो! पहली ब्रेकिंग न्यूज़ – Attack on Titan का फिनाले आ गया! <shock> एरेन ने क्या किया? क्या मिकासा को मिला उसका मोमेंट? <pause> हमें तो पता है, पर हम नहीं बताएँगे! <laugh> देखना पड़ेगा!
+
+<featured – Frieren>
+अब बात करते हैं Frieren की – <soft> यार ये शो है कमाल का! एक elf जो अपने human companions को outlive करती है – <emotion> और फिर सीखती है कि life में छोटी छोटी चीज़ें कितनी important हैं। <pause> Animation? वाह! Madhouse ने फिर से धमाल कर दिया! <excite> अगर नहीं देखा तो अभी देखना start करो!
+
+<recommendation – Mashle>
+और agar comedy चाहिए तो Mashle: Magic and Muscles देखो! <laugh> इसमें hero magic नहीं, sirf muscles और cream puffs से सब कुछ solve करता है! <shock> Seriously! Harry Potter meets One Punch Man – but desi style!
+
+<trivia – fun fact>
+<whisper> सुनो सुनो – Sailor Moon की creator, Naoko Takeuchi, ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की है! <excite> वाह! Kya power couple hai!
+
+<signoff – warm>
+चलो, आज के लिए इतना ही। <yawn> थोड़ा tired हूँ, पर आपके प्यार ने energy भर दी! <laugh> Follow करो @SensyCilvaRadio. और हाँ, anime देखते रहो! Bye bye!`
+            ],
             te: [
                 `<intro – energetic>
 అరెరే! ఎలా ఉన్నారు anime ప్రేమికులారా! SensyCilva Anime Radio కి స్వాగతం – మీకు నచ్చిన anime ప్రపంచంలోకి తీసుకెళ్ళే షో! నేను మీ హోస్ట్, <excite> ఈ రోజు ఎపిసోడ్ పూర్తి మసాలా! <laugh> ఇంకా ఏముంది చూద్దాం!
@@ -204,14 +247,7 @@
 <whisper> వినండి – Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని పెళ్లి చేసుకున్నారు! <excite> వాహ్! ఎంత power couple!
 
 <signoff – warm>
-సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`,
-                // second Telugu script...
-            ],
-            hi: [
-                // Hindi scripts...
-            ],
-            en: [
-                // English scripts...
+సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`
             ]
         };
 
@@ -229,6 +265,7 @@
         const status = document.getElementById('status');
         const langSelect = document.getElementById('langSelect');
         const workerStatus = document.getElementById('workerStatus');
+        const puterStatus = document.getElementById('puterStatus');
         const rateSlider = document.getElementById('rateSlider');
         const voiceSelect = document.getElementById('voiceSelect');
         const ttsLanguageSelect = document.getElementById('ttsLanguageSelect');
@@ -239,9 +276,7 @@
         let isPlaying = false;
         let audio = null;
         let isCustomMode = false;
-
-        workerStatus.textContent = '✅ Worker ready';
-        workerStatus.className = 'badge';
+        let puterLoaded = false;
 
         // ===== Load settings =====
         function loadSettings() {
@@ -280,45 +315,90 @@
             isCustomMode = isCustom;
         }
 
-        // ===== Generate dummy script =====
-        function generate() {
+        // ===== Load Puter.js dynamically =====
+        function loadPuter() {
+            return new Promise((resolve, reject) => {
+                if (typeof puter !== 'undefined') {
+                    puterLoaded = true;
+                    puterStatus.textContent = '⚡ AI: Puter.js loaded';
+                    puterStatus.style.borderColor = '#4cd96444';
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://js.puter.com/v2/';
+                script.onload = () => {
+                    puterLoaded = true;
+                    puterStatus.textContent = '⚡ AI: Puter.js loaded';
+                    puterStatus.style.borderColor = '#4cd96444';
+                    resolve();
+                };
+                script.onerror = () => {
+                    puterStatus.textContent = '⚠️ AI: Puter.js failed';
+                    puterStatus.style.borderColor = '#ff6a5a44';
+                    reject(new Error('Failed to load Puter.js'));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        // ===== Generate AI script (Puter.js) =====
+        async function generate() {
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generating...';
+            status.textContent = '⏳ Generating AI script...';
+            status.className = 'status';
+            scriptBox.textContent = '⏳ Generating...';
+
+            try {
+                // Try to load Puter.js if not already loaded
+                if (!puterLoaded) {
+                    try {
+                        await loadPuter();
+                    } catch (err) {
+                        // If Puter fails, use fallback
+                        console.warn('Puter load failed, using fallback:', err);
+                        useFallback();
+                        return;
+                    }
+                }
+
+                const lang = langSelect.value;
+                const langName = lang === 'hi' ? 'Hindi' : lang === 'te' ? 'Telugu' : 'English';
+
+                const prompt = `Write a complete anime radio show script in ${langName} for "SensyCilva Anime Radio". The script must be at least 400 words. Use expressions like <shock>, <laugh>, <excite>, <pause>, <whisper>, <yawn>. Include: a greeting, news about anime, a featured anime (like Frieren, Spy x Family, Jujutsu Kaisen), a recommendation for another anime, an interesting trivia, and a sign-off. Make it super energetic and conversational like a real radio jockey.`;
+
+                const response = await puter.ai.chat(prompt, {
+                    model: 'google/gemini-2.5-flash',
+                });
+
+                let script = response.message?.content || response;
+                if (typeof script === 'string' && script.length > 100) {
+                    displayScript(script, false);
+                } else {
+                    throw new Error('Response too short');
+                }
+
+            } catch (err) {
+                console.warn('Puter generation failed, using fallback:', err);
+                useFallback();
+            }
+
+            generateBtn.disabled = false;
+            generateBtn.textContent = '📝 Generate AI Script';
+        }
+
+        // ===== Fallback to hardcoded scripts =====
+        function useFallback() {
             const lang = langSelect.value;
-            const available = scripts[lang] || scripts.en;
+            const available = fallbackScripts[lang] || fallbackScripts.en;
             const script = available[Math.floor(Math.random() * available.length)];
             displayScript(script, false);
-            saveSettings();
-            customArea.style.display = 'none';
-            toggleCustomBtn.textContent = '📝 Paste Custom Script';
+            status.textContent = '⚠️ Using fallback script (AI unavailable)';
+            status.className = 'status warning';
         }
 
-        // ===== Set custom script =====
-        function setCustomScript() {
-            const text = customScriptText.value.trim();
-            if (!text) {
-                status.textContent = '⚠️ Please paste some text first.';
-                status.className = 'status error';
-                return;
-            }
-            displayScript(text, true);
-            customArea.style.display = 'none';
-            toggleCustomBtn.textContent = '📝 Paste Custom Script';
-        }
-
-        // ===== Toggle custom area =====
-        function toggleCustom() {
-            if (customArea.style.display === 'flex') {
-                customArea.style.display = 'none';
-                toggleCustomBtn.textContent = '📝 Paste Custom Script';
-            } else {
-                customArea.style.display = 'flex';
-                toggleCustomBtn.textContent = '✖ Close Custom';
-                if (isCustomMode) {
-                    customScriptText.value = currentScript;
-                }
-            }
-        }
-
-        // ===== Play via Worker =====
+        // ===== Play via Bhashini Worker =====
         async function playScript() {
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
@@ -423,6 +503,33 @@
             });
         }
 
+        // ===== Set custom script =====
+        function setCustomScript() {
+            const text = customScriptText.value.trim();
+            if (!text) {
+                status.textContent = '⚠️ Please paste some text first.';
+                status.className = 'status error';
+                return;
+            }
+            displayScript(text, true);
+            customArea.style.display = 'none';
+            toggleCustomBtn.textContent = '📝 Paste Custom Script';
+        }
+
+        // ===== Toggle custom area =====
+        function toggleCustom() {
+            if (customArea.style.display === 'flex') {
+                customArea.style.display = 'none';
+                toggleCustomBtn.textContent = '📝 Paste Custom Script';
+            } else {
+                customArea.style.display = 'flex';
+                toggleCustomBtn.textContent = '✖ Close Custom';
+                if (isCustomMode) {
+                    customScriptText.value = currentScript;
+                }
+            }
+        }
+
         // ===== Event listeners =====
         generateBtn.addEventListener('click', generate);
         playBtn.addEventListener('click', playScript);
@@ -441,18 +548,23 @@
         });
         voiceSelect.addEventListener('change', saveSettings);
         ttsLanguageSelect.addEventListener('change', saveSettings);
-        langSelect.addEventListener('change', () => {
-            saveSettings();
-            generate();
-        });
+        langSelect.addEventListener('change', saveSettings);
 
         // ===== Init =====
         loadSettings();
-        generate();
+        // Auto-generate on load with fallback (no need to wait for Puter)
+        useFallback();
 
-        console.log('🎙️ Radio Audition (Bhashini) loaded.');
+        // Preload Puter.js in background
+        if (!puterLoaded) {
+            loadPuter().catch(() => {
+                // Puter failed, we'll just use fallback – no problem
+            });
+        }
+
+        console.log('🎙️ AI Radio loaded.');
         console.log(`🔗 Worker URL: ${WORKER_URL}`);
-        console.log('🗣️ Bhashini TTS – 22 Indian languages, free.');
+        console.log('🗣️ Puter.js for scripts + Bhashini for TTS');
     })();
 </script>
 </body>

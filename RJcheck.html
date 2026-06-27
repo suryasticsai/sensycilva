@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Radio Audition – ElevenLabs</title>
+    <title>Radio Audition – Bhashini</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -90,18 +90,14 @@
         }
         .controls-row input[type="range"] { width:80px; padding:0; accent-color:#5ac8fa; }
         .controls-row .val { color:#5ac8fa; font-size:12px; min-width:30px; }
-        .voice-id-group {
+        .voice-group {
             display:flex; align-items:center; gap:8px; flex-wrap:wrap;
         }
-        .voice-id-group label {
-            color:#6a8a9a; font-weight:600; font-size:12px;
-        }
-        .voice-id-group input {
+        .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
+        .voice-group select {
             background:#0a0c10; border:1px solid #252e3a; border-radius:30px;
             padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none;
-            width:200px;
         }
-        .voice-id-group input:focus { border-color:#4a8fc0; }
         .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
         .footer a { color:#5ac8fa; text-decoration:none; }
         .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
@@ -110,17 +106,17 @@
 <body>
 
 <div class="container">
-    <h1>🎙️ <span>Radio Audition</span> – ElevenLabs</h1>
-    <div class="sub">Use your own cloned voice – paste your Voice ID below</div>
+    <h1>🎙️ <span>Radio Audition</span> – Bhashini</h1>
+    <div class="sub">Free Indian Govt TTS · 22 Languages</div>
 
     <div class="lang-selector">
-        <label for="langSelect">🌐 Language</label>
+        <label for="langSelect">🌐 Script Language</label>
         <select id="langSelect">
             <option value="te">తెలుగు (Telugu)</option>
             <option value="hi">हिन्दी (Hindi)</option>
             <option value="en" selected>English</option>
         </select>
-        <span class="badge">🔊 ElevenLabs via Cloudflare</span>
+        <span class="badge">🔊 Bhashini via Cloudflare</span>
         <span id="workerStatus" class="badge">✅ Worker ready</span>
         <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
     </div>
@@ -145,41 +141,50 @@
     </div>
 
     <div class="controls-row">
-        <label>Stability
-            <input type="range" id="stabilitySlider" min="0" max="1" step="0.05" value="0.5" />
-            <span class="val" id="stabilityVal">0.50</span>
-        </label>
-        <label>Boost
-            <input type="range" id="boostSlider" min="0" max="1" step="0.05" value="0.75" />
-            <span class="val" id="boostVal">0.75</span>
-        </label>
         <label>Speed
             <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.95" />
             <span class="val" id="rateVal">0.95</span>
         </label>
-        <label>Pitch
-            <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" />
-            <span class="val" id="pitchVal">1.00</span>
-        </label>
-        <div class="voice-id-group">
-            <label>Voice ID</label>
-            <input type="text" id="voiceIdInput" placeholder="Paste custom voice ID" />
+        <div class="voice-group">
+            <label>Voice</label>
+            <select id="voiceSelect">
+                <option value="Female1">Female 1</option>
+                <option value="Female2">Female 2</option>
+                <option value="Male1">Male 1</option>
+                <option value="Male2">Male 2</option>
+            </select>
+        </div>
+        <div class="voice-group">
+            <label>TTS Language</label>
+            <select id="ttsLanguageSelect">
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Marathi">Marathi</option>
+                <option value="Gujarati">Gujarati</option>
+                <option value="Kannada">Kannada</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="Odia">Odia</option>
+                <option value="Punjabi">Punjabi</option>
+                <option value="Bengali">Bengali</option>
+                <option value="Urdu">Urdu</option>
+            </select>
         </div>
     </div>
     <div class="note">💡 Expressions like &lt;shock&gt; are visible – they are stripped before sending.</div>
-    <div class="note">🔑 To create a custom voice, go to <a href="https://elevenlabs.io/voice-lab" target="_blank">elevenlabs.io/voice-lab</a> and clone a voice – paste its ID above.</div>
-    <div class="footer">Powered by <a href="https://elevenlabs.io" target="_blank">ElevenLabs</a> · Free tier with custom voices</div>
+    <div class="footer">Powered by Bhashini (Govt of India) · Free · No API key required</div>
 </div>
 
 <script>
     (function() {
         // ================================================================
-        //  CORRECT WORKER URL
+        //  WORKER URL (points to your Cloudflare Worker)
         // ================================================================
         const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
 
         // ================================================================
-        //  DUMMY SCRIPTS (Telugu, Hindi, English) – same as before
+        //  DUMMY SCRIPTS (Telugu, Hindi, English)
         // ================================================================
         const scripts = {
             te: [
@@ -200,13 +205,13 @@
 
 <signoff – warm>
 సరే, ఈ రోజుకి ఇంతే. <yawn> కాస్త అలసిపోయాను, కానీ మీ ప్రేమే శక్తి! <laugh> @SensyCilvaRadio ని follow చేయండి. Anime చూస్తూనే ఉండండి! Bye bye!`,
-                // ... (second Telugu script)
+                // second Telugu script...
             ],
             hi: [
-                // ... (Hindi scripts)
+                // Hindi scripts...
             ],
             en: [
-                // ... (English scripts)
+                // English scripts...
             ]
         };
 
@@ -224,15 +229,10 @@
         const status = document.getElementById('status');
         const langSelect = document.getElementById('langSelect');
         const workerStatus = document.getElementById('workerStatus');
-        const stabilitySlider = document.getElementById('stabilitySlider');
-        const boostSlider = document.getElementById('boostSlider');
         const rateSlider = document.getElementById('rateSlider');
-        const pitchSlider = document.getElementById('pitchSlider');
-        const voiceIdInput = document.getElementById('voiceIdInput');
-        const stabilityVal = document.getElementById('stabilityVal');
-        const boostVal = document.getElementById('boostVal');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const ttsLanguageSelect = document.getElementById('ttsLanguageSelect');
         const rateVal = document.getElementById('rateVal');
-        const pitchVal = document.getElementById('pitchVal');
 
         let currentScript = '';
         let currentCleanText = '';
@@ -240,40 +240,30 @@
         let audio = null;
         let isCustomMode = false;
 
-        // ===== Worker status =====
         workerStatus.textContent = '✅ Worker ready';
         workerStatus.className = 'badge';
 
         // ===== Load settings =====
         function loadSettings() {
-            const savedStab = parseFloat(localStorage.getItem('eleven_stability')) || 0.5;
-            const savedBoost = parseFloat(localStorage.getItem('eleven_boost')) || 0.75;
-            const savedRate = parseFloat(localStorage.getItem('tts_rate')) || 0.95;
-            const savedPitch = parseFloat(localStorage.getItem('tts_pitch')) || 1.0;
-            const savedLang = localStorage.getItem('tts_lang') || 'en';
-            const savedVoice = localStorage.getItem('custom_voice_id') || '';
-            stabilitySlider.value = savedStab;
-            boostSlider.value = savedBoost;
+            const savedRate = parseFloat(localStorage.getItem('bhashini_rate')) || 0.95;
+            const savedLang = localStorage.getItem('bhashini_lang') || 'en';
+            const savedVoice = localStorage.getItem('bhashini_voice') || 'Female1';
+            const savedTtsLang = localStorage.getItem('bhashini_tts_lang') || 'English';
             rateSlider.value = savedRate;
-            pitchSlider.value = savedPitch;
-            voiceIdInput.value = savedVoice;
-            stabilityVal.textContent = savedStab.toFixed(2);
-            boostVal.textContent = savedBoost.toFixed(2);
+            voiceSelect.value = savedVoice;
+            ttsLanguageSelect.value = savedTtsLang;
             rateVal.textContent = savedRate.toFixed(2);
-            pitchVal.textContent = savedPitch.toFixed(2);
             langSelect.value = savedLang;
         }
 
         function saveSettings() {
-            localStorage.setItem('eleven_stability', stabilitySlider.value);
-            localStorage.setItem('eleven_boost', boostSlider.value);
-            localStorage.setItem('tts_rate', rateSlider.value);
-            localStorage.setItem('tts_pitch', pitchSlider.value);
-            localStorage.setItem('tts_lang', langSelect.value);
-            localStorage.setItem('custom_voice_id', voiceIdInput.value);
+            localStorage.setItem('bhashini_rate', rateSlider.value);
+            localStorage.setItem('bhashini_lang', langSelect.value);
+            localStorage.setItem('bhashini_voice', voiceSelect.value);
+            localStorage.setItem('bhashini_tts_lang', ttsLanguageSelect.value);
         }
 
-        // ===== Clean script =====
+        // ===== Clean script for TTS =====
         function cleanForTTS(text) {
             return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
         }
@@ -290,7 +280,7 @@
             isCustomMode = isCustom;
         }
 
-        // ===== Generate =====
+        // ===== Generate dummy script =====
         function generate() {
             const lang = langSelect.value;
             const available = scripts[lang] || scripts.en;
@@ -330,12 +320,6 @@
 
         // ===== Play via Worker =====
         async function playScript() {
-            const voiceId = voiceIdInput.value.trim();
-            if (!voiceId) {
-                status.textContent = '⚠️ Please paste your custom voice ID first.';
-                status.className = 'status error';
-                return;
-            }
             if (!currentCleanText) {
                 status.textContent = '⚠️ No script. Generate or paste one first.';
                 status.className = 'status error';
@@ -343,13 +327,13 @@
             }
             if (isPlaying) return;
 
-            const stability = parseFloat(stabilitySlider.value);
-            const boost = parseFloat(boostSlider.value);
+            const voiceName = voiceSelect.value;
+            const language = ttsLanguageSelect.value;
 
             try {
                 playBtn.disabled = true;
                 stopBtn.disabled = false;
-                status.textContent = '🔊 Generating audio via ElevenLabs...';
+                status.textContent = '🔊 Generating Bhashini TTS...';
                 status.className = 'status';
 
                 const response = await fetch(WORKER_URL, {
@@ -357,9 +341,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         text: currentCleanText,
-                        voice_id: voiceId,
-                        stability,
-                        similarity_boost: boost,
+                        language: language,
+                        voiceName: voiceName,
                     }),
                 });
 
@@ -452,23 +435,12 @@
             toggleCustomBtn.textContent = '📝 Paste Custom Script';
         });
 
-        stabilitySlider.addEventListener('input', () => {
-            stabilityVal.textContent = parseFloat(stabilitySlider.value).toFixed(2);
-            saveSettings();
-        });
-        boostSlider.addEventListener('input', () => {
-            boostVal.textContent = parseFloat(boostSlider.value).toFixed(2);
-            saveSettings();
-        });
         rateSlider.addEventListener('input', () => {
             rateVal.textContent = parseFloat(rateSlider.value).toFixed(2);
             saveSettings();
         });
-        pitchSlider.addEventListener('input', () => {
-            pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2);
-            saveSettings();
-        });
-        voiceIdInput.addEventListener('change', saveSettings);
+        voiceSelect.addEventListener('change', saveSettings);
+        ttsLanguageSelect.addEventListener('change', saveSettings);
         langSelect.addEventListener('change', () => {
             saveSettings();
             generate();
@@ -478,9 +450,9 @@
         loadSettings();
         generate();
 
-        console.log('🎙️ Radio Audition loaded.');
+        console.log('🎙️ Radio Audition (Bhashini) loaded.');
         console.log(`🔗 Worker URL: ${WORKER_URL}`);
-        console.log('📝 Enter your custom voice ID in the field.');
+        console.log('🗣️ Bhashini TTS – 22 Indian languages, free.');
     })();
 </script>
 </body>

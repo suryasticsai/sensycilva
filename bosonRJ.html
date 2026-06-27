@@ -406,133 +406,127 @@ Alright, that's all for today. <yawn> I'm a bit tired, but your love gives me en
         // ================================================================
         //  PLAY VIA WORKER (with full debugging)
         // ================================================================
-       async function playScript() {
-    if (!currentCleanText) {
-        status.textContent = '⚠️ No script. Generate or paste one first.';
-        status.className = 'status error';
-        return;
-    }
-    if (isPlaying) return;
-
-    const voice = voiceSelect.value;
-    const emotion = emotionSelect.value;
-    const speed = parseFloat(rateSlider.value);
-
-    debug(`Play requested. Voice: ${voice}, Emotion: ${emotion}, Speed: ${speed}`);
-
-    // Chunk the text
-    const maxChunkSize = 500;
-    const chunks = [];
-    let text = currentCleanText;
-    while (text.length > 0) {
-        let chunk = text.substring(0, maxChunkSize);
-        let lastPunct = Math.max(chunk.lastIndexOf('.'), chunk.lastIndexOf('!'), chunk.lastIndexOf('?'));
-        if (lastPunct > 50 && lastPunct < maxChunkSize) {
-            chunk = chunk.substring(0, lastPunct + 1);
-        }
-        chunks.push(chunk);
-        text = text.substring(chunk.length).trim();
-    }
-    debug(`Split into ${chunks.length} chunks`);
-
-    status.textContent = `🔊 Speaking ${chunks.length} parts...`;
-    status.className = 'status';
-    playBtn.disabled = true;
-    stopBtn.disabled = false;
-
-    // ✅ FIX: Set isPlaying = true so the loop runs
-    isPlaying = true;
-
-    let audioQueue = [];
-
-    for (let i = 0; i < chunks.length; i++) {
-        if (!isPlaying) break;
-        const chunkText = chunks[i];
-        debug(`Requesting chunk ${i+1}/${chunks.length}: "${chunkText.substring(0, 30)}..."`);
-
-        try {
-            const response = await fetch(WORKER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: chunkText,
-                    voice: voice,
-                    emotion: emotion,
-                    speed: speed,
-                }),
-            });
-
-            debug(`Response status: ${response.status}`);
-            if (!response.ok) {
-                let errorMsg = `HTTP ${response.status}`;
-                try {
-                    const errData = await response.json();
-                    errorMsg = errData.error || errorMsg;
-                } catch (e) {}
-                throw new Error(errorMsg);
+      async function playScript() {
+            if (!currentCleanText) {
+                status.textContent = '⚠️ No script. Generate or paste one first.';
+                status.className = 'status error';
+                return;
             }
-
-            const contentType = response.headers.get('content-type');
-            debug(`Content-Type: ${contentType}`);
-
-            const blob = await response.blob();
-            debug(`Blob size: ${blob.size} bytes`);
-            if (blob.size === 0) throw new Error('Empty audio blob');
-
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            audioQueue.push(audio);
-
-        } catch (err) {
-            debug(`❌ Error on chunk ${i+1}: ${err.message}`);
-            status.textContent = `❌ Error: ${err.message}`;
-            status.className = 'status error';
+            if (isPlaying) return;
+        
+            const voice = voiceSelect.value;
+            const emotion = emotionSelect.value;
+            const speed = parseFloat(rateSlider.value);
+        
+            debug(`Play requested. Voice: ${voice}, Emotion: ${emotion}, Speed: ${speed}`);
+        
+            // Chunk the text (larger chunks = fewer chunks, less overhead)
+            const maxChunkSize = 800; // Increased from 500
+            const chunks = [];
+            let text = currentCleanText;
+            while (text.length > 0) {
+                let chunk = text.substring(0, maxChunkSize);
+                let lastPunct = Math.max(chunk.lastIndexOf('.'), chunk.lastIndexOf('!'), chunk.lastIndexOf('?'));
+                if (lastPunct > 50 && lastPunct < maxChunkSize) {
+                    chunk = chunk.substring(0, lastPunct + 1);
+                }
+                chunks.push(chunk);
+                text = text.substring(chunk.length).trim();
+            }
+            debug(`Split into ${chunks.length} chunks`);
+        
+            status.textContent = `⏳ Fetching ${chunks.length} audio parts...`;
+            status.className = 'status';
+            playBtn.disabled = true;
+            stopBtn.disabled = false;
+            isPlaying = true;
+        
+            // ----- FETCH ALL CHUNKS IN PARALLEL -----
+            const fetchPromises = chunks.map((chunk, i) => {
+                return fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: chunk,
+                        voice: voice,
+                        emotion: emotion,
+                        speed: speed,
+                    }),
+                })
+                .then(async (response) => {
+                    if (!response.ok) {
+                        let errorMsg = `HTTP ${response.status}`;
+                        try {
+                            const errData = await response.json();
+                            errorMsg = errData.error || errorMsg;
+                        } catch (_) {}
+                        throw new Error(`Chunk ${i+1}: ${errorMsg}`);
+                    }
+                    const blob = await response.blob();
+                    if (blob.size === 0) throw new Error(`Chunk ${i+1}: empty audio`);
+                    const url = URL.createObjectURL(blob);
+                    return new Audio(url);
+                })
+                .catch(err => {
+                    debug(`❌ Chunk ${i+1} fetch error: ${err.message}`);
+                    throw err;
+                });
+            });
+        
+            let audioQueue = [];
+            try {
+                audioQueue = await Promise.all(fetchPromises);
+                debug(`All ${audioQueue.length} chunks fetched.`);
+            } catch (err) {
+                status.textContent = `❌ Error: ${err.message}`;
+                status.className = 'status error';
+                playBtn.disabled = false;
+                stopBtn.disabled = true;
+                isPlaying = false;
+                return;
+            }
+        
+            // ----- PLAY ALL CHUNKS SEQUENTIALLY -----
+            status.textContent = `🔊 Playing ${audioQueue.length} parts...`;
+            debug(`Starting playback of ${audioQueue.length} chunks.`);
+        
+            for (let i = 0; i < audioQueue.length; i++) {
+                if (!isPlaying) break;
+                const audio = audioQueue[i];
+                debug(`Playing chunk ${i+1}/${audioQueue.length}`);
+                try {
+                    await new Promise((resolve, reject) => {
+                        audio.onended = resolve;
+                        audio.onerror = (e) => {
+                            debug(`Audio error on chunk ${i+1}: ${e}`);
+                            reject(new Error('Audio playback error'));
+                        };
+                        audio.play().then(() => {
+                            debug(`Chunk ${i+1} started playing`);
+                        }).catch(err => {
+                            debug(`Play() failed on chunk ${i+1}: ${err.message}`);
+                            reject(err);
+                        });
+                    });
+                } catch (err) {
+                    debug(`Playback error: ${err.message}`);
+                    status.textContent = `❌ Playback error: ${err.message}`;
+                    status.className = 'status error';
+                    break;
+                }
+                // tiny pause between chunks (optional)
+                await new Promise(r => setTimeout(r, 100));
+            }
+        
+            if (isPlaying) {
+                status.textContent = '✅ Playback finished.';
+                status.className = 'status success';
+                debug('Playback finished');
+            }
             playBtn.disabled = false;
             stopBtn.disabled = true;
             isPlaying = false;
-            return;
         }
-    }
-
-    debug(`Audio queue ready: ${audioQueue.length} chunks. Starting playback...`);
-
-    // Play sequentially
-    for (let i = 0; i < audioQueue.length; i++) {
-        if (!isPlaying) break;
-        const audio = audioQueue[i];
-        debug(`Playing chunk ${i+1}/${audioQueue.length}`);
-        try {
-            await new Promise((resolve, reject) => {
-                audio.onended = resolve;
-                audio.onerror = (e) => {
-                    debug(`Audio error: ${e}`);
-                    reject(new Error('Audio playback error'));
-                };
-                audio.play().then(() => {
-                    debug(`Chunk ${i+1} started playing`);
-                }).catch(err => {
-                    debug(`Play() failed: ${err.message}`);
-                    reject(err);
-                });
-            });
-        } catch (err) {
-            debug(`Playback error: ${err.message}`);
-            status.textContent = `❌ Playback error: ${err.message}`;
-            status.className = 'status error';
-            break;
-        }
-        await new Promise(r => setTimeout(r, 300));
-    }
-
-    if (isPlaying) {
-        status.textContent = '✅ Playback finished.';
-        status.className = 'status success';
-        debug('Playback finished');
-    }
-    playBtn.disabled = false;
-    stopBtn.disabled = true;
-    isPlaying = false;
-}
         // ================================================================
         //  STOP
         // ================================================================

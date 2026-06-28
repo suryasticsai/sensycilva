@@ -6,6 +6,7 @@
   <title>SensyCilva — Anime Pirate Radio</title>
   <link rel="icon" href="logo.png" type="image/png" />
   <style>
+    /* (same as before – kept compact) */
     :root{
       --bg:#0d0b14;
       --panel:#161320;
@@ -19,6 +20,7 @@
       --amber:#ffb84d;
       --teal:#5ee6c8;
       --mono:'SF Mono','JetBrains Mono','Courier New',monospace;
+      --accent:var(--teal);
     }
     *{margin:0;padding:0;box-sizing:border-box;}
     body{
@@ -31,7 +33,7 @@
     .station-id .freq{font-family:var(--mono);font-size:13px;letter-spacing:0.18em;color:var(--teal);text-transform:uppercase;}
     .station-id .brand{display:flex;align-items:center;gap:10px;}
     .station-id .brand img{height:42px;width:auto;border-radius:6px;}
-    h1{font-size:34px;font-weight:800;letter-spacing:-0.01em;line-height:1;text-transform:uppercase;font-stretch:condensed;}
+    h1{font-size:34px;font-weight:800;letter-spacing:-0.01em;line-height:1;text-transform:uppercase;}
     h1 .pink{color:var(--signal);}
     .tagline{color:var(--dim);font-size:13px;margin-top:4px;}
     .on-air{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 16px 8px 12px;color:var(--dim);}
@@ -86,9 +88,11 @@
     .chat-log>div{margin-bottom:6px;}
     .chat-log .user{color:var(--teal);}
     .chat-log .host{color:var(--paper);}
+    .chat-log .host .avatar{display:inline-block;width:22px;height:22px;border-radius:50%;vertical-align:middle;margin-right:6px;background:var(--panel);border:1px solid var(--line);overflow:hidden;}
+    .chat-log .host .avatar img{width:100%;height:100%;object-fit:cover;}
     .chat-log .filler{color:var(--amber);font-style:italic;}
     .chat-log .song{color:var(--amber);font-weight:700;}
-    .waveform{display:flex;align-items:center;gap:3px;height:26px;margin-bottom:8px;justify-content:center;}
+    .waveform{display:flex;align-items:center;gap:3px;height:30px;margin-bottom:8px;justify-content:center;}
     .waveform .bar{width:4px;border-radius:2px;background:var(--dimmer);height:6px;transition:height .1s;}
     .waveform.active .bar{animation:wave 0.4s infinite alternate ease-in-out;background:var(--teal);}
     .waveform.thinking .bar{animation:wave-think 0.6s infinite alternate ease-in-out;}
@@ -98,6 +102,18 @@
     .waveform .bar:nth-child(7){animation-delay:.6s;}.waveform .bar:nth-child(8){animation-delay:.7s;}
     @keyframes wave{0%{height:6px;background:var(--dimmer);}100%{height:24px;background:var(--teal);}}
     @keyframes wave-think{0%{height:6px;background:#6a4a2a;}100%{height:24px;background:var(--amber);}}
+    .eq{display:flex;align-items:center;gap:2px;height:26px;margin:4px 0;justify-content:center;}
+    .eq .bar{width:3px;border-radius:1px;background:var(--dimmer);height:4px;transition:height .08s;}
+    .eq.active .bar{animation:eq-bounce 0.3s infinite alternate ease-in-out;}
+    .eq .bar:nth-child(1){animation-delay:0.02s;}.eq .bar:nth-child(2){animation-delay:0.05s;}
+    .eq .bar:nth-child(3){animation-delay:0.09s;}.eq .bar:nth-child(4){animation-delay:0.12s;}
+    .eq .bar:nth-child(5){animation-delay:0.16s;}.eq .bar:nth-child(6){animation-delay:0.19s;}
+    .eq .bar:nth-child(7){animation-delay:0.23s;}.eq .bar:nth-child(8){animation-delay:0.26s;}
+    .eq .bar:nth-child(9){animation-delay:0.30s;}.eq .bar:nth-child(10){animation-delay:0.33s;}
+    .eq .bar:nth-child(11){animation-delay:0.37s;}.eq .bar:nth-child(12){animation-delay:0.40s;}
+    .eq .bar:nth-child(13){animation-delay:0.44s;}.eq .bar:nth-child(14){animation-delay:0.47s;}
+    .eq .bar:nth-child(15){animation-delay:0.51s;}.eq .bar:nth-child(16){animation-delay:0.54s;}
+    @keyframes eq-bounce{0%{height:4px;background:var(--dimmer);}100%{height:24px;background:var(--teal);}}
     .transcript{background:#0b0a12;border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-height:32px;font-size:13px;font-style:italic;color:var(--dim);margin-bottom:10px;transition:.2s;}
     .transcript.active{border-color:var(--teal);color:var(--teal);}
     .transcript .final{color:var(--teal);font-style:normal;}
@@ -111,9 +127,9 @@
     .key-status.set{color:var(--teal);}
     .hint{font-size:11px;color:var(--dimmer);margin-top:8px;font-style:italic;}
     .warn-text{color:var(--signal);font-size:12px;margin-top:6px;}
-    .yt-frame{position:relative;width:100%;padding-bottom:56.25%;margin:12px 0;background:#000;border-radius:14px;overflow:hidden;display:none;border:1px solid var(--line);}
+    .yt-frame{position:relative;width:100%;padding-bottom:56.25%;margin:8px 0;background:#000;border-radius:14px;overflow:hidden;display:none;border:1px solid var(--line);}
     .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
-    .now-playing{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--amber);background:#0b0a12;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0;}
+    .now-playing{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--amber);background:#0b0a12;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0;}
     .now-playing .label{color:var(--dimmer);font-family:var(--mono);font-size:11px;letter-spacing:.08em;}
     .now-playing .progress{margin-left:auto;font-family:var(--mono);color:var(--teal);font-size:12px;}
     .footer{text-align:center;font-size:11px;color:var(--dimmer);margin-top:8px;letter-spacing:.04em;}
@@ -121,12 +137,16 @@
     .channel-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--dim);padding:6px 14px;border-radius:30px;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;}
     .channel-btn:hover{border-color:var(--dim);}
     .channel-btn.active{background:var(--signal);border-color:var(--signal);color:#1a0a10;}
+    .channel-en{--accent:var(--teal);}
+    .channel-hi{--accent:#ffb84d;}
+    .channel-te{--accent:#ff6b85;}
+    .acc-color{color:var(--accent);}
     @media (max-width:520px){h1{font-size:26px;}.row label.field{width:100%;}.subtitle-box{font-size:18px;min-height:60px;}}
     button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
   </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="appWrap">
 
   <div class="station-head">
     <div class="station-id">
@@ -178,10 +198,13 @@
   <div class="panel">
     <h2>Studio controls</h2>
     <div class="row" style="margin-bottom:10px;">
-      <button class="btn primary" id="generateBtn">📝 New script</button>
-      <button class="btn teal" id="playBtn" disabled>▶ Go live</button>
+      <button class="btn primary" id="newScriptBtn">📝 New Script</button>
+      <button class="btn teal" id="onAirBtn" disabled>▶ On Air</button>
+      <button class="btn amber" id="pauseBtn" disabled>⏸ Pause</button>
       <button class="btn danger" id="stopBtn" disabled>■ Stop</button>
-      <button class="btn amber" id="toggleCustomBtn">📄 Paste own</button>
+    </div>
+    <div class="row" style="margin-bottom:10px;">
+      <button class="btn ghost small" id="toggleCustomBtn">📄 Paste own script</button>
     </div>
     <div class="custom-area" id="customArea" style="display:none; flex-direction:column; gap:10px; margin-top:10px;">
       <textarea id="customScriptText" placeholder="Paste your own script here…" style="background:#0b0a12;border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--paper);font-size:14px;font-family:inherit;min-height:140px;resize:vertical;outline:none;"></textarea>
@@ -189,18 +212,6 @@
         <button class="btn teal small" id="setCustomBtn">Use this script</button>
         <button class="btn ghost small" id="cancelCustomBtn">Cancel</button>
       </div>
-    </div>
-  </div>
-
-  <!-- Voice settings -->
-  <div class="panel">
-    <h2>Voice & delivery</h2>
-    <div class="row">
-      <label class="field">Voice <select id="voiceSelect" style="max-width:220px;"></select></label>
-      <label class="field">Rate <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9"><span class="val" id="rateVal">0.90</span></label>
-      <label class="field">Pitch <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0"><span class="val" id="pitchVal">1.00</span></label>
-      <label class="field">Volume <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0"><span class="val" id="volumeVal">1.00</span></label>
-      <label class="checkbox"><input type="checkbox" id="randomizeToggle" checked> Randomize voice</label>
     </div>
   </div>
 
@@ -212,9 +223,12 @@
       <button class="btn small" id="ytApiKeySave">Save key</button>
       <span class="key-status" id="ytKeyStatus">Not set</span>
     </div>
-    <div class="hint">Just chat naturally: "play shape of you", "next", "pause", "stop"</div>
+    <div class="hint">Just chat naturally: "play shape of you", "next", "pause", "stop", "tell me about this song"</div>
 
     <div class="yt-frame" id="ytPlayerContainer"><div id="ytPlayer"></div></div>
+    <div class="row">
+      <button class="btn ghost small" id="toggleVideoBtn">▶ Show Video</button>
+    </div>
 
     <div class="now-playing">
       <span class="label">TRACK</span>
@@ -227,13 +241,19 @@
       <button class="btn small ghost" id="musicNext">⏭ Next</button>
     </div>
     <div class="warn-text" id="musicWarning"></div>
+    <div class="eq" id="eqContainer">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </div>
   </div>
 
   <!-- Chat -->
   <div class="panel">
     <h2>💬 Talk to Sensy</h2>
     <div class="chat-log" id="chatLog">
-      <div class="host">🎙️ Welcome! Just talk to me – I'll understand what you want.</div>
+      <div class="host"><span class="avatar"><img src="logo.png" alt="Sensy" /></span> Welcome! Just talk to me – I'll understand what you want.</div>
     </div>
     <div class="waveform" id="waveformContainer">
       <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
@@ -257,8 +277,9 @@
   // ============================================================
   //  DOM REFS
   // ============================================================
-  const generateBtn = document.getElementById('generateBtn');
-  const playBtn = document.getElementById('playBtn');
+  const newScriptBtn = document.getElementById('newScriptBtn');
+  const onAirBtn = document.getElementById('onAirBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
   const stopBtn = document.getElementById('stopBtn');
   const toggleCustomBtn = document.getElementById('toggleCustomBtn');
   const customArea = document.getElementById('customArea');
@@ -267,15 +288,6 @@
   const cancelCustomBtn = document.getElementById('cancelCustomBtn');
   const subtitleBox = document.getElementById('subtitleBox');
   const status = document.getElementById('status');
-  const voiceSelect = document.getElementById('voiceSelect');
-  const rateSlider = document.getElementById('rateSlider');
-  const pitchSlider = document.getElementById('pitchSlider');
-  const volumeSlider = document.getElementById('volumeSlider');
-  const rateVal = document.getElementById('rateVal');
-  const pitchVal = document.getElementById('pitchVal');
-  const volumeVal = document.getElementById('volumeVal');
-  const randomizeToggle = document.getElementById('randomizeToggle');
-  const puterStatus = document.getElementById('puterStatus');
   const chatLog = document.getElementById('chatLog');
   const userMessageInput = document.getElementById('userMessageInput');
   const sendMessageBtn = document.getElementById('sendMessageBtn');
@@ -290,6 +302,7 @@
   const dialStateRight = document.getElementById('dialStateRight');
   const channelBtns = document.querySelectorAll('.channel-btn');
   const channelStatus = document.getElementById('channelStatus');
+  const appWrap = document.getElementById('appWrap');
 
   const ytApiKeyInput = document.getElementById('ytApiKeyInput');
   const ytApiKeySave = document.getElementById('ytApiKeySave');
@@ -301,6 +314,8 @@
   const musicNext = document.getElementById('musicNext');
   const musicProgress = document.getElementById('musicProgress');
   const musicWarning = document.getElementById('musicWarning');
+  const eqContainer = document.getElementById('eqContainer');
+  const toggleVideoBtn = document.getElementById('toggleVideoBtn');
 
   // ============================================================
   //  DIAL TICKS
@@ -330,16 +345,35 @@
   }
 
   // ============================================================
-  //  CHANNELS
+  //  CHANNELS & AUTO-VOICE
   // ============================================================
   let currentLang = 'en';
+  const voiceMap = {
+    en: 'en-US',
+    hi: 'hi-IN',
+    te: 'te-IN'
+  };
+  let selectedVoiceURI = null;
+
   function setChannel(lang) {
     currentLang = lang;
     channelBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
     const names = { en: 'English', hi: 'हिन्दी', te: 'తెలుగు' };
     channelStatus.textContent = `Channel: ${names[lang]}`;
     storeSet('sensy_channel', lang);
+    const accentMap = { en: 'var(--teal)', hi: '#ffb84d', te: '#ff6b85' };
+    appWrap.style.setProperty('--accent', accentMap[lang]);
+    selectVoiceForLanguage(lang);
   }
+  function selectVoiceForLanguage(lang) {
+    const langCode = voiceMap[lang] || 'en-US';
+    const voices = speechSynth.getVoices();
+    const preferred = voices.find(v => v.lang === langCode) || voices.find(v => v.lang.startsWith(langCode.split('-')[0])) || voices[0];
+    if (preferred) {
+      selectedVoiceURI = preferred.voiceURI;
+    }
+  }
+
   channelBtns.forEach(btn => {
     btn.addEventListener('click', () => setChannel(btn.dataset.lang));
   });
@@ -356,6 +390,9 @@
   let ytApiPromise = null;
   let songQueue = [];
   let currentQueueIndex = -1;
+  let videoVisible = false;
+  let currentVideoId = null;
+  let currentSongTitle = '';
 
   function loadApiKey() {
     const key = storeGet('yt_api_key') || '';
@@ -409,7 +446,7 @@
 
   function createPlayer(videoId) {
     if (ytPlayer) { ytPlayer.destroy(); ytPlayer = null; ytPlayerReady = false; }
-    ytPlayerContainer.style.display = 'block';
+    ytPlayerContainer.style.display = videoVisible ? 'block' : 'none';
     ytPlayer = new YT.Player('ytPlayer', {
       height: '200',
       width: '100%',
@@ -435,20 +472,24 @@
           event.target.playVideo();
           isMusicPlaying = true;
           musicPlayPause.textContent = '⏸ Pause';
+          eqContainer.classList.add('active');
         },
         onStateChange: function(event) {
           const state = event.data;
           if (state === YT.PlayerState.PLAYING) {
             isMusicPlaying = true;
             musicPlayPause.textContent = '⏸ Pause';
+            eqContainer.classList.add('active');
           } else if (state === YT.PlayerState.PAUSED) {
             isMusicPlaying = false;
             musicPlayPause.textContent = '▶ Play';
+            eqContainer.classList.remove('active');
           } else if (state === YT.PlayerState.ENDED) {
             isMusicPlaying = false;
             musicPlayPause.textContent = '▶ Play';
             nowPlayingInfo.textContent = 'Finished';
             musicProgress.textContent = '0:00';
+            eqContainer.classList.remove('active');
             if (songQueue.length > currentQueueIndex + 1) {
               currentQueueIndex++;
               playVideoById(songQueue[currentQueueIndex].id, songQueue[currentQueueIndex].title);
@@ -466,18 +507,41 @@
           nowPlayingInfo.textContent = 'Error';
           isMusicPlaying = false;
           musicPlayPause.textContent = '▶ Play';
+          eqContainer.classList.remove('active');
         }
       }
     });
   }
 
   function playVideoById(videoId, title) {
+    currentVideoId = videoId;
+    currentSongTitle = title;
     if (ytPlayer && ytPlayerReady && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById(videoId);
     } else {
       createPlayer(videoId);
     }
     nowPlayingInfo.textContent = title;
+  }
+
+  // Get song details from YouTube
+  async function getYouTubeVideoDetails(videoId) {
+    const key = currentApiKey || loadApiKey();
+    if (!key) throw new Error('YouTube API key missing.');
+    const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${key}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch video details.');
+    const data = await response.json();
+    if (!data.items || data.items.length === 0) throw new Error('Video not found.');
+    const item = data.items[0];
+    const snippet = item.snippet;
+    return {
+      title: snippet.title,
+      channel: snippet.channelTitle,
+      description: snippet.description,
+      publishedAt: snippet.publishedAt,
+      thumbnails: snippet.thumbnails
+    };
   }
 
   async function searchYouTube(query, maxResults = 1) {
@@ -562,6 +626,7 @@
     musicPlayPause.textContent = '▶ Play';
     nowPlayingInfo.textContent = 'Nothing queued';
     musicProgress.textContent = '0:00';
+    eqContainer.classList.remove('active');
     if (playerProgressInterval) { clearInterval(playerProgressInterval); playerProgressInterval = null; }
   }
 
@@ -577,12 +642,19 @@
     }
   });
 
+  toggleVideoBtn.addEventListener('click', () => {
+    videoVisible = !videoVisible;
+    ytPlayerContainer.style.display = videoVisible ? 'block' : 'none';
+    toggleVideoBtn.textContent = videoVisible ? '▶ Hide Video' : '▶ Show Video';
+  });
+
   // ============================================================
   //  HOST STATE
   // ============================================================
   let currentScript = '';
   let currentCleanText = '';
   let isSpeaking = false;
+  let isPaused = false;
   let isInterrupted = false;
   let puterLoaded = false;
   let isCustomMode = false;
@@ -592,6 +664,7 @@
   let sentences = [];
   let currentSentenceIndex = 0;
   let conversationHistory = [];
+  let silenceTimer = null;
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   let recognition = null;
@@ -626,7 +699,7 @@
     }
     const pct = (currentSentenceIndex / sentences.length) * 100;
     setDialNeedle(4 + pct * 0.92);
-    dialStateLeft.textContent = isSpeaking ? 'ON AIR' : 'PAUSED';
+    dialStateLeft.textContent = isSpeaking ? 'ON AIR' : (isPaused ? 'PAUSED' : 'READY');
     dialStateRight.textContent = `${Math.min(currentSentenceIndex + (isSpeaking ? 1 : 0), sentences.length)} / ${sentences.length}`;
   }
 
@@ -639,7 +712,7 @@
     if (!/[.!?]$/.test(cleanReply)) cleanReply += '.';
     const hostDiv = document.createElement('div');
     hostDiv.className = 'host';
-    hostDiv.textContent = `🎙️ Host: ${cleanReply}`;
+    hostDiv.innerHTML = `<span class="avatar"><img src="logo.png" alt="Sensy" /></span> ${cleanReply}`;
     chatLog.appendChild(hostDiv);
     chatLog.scrollTop = chatLog.scrollHeight;
     return cleanReply;
@@ -655,29 +728,6 @@
   // ============================================================
   //  TTS ENGINE
   // ============================================================
-  function populateVoices() {
-    const voices = speechSynth.getVoices();
-    voiceSelect.innerHTML = '';
-    const sorted = voices.slice().sort((a, b) => {
-      if (a.lang.startsWith('en') && !b.lang.startsWith('en')) return -1;
-      if (!a.lang.startsWith('en') && b.lang.startsWith('en')) return 1;
-      return a.name.localeCompare(b.name);
-    });
-    sorted.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v.voiceURI;
-      opt.text = `${v.name} (${v.lang})`;
-      voiceSelect.appendChild(opt);
-    });
-    const savedVoice = storeGet('sensy_voice');
-    if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
-      voiceSelect.value = savedVoice;
-    } else {
-      const preferred = sorted.find(v => v.lang === 'en-IN') || sorted.find(v => v.lang === 'en-US');
-      if (preferred) voiceSelect.value = preferred.voiceURI;
-    }
-  }
-
   function cleanForTTS(text) {
     let cleaned = text.replace(/<[^>]*>/g, '');
     const interjections = [
@@ -695,37 +745,33 @@
   }
 
   function speakSentence(text, callback, retryCount = 0) {
-    const voiceURI = voiceSelect.value;
     const voices = speechSynth.getVoices();
-    let selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+    let selectedVoice = voices.find(v => v.voiceURI === selectedVoiceURI) || null;
     if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = selectedVoice;
-    utterance.volume = parseFloat(volumeSlider.value);
-    const baseRate = parseFloat(rateSlider.value);
-    const basePitch = parseFloat(pitchSlider.value);
-    if (randomizeToggle.checked) {
-      const rateOffset = (Math.random() - 0.5) * 0.15;
-      const pitchOffset = (Math.random() - 0.5) * 0.3;
-      utterance.rate = Math.min(2, Math.max(0.5, baseRate + rateOffset));
-      utterance.pitch = Math.min(1.5, Math.max(0.5, basePitch + pitchOffset));
-    } else {
-      utterance.rate = baseRate;
-      utterance.pitch = basePitch;
-    }
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
     utterance.onstart = () => {
       setSubtitle(text);
       waveformContainer.className = 'waveform active';
+      eqContainer.classList.add('active');
     };
-    utterance.onend = () => { if (callback) callback(); };
+    utterance.onend = () => {
+      waveformContainer.className = 'waveform';
+      eqContainer.classList.remove('active');
+      if (callback) callback();
+    };
     utterance.onerror = (event) => {
       console.warn('TTS error:', event.error);
+      waveformContainer.className = 'waveform';
+      eqContainer.classList.remove('active');
       if (retryCount < 3) {
         const allVoices = speechSynth.getVoices();
-        const fallbackVoice = allVoices.find(v => v.voiceURI !== voiceURI && v.lang.startsWith('en')) || allVoices[0];
+        const fallbackVoice = allVoices.find(v => v.voiceURI !== selectedVoiceURI && v.lang.startsWith('en')) || allVoices[0];
         if (fallbackVoice) {
-          voiceSelect.value = fallbackVoice.voiceURI;
-          storeSet('sensy_voice', fallbackVoice.voiceURI);
+          selectedVoiceURI = fallbackVoice.voiceURI;
           speakSentence(text, callback, retryCount + 1);
           return;
         }
@@ -744,27 +790,26 @@
   }
 
   // ============================================================
-  //  SCRIPT GENERATION
+  //  SCRIPT GENERATION (unchanged)
   // ============================================================
   function loadPuter() {
     return new Promise((resolve, reject) => {
       if (typeof puter !== 'undefined') {
         puterLoaded = true;
-        puterStatus.textContent = '⚡ AI ready';
         resolve();
         return;
       }
       const script = document.createElement('script');
       script.src = 'https://js.puter.com/v2/';
-      script.onload = () => { puterLoaded = true; puterStatus.textContent = '⚡ AI ready'; resolve(); };
-      script.onerror = () => { puterStatus.textContent = '⚠ AI unavailable'; reject(new Error('Failed to load Puter')); };
+      script.onload = () => { puterLoaded = true; resolve(); };
+      script.onerror = () => { reject(new Error('Failed to load Puter')); };
       document.head.appendChild(script);
     });
   }
 
   function generateScript() {
-    generateBtn.disabled = true;
-    generateBtn.textContent = 'Writing…';
+    newScriptBtn.disabled = true;
+    newScriptBtn.textContent = 'Writing…';
     status.textContent = 'Writing script…';
     status.className = 'status thinking';
     setSubtitle('✍️ Writing a fresh script…');
@@ -793,10 +838,11 @@
         console.warn('AI generation failed:', err);
         useFallbackScript();
       }
-      generateBtn.disabled = false;
-      generateBtn.textContent = 'New script';
-      status.textContent = 'Script ready. Press "Go live" to start.';
+      newScriptBtn.disabled = false;
+      newScriptBtn.textContent = 'New Script';
+      status.textContent = 'Script ready. Press "On Air" to start.';
       status.className = 'status success';
+      onAirBtn.disabled = false;
     })();
   }
 
@@ -805,10 +851,12 @@
     currentCleanText = cleanForTTS(script);
     sentences = currentCleanText.match(/[^.!?]+[.!?]+/g) || [currentCleanText];
     currentSentenceIndex = 0;
-    setSubtitle('📄 Script loaded. Press "Go live" to start.');
+    isPaused = false;
+    setSubtitle('📄 Script loaded. Press "On Air" to start.');
     dialStateLeft.textContent = 'SCRIPT READY';
     dialStateRight.textContent = `${sentences.length} lines`;
-    playBtn.disabled = false;
+    onAirBtn.disabled = false;
+    pauseBtn.disabled = true;
     stopBtn.disabled = true;
     updateDial();
     conversationHistory = [];
@@ -824,23 +872,38 @@
     loadScript(script);
     status.textContent = 'Fallback script loaded (AI unavailable).';
     status.className = 'status warning';
+    onAirBtn.disabled = false;
   }
 
   // ============================================================
-  //  PLAY / STOP SCRIPT
+  //  PLAYBACK CONTROLS
   // ============================================================
-  function playScript() {
+  function startBroadcast() {
     if (!sentences.length) {
       status.textContent = 'No script loaded. Generate one first.';
       status.className = 'status error';
       return;
     }
-    if (isSpeaking) { stopAudio(); return; }
+    if (isSpeaking && !isPaused) {
+      return;
+    }
+    if (isPaused) {
+      isPaused = false;
+      pauseBtn.textContent = '⏸ Pause';
+      status.textContent = 'Resuming…';
+      status.className = 'status';
+      isSpeaking = true;
+      setOnAir(true);
+      speakNextSentence();
+      return;
+    }
     if (currentSentenceIndex >= sentences.length) currentSentenceIndex = 0;
+    isPaused = false;
     isInterrupted = false;
     status.textContent = 'On air…';
     status.className = 'status';
-    playBtn.textContent = '⏹ Stop';
+    onAirBtn.disabled = true;
+    pauseBtn.disabled = false;
     stopBtn.disabled = false;
     isSpeaking = true;
     setOnAir(true);
@@ -848,45 +911,40 @@
     speakNextSentence();
   }
 
-  function speakNextSentence() {
-    if (!isSpeaking || isInterrupted) return;
-    if (currentSentenceIndex >= sentences.length) {
-      finishBroadcast();
+  function pauseBroadcast() {
+    if (!isSpeaking) return;
+    if (isPaused) {
+      isPaused = false;
+      pauseBtn.textContent = '⏸ Pause';
+      status.textContent = 'Resuming…';
+      status.className = 'status';
+      if (!speechSynth.speaking) {
+        speakNextSentence();
+      }
       return;
     }
-    const text = sentences[currentSentenceIndex].trim();
-    if (text.length === 0) { currentSentenceIndex++; speakNextSentence(); return; }
-    speakSentence(text, () => {
-      const wordCount = text.split(/\s+/).length;
-      const pauseMs = wordCount < 8 ? 1200 : 800;
-      setTimeout(() => {
-        currentSentenceIndex++;
-        speakNextSentence();
-      }, pauseMs);
-    });
-  }
-
-  function finishBroadcast() {
-    isSpeaking = false;
+    isPaused = true;
+    pauseBtn.textContent = '▶ Resume';
+    status.textContent = 'Paused.';
+    status.className = 'status';
+    if (speechSynth.speaking) speechSynth.cancel();
     setOnAir(false);
-    playBtn.textContent = '▶ Go live';
-    stopBtn.disabled = true;
-    status.textContent = 'Broadcast finished.';
-    status.className = 'status success';
-    setSubtitle('✅ Broadcast complete.');
     updateDial();
   }
 
-  function stopAudio() {
+  function stopBroadcast() {
     if (speechSynth.speaking) speechSynth.cancel();
     if (isFillerPlaying) stopFiller();
     isSpeaking = false;
-    isInterrupted = false;
-    playBtn.textContent = '▶ Go live';
+    isPaused = false;
+    onAirBtn.disabled = false;
+    pauseBtn.disabled = true;
     stopBtn.disabled = true;
+    pauseBtn.textContent = '⏸ Pause';
     status.textContent = 'Stopped.';
     status.className = 'status';
     setOnAir(false);
+    currentSentenceIndex = 0;
     updateDial();
     setSubtitle('⏹ Stopped.');
   }
@@ -906,14 +964,14 @@
       fillerDiv.textContent = `🎙️ Host: ${fillerText}`;
       chatLog.appendChild(fillerDiv);
       chatLog.scrollTop = chatLog.scrollHeight;
-      const voiceURI = voiceSelect.value;
       const voices = speechSynth.getVoices();
-      const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+      let selectedVoice = voices.find(v => v.voiceURI === selectedVoiceURI) || null;
+      if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
       const utterance = new SpeechSynthesisUtterance(fillerText);
       utterance.voice = selectedVoice;
       utterance.rate = 0.85;
       utterance.pitch = 1.0;
-      utterance.volume = parseFloat(volumeSlider.value) * 0.8;
+      utterance.volume = 0.8;
       utterance.onstart = () => {
         isFillerPlaying = true;
         status.textContent = 'Host is thinking…';
@@ -941,6 +999,21 @@
   }
 
   // ============================================================
+  //  SILENCE DETECTION
+  // ============================================================
+  function resetSilenceTimer() {
+    if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+    silenceTimer = setTimeout(() => {
+      if (isSpeaking || isPaused || isFillerPlaying) return;
+      const prompt = "Are you there? Do you want me to play any song?";
+      addHostReply(prompt);
+      speakText(prompt).then(() => {
+        resetSilenceTimer();
+      });
+    }, 3000);
+  }
+
+  // ============================================================
   //  SMART INTENT DETECTION & HANDLE USER MESSAGES
   // ============================================================
   async function handleUserMessage() {
@@ -948,15 +1021,17 @@
     if (!msg) return;
     userMessageInput.value = '';
     addUserMessage(msg);
+    if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
 
-    // Interrupt script if speaking
     if (isSpeaking) {
-      isInterrupted = true;
-      if (speechSynth.speaking) speechSynth.cancel();
-      isSpeaking = false;
-      playBtn.textContent = '▶ Go live';
-      stopBtn.disabled = true;
-      setOnAir(false);
+      if (!isPaused) {
+        if (speechSynth.speaking) speechSynth.cancel();
+        isPaused = true;
+        pauseBtn.textContent = '▶ Resume';
+        setOnAir(false);
+        status.textContent = 'Paused (user message).';
+        status.className = 'status';
+      }
     }
 
     status.textContent = '🧠 Sensy is thinking…';
@@ -972,6 +1047,7 @@
       status.textContent = 'Ready.';
       status.className = 'status';
       waveformContainer.className = 'waveform';
+      resetSilenceTimer();
       return;
     }
 
@@ -997,11 +1073,14 @@ Your job is to understand their request and respond with a single command prefix
 5. If they want to stop the music entirely (they say "stop", "enough", "turn off" without a new song), respond with:
    "STOP"
 
-6. If they are just chatting (greeting, asking about you, etc.), reply conversationally in ${langName}.
+6. If they want to know more about the current song (they say "tell me about this song", "what's playing", "who is the artist", "information about this song", "what is this song"), respond with:
+   "SONG_INFO"
+
+7. If they are just chatting (greeting, asking about you, etc.), reply conversationally in ${langName}.
 
 Important rules:
 - If they mention "stop" or "bored" but also mention a new song, treat it as "PLAY" for that new song.
-- If they mention "this song" or "current" and also want a new song, still treat it as "PLAY" for the new one.
+- If they mention "this song" and also ask for info, use SONG_INFO.
 - Always extract the song name if they mention any, even if it's in the middle of a sentence.
 - Keep your response short and only the command prefix, nothing else.
 
@@ -1011,7 +1090,6 @@ Now respond with the appropriate command.`;
       let reply = response.message?.content || response;
       reply = reply.trim();
 
-      // Parse intent
       let intent = 'chat';
       let extractedQuery = '';
 
@@ -1026,16 +1104,31 @@ Now respond with the appropriate command.`;
         intent = 'pause';
       } else if (reply.startsWith('STOP')) {
         intent = 'stop';
+      } else if (reply.startsWith('SONG_INFO')) {
+        intent = 'song_info';
       } else {
         intent = 'chat';
-        // Use the AI's full reply as the chat response
       }
 
       // Execute intent
       let result = null;
       let responseMessage = '';
 
-      if (intent === 'resume') {
+      if (intent === 'song_info') {
+        if (currentVideoId) {
+          try {
+            const details = await getYouTubeVideoDetails(currentVideoId);
+            const desc = details.description ? details.description.substring(0, 120) + (details.description.length > 120 ? '…' : '') : '';
+            responseMessage = `This is "${details.title}" by ${details.channel}. ${desc}`;
+          } catch (err) {
+            responseMessage = `The current song is "${currentSongTitle}". I couldn't fetch more details right now.`;
+          }
+        } else {
+          responseMessage = "No song is currently playing. Ask me to play one first.";
+        }
+        reply = responseMessage;
+
+      } else if (intent === 'resume') {
         if (ytPlayer && ytPlayerReady) {
           if (isMusicPlaying) {
             responseMessage = 'The music is already playing.';
@@ -1087,7 +1180,6 @@ Now respond with the appropriate command.`;
         reply = 'Stopped the music.';
 
       } else {
-        // Chat – use the AI's natural reply
         reply = cleanForTTS(reply);
         if (!reply || reply.length < 5) {
           reply = "Thanks for your message! What's on your mind?";
@@ -1095,7 +1187,6 @@ Now respond with the appropriate command.`;
         if (!/[.!?]$/.test(reply)) reply += '.';
       }
 
-      // Speak the final reply
       stopFiller();
       const cleanReply = addHostReply(reply);
       status.textContent = 'Speaking…';
@@ -1106,6 +1197,7 @@ Now respond with the appropriate command.`;
       status.textContent = 'Ready.';
       status.className = 'status';
       waveformContainer.className = 'waveform';
+      resetSilenceTimer();
     } catch (err) {
       console.warn('Intent detection failed:', err);
       stopFiller();
@@ -1115,17 +1207,18 @@ Now respond with the appropriate command.`;
       status.textContent = 'Ready.';
       status.className = 'status';
       waveformContainer.className = 'waveform';
+      resetSilenceTimer();
     }
   }
 
   async function handleIncomingMessage() {
-    if (isSpeaking) {
-      isInterrupted = true;
+    if (isSpeaking && !isPaused) {
       if (speechSynth.speaking) speechSynth.cancel();
-      isSpeaking = false;
-      playBtn.textContent = '▶ Go live';
-      stopBtn.disabled = true;
+      isPaused = true;
+      pauseBtn.textContent = '▶ Resume';
       setOnAir(false);
+      status.textContent = 'Paused (user message).';
+      status.className = 'status';
     }
     await handleUserMessage();
   }
@@ -1225,14 +1318,15 @@ Now respond with the appropriate command.`;
   sendMessageBtn.addEventListener('click', handleIncomingMessage);
   userMessageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessageBtn.click(); });
 
-  generateBtn.addEventListener('click', generateScript);
-  playBtn.addEventListener('click', playScript);
-  stopBtn.addEventListener('click', stopAudio);
+  newScriptBtn.addEventListener('click', generateScript);
+  onAirBtn.addEventListener('click', startBroadcast);
+  pauseBtn.addEventListener('click', pauseBroadcast);
+  stopBtn.addEventListener('click', stopBroadcast);
 
   toggleCustomBtn.addEventListener('click', () => {
     if (customArea.style.display === 'flex') {
       customArea.style.display = 'none';
-      toggleCustomBtn.textContent = '📄 Paste own';
+      toggleCustomBtn.textContent = '📄 Paste own script';
     } else {
       customArea.style.display = 'flex';
       toggleCustomBtn.textContent = '✖ Close';
@@ -1240,53 +1334,41 @@ Now respond with the appropriate command.`;
   });
   cancelCustomBtn.addEventListener('click', () => {
     customArea.style.display = 'none';
-    toggleCustomBtn.textContent = '📄 Paste own';
+    toggleCustomBtn.textContent = '📄 Paste own script';
   });
   setCustomBtn.addEventListener('click', () => {
     const text = customScriptText.value.trim();
     if (!text) { status.textContent = 'Paste some text first.'; status.className = 'status error'; return; }
     loadScript(text);
     customArea.style.display = 'none';
-    toggleCustomBtn.textContent = '📄 Paste own';
-    status.textContent = 'Custom script loaded. Press "Go live" to start.';
+    toggleCustomBtn.textContent = '📄 Paste own script';
+    status.textContent = 'Custom script loaded. Press "On Air" to start.';
     status.className = 'status success';
-    playBtn.disabled = false;
+    onAirBtn.disabled = false;
   });
-
-  rateSlider.addEventListener('input', () => { rateVal.textContent = parseFloat(rateSlider.value).toFixed(2); storeSet('sensy_rate', rateSlider.value); });
-  pitchSlider.addEventListener('input', () => { pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2); storeSet('sensy_pitch', pitchSlider.value); });
-  volumeSlider.addEventListener('input', () => { volumeVal.textContent = parseFloat(volumeSlider.value).toFixed(2); storeSet('sensy_volume', volumeSlider.value); });
-  voiceSelect.addEventListener('change', () => { storeSet('sensy_voice', voiceSelect.value); });
-  randomizeToggle.addEventListener('change', () => { storeSet('sensy_randomize', randomizeToggle.checked); });
 
   // ============================================================
   //  INIT
   // ============================================================
   if (speechSynth) {
-    speechSynth.onvoiceschanged = () => { populateVoices(); };
-    setTimeout(() => { if (speechSynth.getVoices().length > 0) { populateVoices(); } }, 200);
+    speechSynth.onvoiceschanged = () => {
+      selectVoiceForLanguage(currentLang);
+    };
+    setTimeout(() => {
+      if (speechSynth.getVoices().length > 0) {
+        selectVoiceForLanguage(currentLang);
+      }
+    }, 200);
   }
-
-  // Load settings
-  const savedRate = storeGet('sensy_rate') || 0.9;
-  const savedPitch = storeGet('sensy_pitch') || 1.0;
-  const savedVolume = storeGet('sensy_volume') || 1.0;
-  rateSlider.value = savedRate;
-  pitchSlider.value = savedPitch;
-  volumeSlider.value = savedVolume;
-  rateVal.textContent = savedRate;
-  pitchVal.textContent = savedPitch;
-  volumeVal.textContent = savedVolume;
-  const savedRand = storeGet('sensy_randomize') !== 'false';
-  randomizeToggle.checked = savedRand;
 
   useFallbackScript();
+  setTimeout(resetSilenceTimer, 3000);
 
   if (!puterLoaded) {
-    loadPuter().catch(() => { puterStatus.textContent = '⚠ AI unavailable'; });
+    loadPuter().catch(() => {});
   }
 
-  console.log('🎙️ SensyCilva Radio — AI understands natural language commands.');
+  console.log('🎙️ SensyCilva Radio — now can tell you about the current song!');
 })();
 </script>
 </body>

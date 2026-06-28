@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SensyCilva — Anime Pirate Radio</title>
+<style>
+/* ─────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────── */
+:root{
+  --bg:#080612;
+  --bg2:#0d0a1a;
+  --bg3:#110e21;
+  --panel:#13102080;
+  --panel-solid:#131020;
+  --panel2:#1a162c;
+  --panel3:#201b34;
+  --line:#ffffff0f;
+  --line2:#ffffff18;
+  --line3:#ffffff28;
+  --paper:#eee8ff;
+  --paper-dim:#9990bb;
+  --paper-dimmer:#5a537a;
+
+  --signal:#ff2d78;
+  --signal-dim:#7a0f38;
+  --signal-glow:rgba(255,45,120,.35);
+  --cyan:#00ffe7;
+  --cyan-dim:rgba(0,255,231,.15);
+  --cyan-glow:rgba(0,255,231,.3);
+  --violet:#b06fff;
+  --violet-dim:rgba(176,111,255,.15);
+  --violet-glow:rgba(176,111,255,.3);
+  --amber:#f5a623;
+  --amber-dim:rgba(245,166,35,.15);
+  --green:#39ff88;
+  --green-dim:rgba(57,255,136,.15);
+  --red:#ff4560;
+
+  --mono:'JetBrains Mono','SF Mono','Fira Code','Courier New',monospace;
+  --sans:'Inter','Segoe UI',system-ui,sans-serif;
+  --display:'Inter','Segoe UI',system-ui,sans-serif;
+
+  --radius:14px;
+  --radius-sm:8px;
+  --radius-pill:999px;
+}
+
+/* ─────────────────────────────────────────
+   RESET & BASE
+───────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overscroll-behavior:none;}
+body{
+  background:var(--bg);
+  color:var(--paper);
+  font-family:var(--sans);
+  min-height:100vh;
+  overflow-x:hidden;
+  position:relative;
+}
+
+/* ─────────────────────────────────────────
+   STARFIELD CANVAS — ambient atmosphere
+───────────────────────────────────────── */
+#starfield{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:.55;
+}
+
+/* ─────────────────────────────────────────
+   GRID OVERLAY
+───────────────────────────────────────── */
+.grid-overlay{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 50%,black 10%,transparent 100%);
+}
+
+/* ─────────────────────────────────────────
+   LAYOUT WRAPPER
+───────────────────────────────────────── */
+.app{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;
+}
+
+/* ─────────────────────────────────────────
+   HERO / HEADER
+───────────────────────────────────────── */
+.hero{
+  background:linear-gradient(180deg,rgba(8,6,18,0) 0%,rgba(13,10,26,.96) 100%);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line2);
+  padding:18px 28px 14px;
+  position:relative;
+  overflow:hidden;
+}
+.hero-glow{
+  position:absolute;top:-80px;left:50%;transform:translateX(-50%);
+  width:600px;height:200px;
+  background:radial-gradient(ellipse,rgba(176,111,255,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-inner{
+  max-width:1100px;margin:0 auto;
+  display:flex;flex-direction:column;gap:14px;
+}
+.hero-top{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+
+/* Brand */
+.brand-row{display:flex;align-items:center;gap:16px;}
+.brand-logo{
+  width:52px;height:52px;border-radius:14px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--signal),var(--violet));
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  box-shadow:0 0 28px var(--signal-glow),0 0 60px rgba(176,111,255,.15);
+  position:relative;overflow:hidden;
+}
+.brand-logo::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.2) 0%,transparent 60%);
+}
+.brand-text .eyebrow{
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;
+  color:var(--cyan);text-transform:uppercase;margin-bottom:3px;
+  display:flex;align-items:center;gap:6px;
+}
+.eyebrow-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--cyan);
+  animation:dot-blink 2s infinite;
+}
+@keyframes dot-blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.brand-text h1{
+  font-family:var(--display);font-size:30px;font-weight:900;
+  letter-spacing:-.03em;line-height:1;
+}
+.brand-text h1 .pink{
+  color:var(--signal);
+  text-shadow:0 0 30px var(--signal-glow),0 0 60px rgba(255,45,120,.2);
+}
+.brand-text .tagline{font-size:11px;color:var(--paper-dimmer);margin-top:3px;letter-spacing:.02em;}
+
+/* On-Air Button */
+.onair-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 24px;border-radius:var(--radius-pill);
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+  background:var(--panel2);border:1.5px solid var(--line3);
+  color:var(--paper-dim);
+}
+.onair-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 60%);
+}
+.onair-btn .lamp{
+  width:9px;height:9px;border-radius:50%;
+  background:var(--paper-dimmer);flex-shrink:0;transition:.3s;
+}
+.onair-btn:hover:not(.live){border-color:var(--line3);filter:brightness(1.15);}
+.onair-btn.live{
+  background:linear-gradient(135deg,rgba(255,45,120,.18),rgba(255,45,120,.06));
+  border-color:var(--signal);color:var(--signal);
+  box-shadow:0 0 24px var(--signal-glow),inset 0 0 16px rgba(255,45,120,.06);
+}
+.onair-btn.live .lamp{
+  background:var(--signal);
+  box-shadow:0 0 14px 4px var(--signal-glow);
+  animation:lamp-pulse 1.1s infinite;
+}
+.onair-btn.paused{
+  background:rgba(245,166,35,.1);border-color:var(--amber);color:var(--amber);
+}
+.onair-btn.paused .lamp{background:var(--amber);box-shadow:0 0 10px rgba(245,166,35,.5);}
+@keyframes lamp-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.8);}}
+
+/* Channels */
+.hero-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.channels{display:flex;gap:6px;flex-wrap:wrap;}
+.ch-btn{
+  background:var(--panel2);border:1px solid var(--line2);
+  color:var(--paper-dimmer);padding:6px 18px;border-radius:var(--radius-pill);
+  font-size:11px;font-weight:600;cursor:pointer;transition:.2s;
+  font-family:inherit;letter-spacing:.03em;
+}
+.ch-btn:hover{border-color:var(--line3);color:var(--paper);}
+.ch-btn.active{
+  background:var(--violet-dim);border-color:var(--violet);
+  color:var(--violet);box-shadow:0 0 12px var(--violet-glow);
+}
+
+/* Stats mini bar */
+.mini-stats{
+  display:flex;gap:16px;flex-wrap:wrap;
+}
+.stat-item{
+  display:flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:10px;color:var(--paper-dimmer);
+  letter-spacing:.06em;
+}
+.stat-item .sv{color:var(--cyan);font-weight:700;}
+
+/* ─────────────────────────────────────────
+   OSCILLOSCOPE BAR
+───────────────────────────────────────── */
+.osc-bar{
+  position:relative;
+  background:var(--bg3);
+  border-bottom:1px solid var(--line2);
+  height:72px;
+  overflow:hidden;
+  display:flex;align-items:center;
+}
+.osc-bar::before,
+.osc-bar::after{
+  content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;
+}
+.osc-bar::before{left:0;background:linear-gradient(90deg,var(--bg3),transparent);}
+.osc-bar::after{right:0;background:linear-gradient(-90deg,var(--bg3),transparent);}
+#oscCanvas{
+  position:absolute;inset:0;width:100%;height:100%;
+}
+.osc-overlay{
+  position:relative;z-index:3;
+  width:100%;
+  padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  pointer-events:none;
+}
+.subtitle-text{
+  flex:1;font-size:17px;font-weight:500;line-height:1.45;color:var(--paper);
+  text-shadow:0 0 20px rgba(0,255,231,.2);
+  min-height:24px;
+  /* typing cursor handled by JS */
+}
+.subtitle-text.dim{
+  color:var(--paper-dimmer);font-size:13px;font-style:italic;font-weight:400;
+  text-shadow:none;
+}
+.status-cluster{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.status-pill{
+  font-family:var(--mono);font-size:10px;padding:5px 14px;
+  border-radius:var(--radius-pill);letter-spacing:.08em;
+  background:var(--panel2);border:1px solid var(--line2);
+  color:var(--paper-dimmer);transition:.3s;
+}
+.status-pill.live{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 12px var(--cyan-glow);}
+.status-pill.thinking{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);animation:fade-pulse .85s infinite;}
+.status-pill.error{background:rgba(255,45,120,.1);border-color:var(--signal);color:var(--signal);}
+@keyframes fade-pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+/* ─────────────────────────────────────────
+   MAIN GRID
+───────────────────────────────────────── */
+.main{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  max-width:1100px;
+  margin:0 auto;
+  width:100%;
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+}
+@media(max-width:720px){
+  .main{grid-template-columns:1fr;}
+  .osc-overlay{padding:0 16px;}
+  .hero{padding:14px 16px 12px;}
+}
+
+/* ─────────────────────────────────────────
+   PANES
+───────────────────────────────────────── */
+.pane{
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  min-height:0;
+}
+.pane:last-child{border-right:none;}
+.pane-head{
+  padding:12px 20px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--panel);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:10;
+}
+.pane-head h2{
+  font-size:10px;text-transform:uppercase;
+  letter-spacing:.18em;color:var(--paper-dimmer);font-weight:700;
+}
+.pane-body{
+  flex:1;padding:18px 20px;
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:14px;
+}
+
+/* ─────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────── */
+button{font-family:inherit;cursor:pointer;transition:all .18s;}
+button:disabled{opacity:.38;cursor:not-allowed!important;}
+.btn{
+  background:var(--panel2);border:1px solid var(--line2);
+  color:var(--paper);padding:9px 18px;border-radius:var(--radius-pill);
+  font-weight:600;font-size:12px;letter-spacing:.04em;
+  position:relative;overflow:hidden;
+}
+.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 50%);transition:.2s;}
+.btn:hover:not(:disabled){border-color:var(--line3);background:var(--panel3);transform:translateY(-1px);}
+.btn:active:not(:disabled){transform:translateY(0);}
+.btn.primary{background:var(--signal);border-color:var(--signal);color:#fff;box-shadow:0 0 20px var(--signal-glow);}
+.btn.primary:hover:not(:disabled){background:#ff4d89;box-shadow:0 0 30px var(--signal-glow);}
+.btn.cyan{border-color:var(--cyan);color:var(--cyan);}
+.btn.cyan:hover:not(:disabled){background:var(--cyan-dim);box-shadow:0 0 14px var(--cyan-glow);}
+.btn.amber{border-color:var(--amber);color:var(--amber);}
+.btn.amber:hover:not(:disabled){background:var(--amber-dim);}
+.btn.violet{border-color:var(--violet);color:var(--violet);}
+.btn.violet:hover:not(:disabled){background:var(--violet-dim);box-shadow:0 0 14px var(--violet-glow);}
+.btn.signal{border-color:var(--signal);color:var(--signal);}
+.btn.signal:hover:not(:disabled){background:rgba(255,45,120,.1);}
+.btn.sm{padding:6px 14px;font-size:11px;}
+.btn.xs{padding:4px 10px;font-size:10px;}
+.btn.icon{padding:8px 12px;min-width:36px;}
+
+/* ─────────────────────────────────────────
+   SENSY AVATAR
+───────────────────────────────────────── */
+.sensy-avatar-wrap{
+  display:flex;align-items:center;gap:14px;
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:var(--radius);padding:14px 16px;
+  position:relative;overflow:hidden;
+}
+.sensy-avatar-wrap::before{
+  content:'';position:absolute;
+  top:-30px;right:-20px;width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,var(--violet-dim) 0%,transparent 70%);
+  pointer-events:none;
+}
+.avatar-orb{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#ff2d78,#b06fff,#00ffe7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;position:relative;
+  box-shadow:0 0 0 0 var(--violet-glow);
+  transition:box-shadow .3s;
+}
+.avatar-orb.speaking{animation:orb-speak .5s infinite alternate;}
+@keyframes orb-speak{
+  0%{box-shadow:0 0 12px 2px var(--violet-glow),0 0 0 0 var(--cyan-glow);}
+  100%{box-shadow:0 0 28px 8px var(--violet-glow),0 0 50px 4px var(--cyan-glow);}
+}
+.avatar-orb::after{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid transparent;
+  background:linear-gradient(var(--bg2),var(--bg2)) padding-box,
+             linear-gradient(135deg,var(--violet),var(--cyan)) border-box;
+  animation:ring-spin 6s linear infinite;
+}
+@keyframes ring-spin{to{transform:rotate(360deg);}}
+.avatar-info{flex:1;}
+.avatar-name{
+  font-weight:800;font-size:16px;letter-spacing:-.01em;margin-bottom:2px;
+}
+.avatar-name span{color:var(--signal);}
+.avatar-status{font-size:11px;color:var(--paper-dimmer);}
+
+/* Lip sync bars inside avatar */
+.lip-bars{
+  display:flex;align-items:center;gap:2px;height:16px;margin-top:6px;
+}
+.lb{
+  width:3px;border-radius:2px;background:var(--paper-dimmer);height:4px;transition:.08s;
+}
+.lip-bars.speaking .lb{background:var(--cyan);animation:lb-anim .3s infinite alternate ease-in-out;}
+.lb:nth-child(1){animation-delay:0s}.lb:nth-child(2){animation-delay:.04s}.lb:nth-child(3){animation-delay:.08s}
+.lb:nth-child(4){animation-delay:.12s}.lb:nth-child(5){animation-delay:.16s}.lb:nth-child(6){animation-delay:.2s}
+.lb:nth-child(7){animation-delay:.24s}.lb:nth-child(8){animation-delay:.28s}
+@keyframes lb-anim{0%{height:3px;}100%{height:14px;}}
+
+/* ─────────────────────────────────────────
+   PROGRESS TRACK
+───────────────────────────────────────── */
+.progress-track{
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:var(--radius);padding:12px 16px;
+}
+.progress-label{
+  font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
+  display:flex;justify-content:space-between;
+}
+.progress-bar-wrap{
+  background:rgba(0,0,0,.5);border-radius:var(--radius-pill);
+  height:3px;overflow:hidden;margin-bottom:6px;
+}
+.progress-bar{
+  height:3px;
+  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--signal));
+  border-radius:var(--radius-pill);transition:width .5s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 10px var(--cyan-glow);
+}
+.progress-stats{
+  display:flex;justify-content:space-between;
+  font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);
+}
+.progress-stats span{color:var(--cyan);}
+
+/* ─────────────────────────────────────────
+   SCRIPT PREVIEW
+───────────────────────────────────────── */
+.script-box{
+  background:#050310;border:1px solid var(--line2);border-radius:var(--radius);
+  padding:14px;max-height:170px;overflow-y:auto;
+  font-size:12.5px;line-height:1.75;color:var(--paper-dimmer);
+  font-family:var(--mono);
+}
+.script-box .hl{
+  color:var(--cyan);background:rgba(0,255,231,.08);
+  border-radius:4px;padding:1px 4px;
+  box-shadow:0 0 12px var(--cyan-glow);
+}
+.script-box .done{color:var(--paper-dimmer);opacity:.3;}
+
+/* ─────────────────────────────────────────
+   CUSTOM SCRIPT AREA
+───────────────────────────────────────── */
+.custom-area{display:none;flex-direction:column;gap:8px;}
+.custom-area textarea{
+  background:#050310;border:1px solid var(--line2);border-radius:var(--radius);
+  padding:12px;color:var(--paper);font-size:12.5px;font-family:var(--mono);
+  min-height:90px;resize:vertical;outline:none;line-height:1.7;
+}
+.custom-area textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan-dim);}
+
+/* ─────────────────────────────────────────
+   SECTION LABEL
+───────────────────────────────────────── */
+.section-label{
+  font-size:9px;text-transform:uppercase;letter-spacing:.18em;
+  color:var(--paper-dimmer);font-weight:700;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-label::after{
+  content:'';flex:1;height:1px;background:var(--line2);
+}
+
+/* ─────────────────────────────────────────
+   SLIDERS
+───────────────────────────────────────── */
+.slider-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+.slider-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--paper-dimmer);}
+.slider-item label{min-width:30px;font-family:var(--mono);}
+input[type=range]{
+  accent-color:var(--cyan);width:90px;height:4px;cursor:pointer;
+}
+.val{color:var(--cyan);font-family:var(--mono);font-size:10px;min-width:32px;}
+
+/* ─────────────────────────────────────────
+   MUSIC PLAYER
+───────────────────────────────────────── */
+.music-player{
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:var(--radius);overflow:hidden;
+}
+.music-player-header{
+  padding:12px 14px 10px;
+  background:linear-gradient(135deg,rgba(245,166,35,.08),rgba(176,111,255,.05));
+  border-bottom:1px solid var(--line);
+}
+.music-vinyl{
+  display:flex;align-items:center;gap:12px;margin-bottom:10px;
+}
+.vinyl-disc{
+  width:44px;height:44px;border-radius:50%;
+  background:conic-gradient(from 0deg,#1a1030,#2a1a50,#1a1030,#2a1a50);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;position:relative;
+}
+.vinyl-disc::before{
+  content:'';position:absolute;inset:14px;border-radius:50%;
+  background:radial-gradient(circle,var(--amber) 0%,rgba(245,166,35,.3) 100%);
+}
+.vinyl-disc.spinning{animation:vinyl-spin 3s linear infinite;}
+@keyframes vinyl-spin{to{transform:rotate(360deg);}}
+.track-info{flex:1;min-width:0;}
+.track-name{
+  font-size:13px;font-weight:700;color:var(--amber);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-bottom:2px;
+}
+.track-meta{font-size:10px;color:var(--paper-dimmer);display:flex;gap:10px;}
+.music-btns{display:flex;gap:6px;margin-top:8px;}
+
+.key-row{display:flex;gap:6px;align-items:center;}
+.key-input{
+  flex:1;background:#050310;border:1px solid var(--line2);border-radius:var(--radius-pill);
+  color:var(--paper);font-family:var(--mono);font-size:11px;padding:7px 14px;outline:none;
+}
+.key-input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan-dim);}
+.key-status{font-family:var(--mono);font-size:10px;color:var(--paper-dimmer);}
+
+.yt-embed{border-radius:0 0 var(--radius) var(--radius);overflow:hidden;display:none;}
+.yt-embed iframe{display:block;width:100%;height:148px;border:none;}
+.music-warn{color:var(--signal);font-size:11px;font-family:var(--mono);margin-top:4px;}
+
+/* ─────────────────────────────────────────
+   CLIPS PANEL
+───────────────────────────────────────── */
+.clips-panel{
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:var(--radius);
+}
+.clips-header{
+  padding:10px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--paper-dimmer);font-weight:700;
+}
+.clips-list{
+  max-height:120px;overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+.clip-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-bottom:1px solid var(--line);
+  font-size:11px;color:var(--paper-dim);cursor:pointer;
+  transition:.15s;
+}
+.clip-item:last-child{border-bottom:none;}
+.clip-item:hover{background:var(--panel3);}
+.clip-item .ci{color:var(--violet);font-size:14px;flex-shrink:0;}
+.clip-item .ct{flex:1;line-height:1.4;font-style:italic;}
+.clip-item .ct .ctag{font-size:9px;color:var(--paper-dimmer);font-style:normal;font-family:var(--mono);}
+.clip-item .c-del{opacity:0;font-size:11px;color:var(--signal);background:none;border:none;padding:2px 6px;}
+.clip-item:hover .c-del{opacity:.7;}
+.clips-empty{padding:14px;font-size:11px;color:var(--paper-dimmer);text-align:center;font-style:italic;}
+
+/* ─────────────────────────────────────────
+   STATS PANEL
+───────────────────────────────────────── */
+.stats-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.stat-card{
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.stat-card .sv{
+  font-family:var(--mono);font-size:20px;font-weight:900;color:var(--cyan);
+  letter-spacing:-.02em;
+}
+.stat-card .sl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--paper-dimmer);}
+
+/* ─────────────────────────────────────────
+   COMING SOON LIST
+───────────────────────────────────────── */
+.future-list{display:flex;flex-direction:column;gap:6px;}
+.future-item{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--panel2);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  transition:.2s;
+}
+.future-item:hover{border-color:var(--line2);}
+.fi-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.fi-title{font-size:11px;font-weight:700;color:var(--violet);margin-bottom:2px;}
+.fi-desc{font-size:10px;color:var(--paper-dimmer);line-height:1.5;}
+
+/* ─────────────────────────────────────────
+   CHAT PANEL
+───────────────────────────────────────── */
+.chat-log{
+  flex:1;background:#050310;border:1px solid var(--line2);
+  border-radius:var(--radius);padding:12px;
+  overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+  min-height:220px;max-height:340px;
+}
+.msg{display:flex;flex-direction:column;gap:3px;}
+.msg .from{
+  font-size:9px;font-family:var(--mono);letter-spacing:.08em;
+  display:flex;align-items:center;gap:5px;
+}
+.msg .bubble{
+  padding:9px 14px;border-radius:14px;
+  font-size:12.5px;line-height:1.6;max-width:94%;
+}
+/* Host messages */
+.msg.host .from{color:var(--cyan);}
+.msg.host .bubble{
+  background:rgba(0,255,231,.06);border:1px solid rgba(0,255,231,.15);color:var(--paper);
+  border-radius:4px 14px 14px 14px;
+}
+/* User messages */
+.msg.user .from{color:var(--violet);align-self:flex-end;}
+.msg.user .bubble{
+  background:var(--violet-dim);border:1px solid rgba(176,111,255,.25);color:var(--paper);
+  align-self:flex-end;border-radius:14px 4px 14px 14px;
+}
+/* Special types */
+.msg.song .bubble{
+  background:rgba(245,166,35,.1);border:1px solid var(--amber);
+  color:var(--amber);font-weight:700;font-family:var(--mono);font-size:11px;
+}
+.msg.system .bubble{
+  background:var(--panel2);border:1px solid var(--line);
+  color:var(--paper-dimmer);font-size:11px;font-family:var(--mono);
+  border-radius:6px;
+}
+.msg.clip .bubble{
+  background:rgba(176,111,255,.08);border:1px solid rgba(176,111,255,.2);
+  color:var(--violet);font-size:11px;display:flex;align-items:center;gap:6px;
+  cursor:pointer;
+}
+
+/* Typing indicator */
+.msg.typing .bubble{
+  background:rgba(0,255,231,.05);border:1px solid rgba(0,255,231,.1);
+  padding:12px 16px;
+}
+.typing-dots{display:flex;gap:4px;align-items:center;}
+.typing-dots span{
+  width:6px;height:6px;border-radius:50%;background:var(--cyan);
+  animation:tdot .8s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes tdot{0%,100%{transform:scale(.6);opacity:.4;}50%{transform:scale(1);opacity:1;}}
+
+/* ─────────────────────────────────────────
+   MIC + INPUT
+───────────────────────────────────────── */
+.transcript-row{
+  background:var(--panel2);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:8px 14px;
+  font-size:11px;color:var(--paper-dimmer);font-style:italic;
+  min-height:34px;transition:.2s;font-family:var(--mono);
+}
+.transcript-row.listening{border-color:var(--violet);color:var(--violet);font-style:normal;background:var(--violet-dim);}
+.transcript-row.final{border-color:var(--cyan);color:var(--cyan);font-style:normal;background:var(--cyan-dim);}
+
+.chat-input-row{display:flex;gap:8px;}
+.chat-input{
+  flex:1;background:#050310;border:1px solid var(--line2);
+  border-radius:var(--radius-pill);color:var(--paper);
+  font-family:inherit;font-size:13px;padding:10px 18px;outline:none;
+}
+.chat-input:focus{border-color:var(--violet);box-shadow:0 0 0 2px var(--violet-dim);}
+.chat-input::placeholder{color:var(--paper-dimmer);}
+.mic-btn{
+  width:42px;height:42px;border-radius:50%;background:var(--panel2);
+  border:1px solid var(--line2);color:var(--paper-dimmer);font-size:16px;flex-shrink:0;
+}
+.mic-btn:hover{border-color:var(--violet);color:var(--violet);}
+.mic-btn.live{
+  background:rgba(255,45,120,.15);border-color:var(--signal);color:var(--signal);
+  animation:mic-pulse 1s infinite;
+}
+@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 var(--signal-glow);}50%{box-shadow:0 0 0 8px rgba(255,45,120,0);}}
+
+/* ─────────────────────────────────────────
+   SEARCH RESULTS
+───────────────────────────────────────── */
+.search-results{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.sr-item{
+  display:flex;gap:10px;align-items:center;
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;transition:.18s;
+}
+.sr-item:hover{border-color:var(--amber);background:var(--panel3);}
+.sr-thumb{width:66px;height:37px;border-radius:6px;object-fit:cover;flex-shrink:0;background:var(--panel3);}
+.sr-meta .t{font-size:11px;font-weight:600;color:var(--paper);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sr-meta .c{font-size:10px;color:var(--paper-dimmer);margin-top:2px;font-family:var(--mono);}
+.sr-play-btn{
+  flex-shrink:0;width:28px;height:28px;border-radius:50%;
+  background:var(--amber-dim);border:1px solid var(--amber);
+  color:var(--amber);font-size:11px;display:flex;align-items:center;justify-content:center;
+}
+
+/* ─────────────────────────────────────────
+   VOICE BADGE
+───────────────────────────────────────── */
+.voice-badge{
+  display:flex;align-items:center;gap:7px;
+  background:var(--panel2);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:7px 12px;
+  font-size:11px;color:var(--paper-dimmer);
+}
+.voice-dot{width:7px;height:7px;border-radius:50%;background:var(--paper-dimmer);flex-shrink:0;}
+.voice-dot.ok{background:var(--green);box-shadow:0 0 8px rgba(57,255,136,.5);}
+.voice-dot.err{background:var(--signal);}
+
+/* ─────────────────────────────────────────
+   MOOD RING INDICATOR
+───────────────────────────────────────── */
+.mood-strip{
+  height:2px;width:100%;border-radius:0;
+  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--signal));
+  transition:background 1.5s ease;
+}
+
+/* ─────────────────────────────────────────
+   HINT / WARN
+───────────────────────────────────────── */
+.hint{color:var(--paper-dimmer);font-size:10.5px;line-height:1.6;font-style:italic;}
+.warn{color:var(--signal);font-size:11px;font-family:var(--mono);margin-top:2px;}
+
+/* ─────────────────────────────────────────
+   SELECT
+───────────────────────────────────────── */
+select{
+  background:#050310;border:1px solid var(--line2);border-radius:var(--radius-pill);
+  color:var(--paper);font-family:inherit;font-size:11px;padding:6px 12px;outline:none;
+}
+select:focus{border-color:var(--cyan);}
+
+/* ─────────────────────────────────────────
+   ROW UTIL
+───────────────────────────────────────── */
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+/* ─────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--line3);}
+
+/* ─────────────────────────────────────────
+   FOCUS RING
+───────────────────────────────────────── */
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+
+/* ─────────────────────────────────────────
+   REDUCED MOTION
+───────────────────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+
+/* ─────────────────────────────────────────
+   TOAST NOTIFICATIONS
+───────────────────────────────────────── */
+.toast-container{
+  position:fixed;bottom:20px;right:20px;z-index:9999;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.toast{
+  background:var(--panel2);border:1px solid var(--line2);
+  border-radius:var(--radius-sm);padding:10px 16px;
+  font-size:12px;color:var(--paper);
+  display:flex;align-items:center;gap:8px;
+  animation:toast-in .3s cubic-bezier(.34,1.56,.64,1) forwards;
+  pointer-events:all;min-width:220px;max-width:300px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.toast.success{border-color:var(--cyan);color:var(--cyan);}
+.toast.error{border-color:var(--signal);color:var(--signal);}
+.toast.info{border-color:var(--violet);color:var(--violet);}
+@keyframes toast-in{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@keyframes toast-out{to{opacity:0;transform:translateX(20px);}}
+
+/* ─────────────────────────────────────────
+   STATIC FLASH
+───────────────────────────────────────── */
+@keyframes static-flash{
+  0%{opacity:0}10%{opacity:.06}20%{opacity:0}30%{opacity:.04}100%{opacity:0}
+}
+.static-overlay{
+  position:fixed;inset:0;pointer-events:none;z-index:100;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  display:none;
+  animation:static-flash .4s forwards;
+}
+.static-overlay.active{display:block;}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+<div class="grid-overlay"></div>
+<div class="static-overlay" id="staticOverlay"></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="app">
+  <div class="mood-strip" id="moodStrip"></div>
+
+  <!-- ═══════════════ HERO ═══════════════ -->
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <div class="hero-top">
+        <div class="brand-row">
+          <div class="brand-logo">📻</div>
+          <div class="brand-text">
+            <div class="eyebrow">
+              <div class="eyebrow-dot"></div>
+              <span id="freqReadout">FM 92.4 · SENSYCILVA NETWORK</span>
+            </div>
+            <h1>Sensy<span class="pink">Cilva</span></h1>
+            <div class="tagline">Anime pirate radio · AI host · talk back any time</div>
+          </div>
+        </div>
+        <button class="onair-btn" id="onAirBtn">
+          <span class="lamp" id="onAirLamp"></span>
+          <span id="onAirLabel">GO ON AIR</span>
+        </button>
+      </div>
+      <div class="hero-bottom">
+        <div class="channels">
+          <button class="ch-btn active" data-lang="en">🇬🇧 English</button>
+          <button class="ch-btn" data-lang="hi">🇮🇳 हिन्दी</button>
+          <button class="ch-btn" data-lang="te">🇮🇳 తెలుగు</button>
+        </div>
+        <div class="mini-stats" id="miniStats">
+          <div class="stat-item">WORDS <span class="sv" id="statsWords">0</span></div>
+          <div class="stat-item">SONGS <span class="sv" id="statsSongs">0</span></div>
+          <div class="stat-item">TIME <span class="sv" id="statsTime">0:00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ OSCILLOSCOPE BAR ═══════════════ -->
+  <div class="osc-bar">
+    <canvas id="oscCanvas"></canvas>
+    <div class="osc-overlay">
+      <div class="subtitle-text dim" id="subtitleText">Sensy is ready — hit GO ON AIR to start the show</div>
+      <div class="status-cluster">
+        <div class="status-pill" id="statusPill">READY</div>
+        <button class="btn sm" id="pauseBtn" disabled>⏸</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <div class="main">
+
+    <!-- ─── LEFT PANE: Studio ─── -->
+    <div class="pane">
+      <div class="pane-head">
+        <h2>📡 Radio Studio</h2>
+        <div class="row">
+          <button class="btn sm amber" id="customToggleBtn">✏ Script</button>
+          <button class="btn sm signal" id="clipBtn" title="Save this line">🔖</button>
+        </div>
+      </div>
+      <div class="pane-body">
+
+        <!-- Avatar -->
+        <div class="sensy-avatar-wrap">
+          <div class="avatar-orb" id="avatarOrb">🎙</div>
+          <div class="avatar-info">
+            <div class="avatar-name">Sensy<span>Cilva</span></div>
+            <div class="avatar-status" id="avatarStatus">Ready to broadcast</div>
+            <div class="lip-bars" id="lipBars">
+              <div class="lb"></div><div class="lb"></div><div class="lb"></div>
+              <div class="lb"></div><div class="lb"></div><div class="lb"></div>
+              <div class="lb"></div><div class="lb"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-track" id="progressTrack" style="display:none">
+          <div class="progress-label">
+            <span>BROADCAST PROGRESS</span>
+            <span id="progressPct">0%</span>
+          </div>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+          <div class="progress-stats">
+            <span id="progressLeft">Line 0 / 0</span>
+            <span id="progressRight">0:00 elapsed</span>
+          </div>
+        </div>
+
+        <!-- Script preview -->
+        <div>
+          <div class="section-label">Current Script</div>
+          <div class="script-box" id="scriptPreview">No script loaded. Click GO ON AIR to auto-generate.</div>
+        </div>
+
+        <!-- Custom script -->
+        <div class="custom-area" id="customArea">
+          <div class="section-label">Paste Custom Script</div>
+          <textarea id="customText" placeholder="One line per sentence — each will be spoken in order…"></textarea>
+          <div class="row">
+            <button class="btn sm cyan" id="useCustomBtn">Use this script</button>
+            <button class="btn sm" id="cancelCustomBtn">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Delivery controls -->
+        <div>
+          <div class="section-label">Delivery</div>
+          <div class="slider-row">
+            <div class="slider-item">
+              <label>Rate</label>
+              <input type="range" id="rateSlider" min="0.55" max="1.8" step="0.05" value="0.88">
+              <span class="val" id="rateVal">0.88</span>
+            </div>
+            <div class="slider-item">
+              <label>Vol</label>
+              <input type="range" id="volSlider" min="0" max="1" step="0.05" value="1">
+              <span class="val" id="volVal">1.00</span>
+            </div>
+            <div class="slider-item">
+              <label>Pitch</label>
+              <input type="range" id="pitchSlider" min="0.7" max="1.4" step="0.05" value="0.95">
+              <span class="val" id="pitchVal">0.95</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Music Player -->
+        <div>
+          <div class="section-label">🎵 Music Player</div>
+          <div class="music-player">
+            <div class="music-player-header">
+              <div class="music-vinyl">
+                <div class="vinyl-disc" id="vinylDisc"></div>
+                <div class="track-info">
+                  <div class="track-name" id="trackName">Nothing playing</div>
+                  <div class="track-meta">
+                    <span id="trackTime">0:00</span>
+                    <span id="trackChannel">—</span>
+                  </div>
+                </div>
+              </div>
+              <div class="music-btns">
+                <button class="btn sm" id="mPlayPause">▶ Play</button>
+                <button class="btn sm" id="mStop">■ Stop</button>
+                <button class="btn sm" id="mNext">⏭ Next</button>
+              </div>
+            </div>
+            <div style="padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;">
+              <div class="key-row">
+                <input type="text" class="key-input" id="ytKey" placeholder="YouTube Data API key (optional)"/>
+                <button class="btn sm" id="saveKeyBtn">Save</button>
+                <span class="key-status" id="keyStatus"></span>
+              </div>
+              <p class="hint">Say "play Naruto OST", "next song", "pause music", "stop music"</p>
+            </div>
+            <div class="yt-embed" id="ytEmbed"><iframe id="ytFrame" allowfullscreen allow="autoplay;encrypted-media"></iframe></div>
+          </div>
+          <div class="warn" id="musicWarn"></div>
+        </div>
+
+        <!-- Episode Stats -->
+        <div>
+          <div class="section-label">📊 Session Stats</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="sv" id="stWords">0</div><div class="sl">Words Spoken</div></div>
+            <div class="stat-card"><div class="sv" id="stSongs">0</div><div class="sl">Songs Played</div></div>
+            <div class="stat-card"><div class="sv" id="stLines">0</div><div class="sl">Lines Read</div></div>
+            <div class="stat-card"><div class="sv" id="stMsgs">0</div><div class="sl">Chat Messages</div></div>
+          </div>
+        </div>
+
+        <!-- Clips -->
+        <div>
+          <div class="section-label">🔖 Saved Clips</div>
+          <div class="clips-panel">
+            <div class="clips-header">
+              <span>Favorite Lines</span>
+              <button class="btn xs" id="clearClipsBtn">Clear all</button>
+            </div>
+            <div class="clips-list" id="clipsList">
+              <div class="clips-empty">No clips yet — click 🔖 while Sensy speaks to save a line</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coming Soon -->
+        <div>
+          <div class="section-label">🚀 Coming Soon</div>
+          <div class="future-list">
+            <div class="future-item"><div class="fi-icon">🌐</div><div><div class="fi-title">Live Anime News Feed</div><div class="fi-desc">Auto-fetch latest news from Crunchyroll & ANN before each broadcast</div></div></div>
+            <div class="future-item"><div class="fi-icon">🎭</div><div><div class="fi-title">Character Voices</div><div class="fi-desc">Switch Sensy's personality: cheerful, tsundere, calm sage</div></div></div>
+            <div class="future-item"><div class="fi-icon">📅</div><div><div class="fi-title">Scheduled Broadcasts</div><div class="fi-desc">Set a time — Sensy auto-starts the show</div></div></div>
+            <div class="future-item"><div class="fi-icon">🎵</div><div><div class="fi-title">Smart Playlist</div><div class="fi-desc">AI picks songs that match the current anime topic</div></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── RIGHT PANE: Chat ─── -->
+    <div class="pane">
+      <div class="pane-head">
+        <h2>💬 Talk to Sensy</h2>
+        <div class="voice-badge" id="voiceStatusBadge">
+          <div class="voice-dot" id="voiceDot"></div>
+          <span id="voiceNameDisplay">Finding voice…</span>
+        </div>
+      </div>
+      <div class="pane-body">
+
+        <div class="chat-log" id="chatLog">
+          <div class="msg host">
+            <div class="from">🎙 SENSY</div>
+            <div class="bubble">Heyyy! I'm Sensy, your anime radio host. Hit GO ON AIR to start the show, or just talk to me! Ask me to play a song, quiz me on anime trivia, or just chat!</div>
+          </div>
+        </div>
+
+        <div class="transcript-row" id="transcriptRow">Mic is off — type below or click 🎤</div>
+
+        <div class="chat-input-row">
+          <input type="text" class="chat-input" id="userInput" placeholder="Ask about anime, request a song, or just chat…"/>
+          <button class="mic-btn" id="micBtn">🎤</button>
+          <button class="btn violet" id="sendBtn">Send</button>
+        </div>
+
+        <div class="search-results" id="searchResults"></div>
+
+        <!-- Voice info -->
+        <div class="voice-badge" style="margin-top:4px;">
+          <div class="voice-dot" id="voiceDot2"></div>
+          <span id="voiceInfo" style="font-family:var(--mono);font-size:10px;">Loading voices…</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+(function(){
+'use strict';
+
+// ════════════════════════════════════════════════════
+//  DOM REFS
+// ════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const onAirBtn=$('onAirBtn'), onAirLamp=$('onAirLamp'), onAirLabel=$('onAirLabel');
+const pauseBtn=$('pauseBtn');
+const subtitleText=$('subtitleText'), statusPill=$('statusPill');
+const progressTrack=$('progressTrack'), progressBar=$('progressBar');
+const progressLeft=$('progressLeft'), progressRight=$('progressRight'), progressPct=$('progressPct');
+const scriptPreview=$('scriptPreview');
+const customArea=$('customArea'), customText=$('customText');
+const customToggleBtn=$('customToggleBtn'), useCustomBtn=$('useCustomBtn'), cancelCustomBtn=$('cancelCustomBtn');
+const rateSlider=$('rateSlider'), rateVal=$('rateVal');
+const volSlider=$('volSlider'), volVal=$('volVal');
+const pitchSlider=$('pitchSlider'), pitchVal=$('pitchVal');
+const ytKey=$('ytKey'), saveKeyBtn=$('saveKeyBtn'), keyStatus=$('keyStatus');
+const ytEmbed=$('ytEmbed'), ytFrame=$('ytFrame');
+const trackName=$('trackName'), trackTime=$('trackTime'), trackChannel=$('trackChannel');
+const mPlayPause=$('mPlayPause'), mStop=$('mStop'), mNext=$('mNext');
+const musicWarn=$('musicWarn'), vinylDisc=$('vinylDisc');
+const chatLog=$('chatLog'), transcriptRow=$('transcriptRow');
+const userInput=$('userInput'), micBtn=$('micBtn'), sendBtn=$('sendBtn');
+const searchResults=$('searchResults');
+const voiceNameDisplay=$('voiceNameDisplay'), voiceDot=$('voiceDot'), voiceDot2=$('voiceDot2');
+const voiceInfo=$('voiceInfo');
+const avatarOrb=$('avatarOrb'), lipBars=$('lipBars'), avatarStatus=$('avatarStatus');
+const clipBtn=$('clipBtn'), clipsList=$('clipsList'), clearClipsBtn=$('clearClipsBtn');
+const moodStrip=$('moodStrip');
+const freqReadout=$('freqReadout');
+const chBtns=document.querySelectorAll('.ch-btn');
+const staticOverlay=$('staticOverlay');
+const toastContainer=$('toastContainer');
+// Stats
+const stWords=$('stWords'), stSongs=$('stSongs'), stLines=$('stLines'), stMsgs=$('stMsgs');
+const statsWords=$('statsWords'), statsSongs=$('statsSongs'), statsTime=$('statsTime');
+
+// ════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════
+const synth = window.speechSynthesis;
+let currentLang = 'en';
+let lockedVoice = null;
+let voicesLoaded = false;
+
+let sentences = [];
+let sentIdx = 0;
+let isBroadcasting = false;
+let isPaused = false;
+let broadcastStartTime = null;
+let elapsedTimer = null;
+let pausedElapsed = 0;
+let currentUtterance = null;
+let currentSpokenLine = '';
+
+let puterReady = false;
+let apiKey = '';
+
+let ytPlayer = null, ytReady = false, ytApiLoaded = false, ytApiPromise = null;
+let musicPlaying = false;
+let songQueue = [], queueIdx = -1;
+let progressTick = null;
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null, isListening = false;
+
+// Session stats
+let stats = { words:0, songs:0, lines:0, msgs:0, sessionStart:Date.now() };
+let clips = [];
+
+// Oscilloscope state
+let oscAnimFrame = null;
+let oscPhase = 0;
+let oscAmplitude = 0;   // 0 = flat, 1 = full
+let oscTargetAmp = 0;
+let oscColor = '#00ffe7';
+
+// ════════════════════════════════════════════════════
+//  STORAGE
+// ════════════════════════════════════════════════════
+function store(k,v){ try{ v===null ? localStorage.removeItem(k) : localStorage.setItem(k,String(v)); }catch(e){} }
+function load(k,def=''){ try{ return localStorage.getItem(k)||def; }catch(e){ return def; } }
+function loadJSON(k,def){ try{ return JSON.parse(localStorage.getItem(k)||'null')||def; }catch(e){ return def; } }
+function storeJSON(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+
+// ════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════
+function toast(msg, type='info', duration=3000){
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  const icon={success:'✓',error:'✗',info:'◈'}[type]||'◈';
+  el.innerHTML=`<span>${icon}</span> ${esc(msg)}`;
+  toastContainer.appendChild(el);
+  setTimeout(()=>{
+    el.style.animation='toast-out .3s forwards';
+    setTimeout(()=>el.remove(),350);
+  },duration);
+}
+
+// ════════════════════════════════════════════════════
+//  VOICE SYSTEM
+// ════════════════════════════════════════════════════
+const VOICE_PREFS={
+  en:['Google UK English Female','Google UK English Male','Microsoft Hazel - English (Great Britain)',
+      'Karen','Moira','Samantha','Google US English','en-US','en-GB','en-IN','en'],
+  hi:['Google हिन्दी','Google Hindi','Microsoft Swara - Hindi (India)','Lekha','hi-IN','hi'],
+  te:['Google తెలుగు','Google Telugu','Microsoft Chitra','Chitra','te-IN','te']
+};
+
+function pickVoice(lang){
+  const voices=synth.getVoices();
+  if(!voices.length) return null;
+  const prefs=VOICE_PREFS[lang]||VOICE_PREFS.en;
+  for(const p of prefs){
+    let v=voices.find(x=>x.name===p);
+    if(v) return v;
+    v=voices.find(x=>x.lang.startsWith(p));
+    if(v) return v;
+  }
+  return voices.find(v=>v.lang.startsWith(lang))||voices[0]||null;
+}
+
+function lockVoiceForLang(lang){
+  const v=pickVoice(lang);
+  lockedVoice=v;
+  if(v){
+    voiceDot.className='voice-dot ok';
+    voiceDot2.className='voice-dot ok';
+    voiceNameDisplay.textContent=v.name;
+    voiceInfo.textContent=v.name+' ('+v.lang+')';
+  } else {
+    voiceDot.className='voice-dot err';
+    voiceDot2.className='voice-dot err';
+    voiceNameDisplay.textContent='No voice — using default';
+    voiceInfo.textContent='No voice found';
+  }
+  return v;
+}
+
+function initVoices(){
+  const voices=synth.getVoices();
+  if(voices.length){ voicesLoaded=true; lockVoiceForLang(currentLang); }
+}
+synth.onvoiceschanged=()=>initVoices();
+setTimeout(initVoices,200);
+setTimeout(initVoices,600);
+setTimeout(initVoices,1500);
+
+// ════════════════════════════════════════════════════
+//  STARFIELD ANIMATION
+// ════════════════════════════════════════════════════
+(function initStarfield(){
+  const canvas=$('starfield');
+  const ctx=canvas.getContext('2d');
+  let stars=[];
+  const N=120;
+
+  function resize(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  for(let i=0;i<N;i++){
+    stars.push({
+      x:Math.random()*window.innerWidth,
+      y:Math.random()*window.innerHeight,
+      r:Math.random()*1.2+.2,
+      speed:Math.random()*.25+.05,
+      opacity:Math.random()*.8+.2,
+      twinkle:Math.random()*Math.PI*2,
+      twinkleSpeed:Math.random()*.02+.005,
+      color:Math.random()>.7?'#b06fff':Math.random()>.5?'#00ffe7':'#fff',
+    });
+  }
+
+  function drawStars(ts){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(const s of stars){
+      s.twinkle+=s.twinkleSpeed;
+      const op=s.opacity*(0.6+0.4*Math.sin(s.twinkle));
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.color;
+      ctx.globalAlpha=op;
+      ctx.fill();
+      // drift slowly downward
+      s.y+=s.speed*.1;
+      if(s.y>canvas.height+2) s.y=-2;
+    }
+    ctx.globalAlpha=1;
+    requestAnimationFrame(drawStars);
+  }
+  requestAnimationFrame(drawStars);
+})();
+
+// ════════════════════════════════════════════════════
+//  OSCILLOSCOPE
+// ════════════════════════════════════════════════════
+(function initOscilloscope(){
+  const canvas=$('oscCanvas');
+  const ctx=canvas.getContext('2d');
+  let w,h;
+
+  function resize(){
+    w=canvas.offsetWidth; h=canvas.offsetHeight;
+    canvas.width=w; canvas.height=h;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  let phase=0, amp=0, targetAmp=0, col='#00ffe7';
+  let harmonic=0, harmonicTarget=0;
+
+  window._oscSetAmp=(a,c)=>{ targetAmp=a; if(c) col=c; };
+  window._oscSetHarmonic=(h)=>{ harmonicTarget=h; };
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    amp+=(targetAmp-amp)*0.08;
+    harmonic+=(harmonicTarget-harmonic)*0.06;
+    phase+=0.04+amp*0.06;
+
+    if(amp<0.01){
+      // Flat idle line
+      ctx.strokeStyle='rgba(255,255,255,0.06)';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);
+      ctx.stroke();
+    } else {
+      // Draw oscilloscope wave
+      const grad=ctx.createLinearGradient(0,0,w,0);
+      grad.addColorStop(0,col+'00');
+      grad.addColorStop(0.15,col);
+      grad.addColorStop(0.85,col);
+      grad.addColorStop(1,col+'00');
+
+      ctx.strokeStyle=grad;
+      ctx.lineWidth=2;
+      ctx.shadowColor=col;
+      ctx.shadowBlur=amp*14;
+      ctx.beginPath();
+
+      const segments=200;
+      for(let i=0;i<=segments;i++){
+        const x=(i/segments)*w;
+        const t=i/segments;
+        const y=h/2
+          +Math.sin(t*Math.PI*8+phase)*amp*(h*0.28)
+          +Math.sin(t*Math.PI*16+phase*1.4)*amp*harmonic*(h*0.1)
+          +Math.sin(t*Math.PI*3.5+phase*0.7)*amp*(h*0.08);
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur=0;
+
+      // Glow fill
+      ctx.globalAlpha=amp*0.06;
+      ctx.fillStyle=col;
+      ctx.fill();
+      ctx.globalAlpha=1;
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// ════════════════════════════════════════════════════
+//  MOOD SYSTEM — color theme shifts per topic
+// ════════════════════════════════════════════════════
+const MOODS={
+  action:{grad:'#ff2d78, #ff6b35', osc:'#ff6b35'},
+  fantasy:{grad:'#b06fff, #00ffe7', osc:'#b06fff'},
+  comedy:{grad:'#f5a623, #ff2d78', osc:'#f5a623'},
+  romance:{grad:'#ff2d78, #ff9eb5', osc:'#ff9eb5'},
+  default:{grad:'#00ffe7, #b06fff', osc:'#00ffe7'},
+};
+
+function setMood(type='default'){
+  const m=MOODS[type]||MOODS.default;
+  moodStrip.style.background=`linear-gradient(90deg,${m.grad})`;
+  if(window._oscSetAmp) window._oscSetAmp(undefined,m.osc);
+  oscColor=m.osc;
+}
+
+function detectMood(text){
+  const t=text.toLowerCase();
+  if(/attack|titan|demon|slayer|jujutsu|dragon|fight|battle|sword|power/.test(t)) return 'action';
+  if(/elf|magic|fantasy|wizard|isekai|frieren/.test(t)) return 'fantasy';
+  if(/comedy|funny|muscle|mashle|cream|puff|laugh|absurd/.test(t)) return 'comedy';
+  if(/romance|love|heart|beautiful|sweet/.test(t)) return 'romance';
+  return 'default';
+}
+
+// ════════════════════════════════════════════════════
+//  SPEAKING STATE HELPERS
+// ════════════════════════════════════════════════════
+function setSpeaking(on, col){
+  avatarOrb.className='avatar-orb'+(on?' speaking':'');
+  lipBars.className='lip-bars'+(on?' speaking':'');
+  if(window._oscSetAmp) window._oscSetAmp(on?0.85:0, col||oscColor);
+  if(window._oscSetHarmonic) window._oscSetHarmonic(on?0.6:0);
+}
+
+function setThinking(on){
+  avatarOrb.className='avatar-orb';
+  lipBars.className='lip-bars';
+  if(window._oscSetAmp) window._oscSetAmp(on?0.3:0,'#f5a623');
+}
+
+// ════════════════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════════════════
+function setOnAirUI(state){
+  onAirBtn.className='onair-btn';
+  if(state==='live'){
+    onAirBtn.classList.add('live');
+    onAirLabel.textContent='ON AIR — Click to Stop';
+    pauseBtn.disabled=false;
+    pauseBtn.textContent='⏸';
+  } else if(state==='paused'){
+    onAirBtn.classList.add('paused');
+    onAirLabel.textContent='PAUSED — Resume';
+    pauseBtn.disabled=false;
+    pauseBtn.textContent='▶';
+  } else {
+    onAirLabel.textContent='GO ON AIR';
+    pauseBtn.disabled=true;
+    pauseBtn.textContent='⏸';
+  }
+}
+
+let typingTimeout=null;
+function setSubtitle(text, dim=false, immediate=false){
+  clearTimeout(typingTimeout);
+  subtitleText.className='subtitle-text'+(dim?' dim':'');
+  if(immediate||dim){
+    subtitleText.textContent=text; return;
+  }
+  // typewriter effect
+  subtitleText.textContent='';
+  let i=0;
+  function tick(){
+    if(i<text.length){
+      subtitleText.textContent=text.slice(0,++i);
+      typingTimeout=setTimeout(tick,20);
+    }
+  }
+  tick();
+}
+
+function setStatus(text,type=''){
+  statusPill.textContent=text;
+  statusPill.className='status-pill'+(type?' '+type:'');
+}
+
+function setAvatarStatus(text){ avatarStatus.textContent=text; }
+
+function flashStatic(){
+  staticOverlay.className='static-overlay active';
+  setTimeout(()=>{ staticOverlay.className='static-overlay'; },450);
+}
+
+function updateProgress(){
+  if(!sentences.length) return;
+  const pct=Math.round((sentIdx/sentences.length)*100);
+  progressBar.style.width=pct+'%';
+  progressPct.textContent=pct+'%';
+  progressLeft.textContent='Line '+sentIdx+' / '+sentences.length;
+  const elapsed=broadcastStartTime?(Date.now()-broadcastStartTime+pausedElapsed):pausedElapsed;
+  const sec=Math.floor(elapsed/1000);
+  const m=Math.floor(sec/60),s=sec%60;
+  const timeStr=m+':'+(s<10?'0':'')+s;
+  progressRight.textContent=timeStr+' elapsed';
+  statsTime.textContent=timeStr;
+}
+
+function highlightLine(idx){
+  const preview=sentences.map((l,i)=>{
+    const escaped=esc(l);
+    if(i===idx) return `<span class="hl">${escaped}</span>`;
+    if(i<idx) return `<span class="done">${escaped}</span>`;
+    return `<span>${escaped}</span>`;
+  }).join('<br>');
+  scriptPreview.innerHTML=preview;
+  const hlEl=scriptPreview.querySelector('.hl');
+  if(hlEl) hlEl.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function addMsg(role,text){
+  const div=document.createElement('div');
+  div.className='msg '+role;
+  const from=document.createElement('div');
+  from.className='from';
+  const icons={host:'🎙 SENSY',user:'👤 YOU',song:'🎵 NOW PLAYING',system:'📡 SYSTEM',clip:'🔖 SAVED'};
+  from.textContent=icons[role]||'🎙 SENSY';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.textContent=text;
+  div.appendChild(from); div.appendChild(bubble);
+  chatLog.appendChild(div);
+  chatLog.scrollTop=chatLog.scrollHeight;
+  stats.msgs++;
+  updateStatsDisplay();
+}
+
+function addTypingIndicator(){
+  const div=document.createElement('div');
+  div.className='msg typing'; div.id='typingIndicator';
+  const from=document.createElement('div');
+  from.className='from'; from.textContent='🎙 SENSY';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
+  div.appendChild(from); div.appendChild(bubble);
+  chatLog.appendChild(div);
+  chatLog.scrollTop=chatLog.scrollHeight;
+  return div;
+}
+
+function removeTypingIndicator(){
+  const el=$('typingIndicator');
+  if(el) el.remove();
+}
+
+// ════════════════════════════════════════════════════
+//  STATS
+// ════════════════════════════════════════════════════
+function updateStatsDisplay(){
+  stWords.textContent=stats.words;
+  stSongs.textContent=stats.songs;
+  stLines.textContent=stats.lines;
+  stMsgs.textContent=stats.msgs;
+  statsWords.textContent=stats.words;
+  statsSongs.textContent=stats.songs;
+}
+
+// ════════════════════════════════════════════════════
+//  CLIPS
+// ════════════════════════════════════════════════════
+clips=loadJSON('sensy_clips',[]);
+function renderClips(){
+  if(!clips.length){
+    clipsList.innerHTML='<div class="clips-empty">No clips yet — click 🔖 while Sensy speaks to save a line</div>';
+    return;
+  }
+  clipsList.innerHTML='';
+  clips.slice(-8).reverse().forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='clip-item';
+    el.innerHTML=`<span class="ci">🔖</span>
+      <div class="ct">"${esc(c.text)}" <div class="ctag">${c.time}</div></div>
+      <button class="c-del" title="Remove">✕</button>`;
+    el.querySelector('.c-del').addEventListener('click',(e)=>{
+      e.stopPropagation();
+      clips.splice(clips.length-1-i,1);
+      storeJSON('sensy_clips',clips);
+      renderClips();
+    });
+    el.addEventListener('click',()=>{
+      addMsg('clip',c.text);
+      if(!synth.speaking) speakOne(c.text);
+    });
+    clipsList.appendChild(el);
+  });
+}
+renderClips();
+
+function saveClip(){
+  if(!currentSpokenLine) return;
+  const now=new Date();
+  clips.push({text:currentSpokenLine, time:now.toLocaleTimeString()});
+  storeJSON('sensy_clips',clips);
+  renderClips();
+  toast('Line saved to clips!','success');
+}
+
+clipBtn.addEventListener('click',saveClip);
+clearClipsBtn.addEventListener('click',()=>{
+  clips=[];storeJSON('sensy_clips',[]);renderClips();
+  toast('Clips cleared','info');
+});
+
+// ════════════════════════════════════════════════════
+//  TTS ENGINE
+// ════════════════════════════════════════════════════
+function speakOne(text){
+  return new Promise((resolve)=>{
+    if(synth.speaking||synth.pending) synth.cancel();
+
+    setTimeout(()=>{
+      let voice=lockedVoice;
+      if(!voice){
+        const vv=synth.getVoices();
+        voice=vv.find(v=>v.lang.startsWith(currentLang))||vv[0]||null;
+      }
+
+      const utt=new SpeechSynthesisUtterance(text);
+      utt.voice=voice||null;
+      utt.rate=parseFloat(rateSlider.value);
+      utt.volume=parseFloat(volSlider.value);
+      utt.pitch=parseFloat(pitchSlider.value);
+      utt.lang=voice?voice.lang:(currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US');
+
+      let resolved=false;
+      const done=()=>{ if(!resolved){ resolved=true; resolve(); } };
+
+      utt.onstart=()=>{
+        currentSpokenLine=text;
+        setSubtitle(text);
+        setSpeaking(true, oscColor);
+        setMood(detectMood(text));
+        // count words
+        stats.words+=(text.match(/\S+/g)||[]).length;
+        updateStatsDisplay();
+      };
+
+      const cleanup=(watchdog)=>{
+        clearTimeout(watchdog);
+        setSpeaking(false);
+        currentUtterance=null;
+      };
+
+      const timeout=Math.max(6000,text.length*120);
+      const watchdog=setTimeout(()=>{
+        if(!resolved){
+          console.warn('TTS watchdog fired for:',text.slice(0,30));
+          if(synth.speaking) synth.cancel();
+          cleanup(null);
+          done();
+        }
+      },timeout);
+
+      utt.onend=()=>{ cleanup(watchdog); done(); };
+      utt.onerror=(e)=>{ console.warn('TTS error:',e.error); cleanup(watchdog); done(); };
+
+      currentUtterance=utt;
+      synth.speak(utt);
+    },80);
+  });
+}
+
+function stopTTS(){
+  if(synth.speaking||synth.pending) synth.cancel();
+  setSpeaking(false);
+  currentUtterance=null;
+}
+
+// ════════════════════════════════════════════════════
+//  CHANNELS
+// ════════════════════════════════════════════════════
+function setChannel(lang){
+  if(lang===currentLang&&voicesLoaded) return;
+  hardStop();
+  currentLang=lang;
+  chBtns.forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+  store('sensy_lang',lang);
+  lockVoiceForLang(lang);
+  sentences=[]; sentIdx=0;
+  const names={en:'English (UK/US)',hi:'हिन्दी (Hindi)',te:'తెలుగు (Telugu)'};
+  setSubtitle('Channel: '+names[lang]+' — Hit GO ON AIR',true,true);
+  freqReadout.textContent={en:'FM 92.4 · ENGLISH CHANNEL',hi:'FM 94.0 · हिंदी चैनल',te:'FM 96.2 · తెలుగు ఛానెల్'}[lang]||'FM 92.4';
+}
+chBtns.forEach(b=>b.addEventListener('click',()=>setChannel(b.dataset.lang)));
+
+// ════════════════════════════════════════════════════
+//  FALLBACK SCRIPTS
+// ════════════════════════════════════════════════════
+const FALLBACKS={
+en:`Welcome back to SensyCilva Anime Radio.
+I'm Sensy, your host for today's show.
+Let's jump right in with the latest from the anime world.
+First up — Attack on Titan's finale left the entire fandom speechless.
+Eren's plan unfolds in ways nobody expected.
+Mikasa finally gets her defining moment.
+I won't spoil the ending — just go watch if you haven't.
+This week's spotlight show is Frieren: Beyond Journey's End.
+It's a fantasy anime about an elf mage named Frieren.
+She outlives all her human companions and looks back wondering if she ever truly knew them.
+The animation is breathtaking. The emotions hit harder than they have any right to.
+If you haven't started it, move it to the absolute top of your list.
+Looking for something fun? Try Mashle: Magic and Muscles.
+The hero has zero magic in a world where magic is literally everything.
+His solution? Pure muscle power. And a lot of cream puffs.
+It's completely absurd, utterly hilarious, and so good.
+Quick trivia for you — Sailor Moon was created by Naoko Takeuchi.
+She married Yoshihiro Togashi, the creator of Hunter x Hunter.
+Two legendary mangaka under one roof. Anime royalty.
+Before I go — what anime are you watching right now?
+Talk back to me. I'm always here to chat.
+That's all for today's broadcast on SensyCilva Anime Radio.
+I'm Sensy, signing off — stay curious, keep watching, and I'll see you next time.`,
+hi:`नमस्ते और स्वागत है SensyCilva Anime Radio पर।
+मैं हूँ Sensy, आपकी आज की होस्ट।
+चलिए शुरू करते हैं आज का धमाकेदार show।
+पहली खबर — Attack on Titan का finale आ गया और पूरी fandom हिल गई।
+Eren ने जो किया वो किसी ने सोचा भी नहीं था।
+Mikasa का moment बहुत emotional था — दिल छू लेने वाला।
+अगर अभी तक नहीं देखा तो अभी देखो, देर मत करो।
+इस हफ्ते की spotlight show है Frieren: Beyond Journey's End।
+ये एक elf की कहानी है जो अपने साथियों को outlive कर लेती है।
+वो सोचती है — क्या मैंने उन्हें सच में जाना था?
+Animation बेहतरीन है और story दिल को छू जाती है।
+Comedy चाहिए तो Mashle: Magic and Muscles देखो।
+Hero के पास magic बिल्कुल नहीं है, पर ताकत अपार है।
+और हाँ — cream puffs का भी जबरदस्त collection है।
+बिल्कुल पागल है — और बिल्कुल धमाकेदार भी।
+एक trivia — Sailor Moon की creator Naoko Takeuchi ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की।
+क्या जोड़ी है — anime की असली royalty।
+मुझे बताओ — आप इस वक्त कौन सा anime देख रहे हो?
+बस, आज का show यहीं समाप्त होता है।
+मैं हूँ Sensy, SensyCilva Anime Radio से। Anime देखते रहो। Bye!`,
+te:`నమస్కారం, SensyCilva Anime Radio కి స్వాగతం.
+నేను Sensy, మీ నేటి హోస్ట్.
+ఇవాళ్టి show మొదలు పెడదాం — చాలా exciting విషయాలు ఉన్నాయి.
+మొదటి వార్త — Attack on Titan finale వచ్చింది మరియు fandom అంతా shock అయింది.
+Eren చేసింది ఎవ్వరూ expect చెయ్యలేదు — అది నిజంగా mind-blowing.
+Mikasa కి ఆమె defining moment దొరికింది — చాలా emotional గా ఉంది.
+ఇంకా చూడకపోతే ఇప్పుడే చూడండి, wait చెయ్యకండి.
+ఈ వారం spotlight show — Frieren: Beyond Journey's End.
+ఒక elf mage తన మానవ companions కంటే ఎక్కువ కాలం జీవిస్తుంది.
+ఆమె వెనక్కి చూసి ఆలోచిస్తుంది — నేను నిజంగా వాళ్ళని తెలుసుకున్నానా?
+Animation అద్భుతంగా ఉంటుంది. కథ మనసుని లోతుగా తాకుతుంది.
+Comedy కావాలంటే Mashle: Magic and Muscles చూడండి.
+Hero దగ్గర magic లేదు, కానీ బలం అపారంగా ఉంది.
+Cream puffs పట్ల అతనికి అమితమైన ప్రేమ ఉంది.
+Crazy గా ఉంది మరియు super fun గా ఉంది — తప్పకుండా చూడండి.
+ఒక trivia — Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని వివాహం చేసుకున్నారు.
+Anime royalty అంటే వీళ్ళే.
+మీరు ఇప్పుడు ఏ anime చూస్తున్నారు? నాకు చెప్పండి.
+ఇవాళ్టి show అయిపోయింది. నేను Sensy, SensyCilva Anime Radio నుండి.
+Anime చూస్తూ ఉండండి. మళ్ళీ కలుద్దాం. Bye!`
+};
+
+// ════════════════════════════════════════════════════
+//  SCRIPT LOADING
+// ════════════════════════════════════════════════════
+function loadScript(rawText){
+  const lines=rawText.split(/\n+/).map(l=>l.trim()).filter(l=>l.length>2);
+  sentences=lines;
+  sentIdx=0;
+  progressTrack.style.display='block';
+  updateProgress();
+  scriptPreview.innerHTML=lines.map(l=>`<span>${esc(l)}</span>`).join('<br>');
+}
+
+// ════════════════════════════════════════════════════
+//  PUTER / AI
+// ════════════════════════════════════════════════════
+function loadPuter(){
+  return new Promise((res,rej)=>{
+    if(typeof puter!=='undefined'){puterReady=true;res();return;}
+    const s=document.createElement('script');
+    s.src='https://js.puter.com/v2/';
+    s.onload=()=>{puterReady=true;res();};
+    s.onerror=()=>rej(new Error('Puter unavailable'));
+    document.head.appendChild(s);
+  });
+}
+
+async function aiChat(prompt){
+  if(!puterReady) await loadPuter();
+  const r=await puter.ai.chat(prompt,{model:'google/gemini-2.5-flash'});
+  return (r.message?.content||r||'').trim();
+}
+
+// ════════════════════════════════════════════════════
+//  SCRIPT GENERATION
+// ════════════════════════════════════════════════════
+async function generateScript(){
+  setStatus('Writing…','thinking');
+  setThinking(true);
+  setSubtitle('Sensy is writing a fresh script…',true,true);
+
+  try{
+    await loadPuter();
+    const langName=currentLang==='hi'?'Hindi':currentLang==='te'?'Telugu':'English';
+    const prompt=`You are writing a radio script for "SensyCilva Anime Radio" in ${langName}.
+The host is Sensy — energetic, warm, knowledgeable about anime, conversational.
+Write exactly 18-24 SHORT lines. Each line = one sentence only. One per line.
+No brackets, no stage directions, no actions in parentheses, no asterisks.
+Topics to cover in order:
+1. Opening greeting
+2. Top 2-3 anime news or recent releases (use your most recent knowledge)
+3. A spotlight anime recommendation with why it's great
+4. A surprising fun fact or trivia
+5. A brief call to action (ask listeners to talk back)
+6. Warm sign-off
+Output ONLY the script lines, one per line, no numbering, no extra text.`;
+    const text=await aiChat(prompt);
+    if(text&&text.length>100){
+      loadScript(text);
+      addMsg('system','AI script ready — going on air!');
+      setThinking(false);
+      return true;
+    }
+    throw new Error('Too short');
+  } catch(e){
+    console.warn('Script gen failed:',e);
+    loadScript(FALLBACKS[currentLang]||FALLBACKS.en);
+    addMsg('system','Using built-in script (AI not available).');
+    setThinking(false);
+    return true;
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  BROADCAST ENGINE
+// ════════════════════════════════════════════════════
+async function startBroadcast(){
+  if(!voicesLoaded){
+    const vv=synth.getVoices();
+    if(vv.length){voicesLoaded=true; lockVoiceForLang(currentLang);}
+    else {toast('Voices loading — please wait a moment','error');return;}
+  }
+  if(!lockedVoice) lockVoiceForLang(currentLang);
+
+  if(!sentences.length){
+    setStatus('Generating…','thinking');
+    const ok=await generateScript();
+    if(!ok) return;
+  }
+  if(sentIdx>=sentences.length) sentIdx=0;
+
+  isBroadcasting=true; isPaused=false;
+  broadcastStartTime=Date.now(); pausedElapsed=0;
+  setOnAirUI('live');
+  setStatus('ON AIR','live');
+  setAvatarStatus('Broadcasting live…');
+  progressTrack.style.display='block';
+  flashStatic();
+
+  elapsedTimer=setInterval(()=>{if(!isPaused&&isBroadcasting)updateProgress();},1000);
+  await speakLines();
+}
+
+async function speakLines(){
+  while(sentIdx<sentences.length){
+    if(!isBroadcasting) break;
+    if(isPaused){await new Promise(r=>setTimeout(r,150));continue;}
+
+    const line=sentences[sentIdx].trim();
+    if(line){
+      highlightLine(sentIdx);
+      updateProgress();
+      await speakOne(line);
+      stats.lines++;
+      updateStatsDisplay();
+    }
+    if(!isBroadcasting) break;
+    sentIdx++;
+
+    if(!isPaused&&isBroadcasting){
+      // Breathing pause between lines — longer after longer sentences
+      const words=(line.match(/\S+/g)||[]).length;
+      await new Promise(r=>setTimeout(r,words<6?900:500));
+    }
+  }
+  if(isBroadcasting) finishBroadcast();
+}
+
+function finishBroadcast(){
+  isBroadcasting=false; isPaused=false;
+  clearInterval(elapsedTimer);
+  stopTTS();
+  setOnAirUI('off');
+  setStatus('FINISHED');
+  setSpeaking(false);
+  setAvatarStatus('Show complete!');
+  setSubtitle('Broadcast complete! Hit GO ON AIR for a new show.',true,true);
+  addMsg('host','That\'s a wrap! Thanks for listening to SensyCilva Anime Radio! ✨');
+  flashStatic();
+  toast('Broadcast finished!','success');
+  setMood('default');
+}
+
+function hardStop(){
+  isBroadcasting=false; isPaused=false;
+  clearInterval(elapsedTimer);
+  stopTTS();
+  setOnAirUI('off');
+  setStatus('STOPPED');
+  setSpeaking(false);
+  setAvatarStatus('Stopped.');
+  setSubtitle('Stopped.', true, true);
+  pausedElapsed=0;
+  setMood('default');
+}
+
+function togglePause(){
+  if(!isBroadcasting) return;
+  if(isPaused){
+    isPaused=false;
+    broadcastStartTime=Date.now();
+    setOnAirUI('live');
+    setStatus('ON AIR','live');
+    setAvatarStatus('Broadcasting live…');
+    setSpeaking(true);
+    setSubtitle('Back on air!',false,true);
+    addMsg('system','Broadcast resumed.');
+  } else {
+    isPaused=true;
+    pausedElapsed+=(Date.now()-broadcastStartTime);
+    stopTTS();
+    setOnAirUI('paused');
+    setStatus('PAUSED');
+    setAvatarStatus('Paused.');
+    setSpeaking(false);
+    setSubtitle('Broadcast paused. Press ▶ to continue.',true,true);
+    addMsg('system','Broadcast paused.');
+  }
+}
+
+onAirBtn.addEventListener('click',async()=>{
+  if(isBroadcasting){
+    hardStop();
+    sentences=[]; sentIdx=0;
+    progressTrack.style.display='none';
+    scriptPreview.textContent='Script cleared. Click GO ON AIR to start fresh.';
+  } else if(isPaused){
+    togglePause();
+  } else {
+    sentences=[]; sentIdx=0;
+    await startBroadcast();
+  }
+});
+pauseBtn.addEventListener('click',togglePause);
+
+// ════════════════════════════════════════════════════
+//  CUSTOM SCRIPT
+// ════════════════════════════════════════════════════
+customToggleBtn.addEventListener('click',()=>{
+  const open=customArea.style.display==='flex';
+  customArea.style.display=open?'none':'flex';
+  customToggleBtn.textContent=open?'✏ Script':'✖ Close';
+});
+cancelCustomBtn.addEventListener('click',()=>{
+  customArea.style.display='none';
+  customToggleBtn.textContent='✏ Script';
+});
+useCustomBtn.addEventListener('click',()=>{
+  const t=customText.value.trim();
+  if(!t){toast('Paste some text first!','error');return;}
+  if(isBroadcasting) hardStop();
+  loadScript(t);
+  customArea.style.display='none';
+  customToggleBtn.textContent='✏ Script';
+  addMsg('system','Custom script loaded — hit GO ON AIR!');
+  toast('Custom script ready!','success');
+});
+
+// ════════════════════════════════════════════════════
+//  SLIDERS
+// ════════════════════════════════════════════════════
+rateSlider.addEventListener('input',()=>{ rateVal.textContent=parseFloat(rateSlider.value).toFixed(2); store('sensy_rate',rateSlider.value); });
+volSlider.addEventListener('input',()=>{ volVal.textContent=parseFloat(volSlider.value).toFixed(2); store('sensy_vol',volSlider.value); });
+pitchSlider.addEventListener('input',()=>{ pitchVal.textContent=parseFloat(pitchSlider.value).toFixed(2); store('sensy_pitch',pitchSlider.value); });
+rateSlider.value=load('sensy_rate','0.88'); rateVal.textContent=parseFloat(rateSlider.value).toFixed(2);
+volSlider.value=load('sensy_vol','1'); volVal.textContent=parseFloat(volSlider.value).toFixed(2);
+pitchSlider.value=load('sensy_pitch','0.95'); pitchVal.textContent=parseFloat(pitchSlider.value).toFixed(2);
+
+// ════════════════════════════════════════════════════
+//  YOUTUBE MUSIC
+// ════════════════════════════════════════════════════
+function loadYTApi(){
+  if(ytApiPromise) return ytApiPromise;
+  ytApiPromise=new Promise(res=>{
+    if(window.YT&&window.YT.Player){ytApiLoaded=true;res();return;}
+    const prev=window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady=()=>{if(typeof prev==='function')prev();ytApiLoaded=true;res();};
+    const s=document.createElement('script');
+    s.src='https://www.youtube.com/iframe_api';
+    document.head.appendChild(s);
+  });
+  return ytApiPromise;
+}
+loadYTApi();
+
+function createYTPlayer(videoId){
+  if(ytPlayer){try{ytPlayer.destroy();}catch(e){}ytPlayer=null;ytReady=false;}
+  ytEmbed.style.display='block';
+  ytFrame.src='';
+  ytPlayer=new YT.Player('ytFrame',{
+    videoId,
+    playerVars:{autoplay:1,controls:1,modestbranding:1,rel:0},
+    events:{
+      onReady(e){ytReady=true;e.target.setVolume(70);e.target.playVideo();musicPlaying=true;mPlayPause.textContent='⏸ Pause';vinylDisc.classList.add('spinning');},
+      onStateChange(e){
+        if(e.data===YT.PlayerState.PLAYING){musicPlaying=true;mPlayPause.textContent='⏸ Pause';vinylDisc.classList.add('spinning');}
+        else if(e.data===YT.PlayerState.PAUSED){musicPlaying=false;mPlayPause.textContent='▶ Play';vinylDisc.classList.remove('spinning');}
+        else if(e.data===YT.PlayerState.ENDED){
+          musicPlaying=false;mPlayPause.textContent='▶ Play';vinylDisc.classList.remove('spinning');
+          if(queueIdx<songQueue.length-1){queueIdx++;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);}
+        }
+      },
+      onError(e){
+        const msgs={2:'Invalid video ID',5:'HTML5 error',100:'Not found',101:'Embedding disabled',150:'Embedding disabled'};
+        musicWarn.textContent=msgs[e.data]||'Playback error';
+      }
+    }
+  });
+  if(progressTick) clearInterval(progressTick);
+  progressTick=setInterval(()=>{
+    if(ytPlayer&&ytReady&&ytPlayer.getCurrentTime){
+      const t=Math.floor(ytPlayer.getCurrentTime());
+      trackTime.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60;
+    }
+  },1000);
+}
+
+function playById(id,title,channel){
+  trackName.textContent=title||'Loading…';
+  trackChannel.textContent=channel||'';
+  if(ytReady&&ytPlayer&&ytPlayer.loadVideoById){
+    ytPlayer.loadVideoById(id);
+    ytEmbed.style.display='block';
+    vinylDisc.classList.add('spinning');
+  } else {
+    loadYTApi().then(()=>createYTPlayer(id));
+  }
+}
+
+async function searchYT(query,max=5){
+  const k=apiKey||load('yt_api_key','');
+  if(!k) throw new Error('No YouTube API key. Add one in the Music Player section.');
+  const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=${max}&q=${encodeURIComponent(query)}&key=${k}`;
+  const r=await fetch(url);
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message||'YouTube API error');
+  return (d.items||[]).filter(i=>i.id?.videoId).map(i=>({
+    id:i.id.videoId,
+    title:i.snippet.title,
+    channel:i.snippet.channelTitle,
+    thumb:i.snippet.thumbnails?.default?.url
+  }));
+}
+
+async function playSong(query){
+  await loadYTApi();
+  const results=await searchYT(query,5);
+  if(!results.length) return{success:false,msg:'No results found.'};
+  results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);});
+  queueIdx=songQueue.findIndex(s=>s.id===results[0].id);
+  playById(results[0].id,results[0].title,results[0].channel);
+  showSearchResults(results);
+  stats.songs++;
+  updateStatsDisplay();
+  return{success:true,title:results[0].title,channel:results[0].channel};
+}
+
+function showSearchResults(results){
+  searchResults.innerHTML='';
+  results.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='sr-item';
+    div.innerHTML=`${r.thumb?`<img class="sr-thumb" src="${esc(r.thumb)}" alt="" loading="lazy">`:''}
+      <div class="sr-meta"><div class="t">${esc(r.title)}</div><div class="c">${esc(r.channel)}</div></div>
+      <div class="sr-play-btn">▶</div>`;
+    div.addEventListener('click',()=>{
+      queueIdx=songQueue.findIndex(s=>s.id===r.id);
+      if(queueIdx<0){songQueue.push(r);queueIdx=songQueue.length-1;}
+      playById(r.id,r.title,r.channel);
+      addMsg('song',r.title+' — '+r.channel);
+      toast('Now playing: '+r.title,'success');
+    });
+    searchResults.appendChild(div);
+  });
+}
+
+async function nextSong(){
+  if(queueIdx<songQueue.length-1){
+    queueIdx++;
+    playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);
+    stats.songs++;updateStatsDisplay();
+    return{success:true,title:songQueue[queueIdx].title};
+  }
+  try{
+    const results=await searchYT('popular anime OST',3);
+    if(results.length){
+      results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);});
+      queueIdx=songQueue.length-results.length;
+      playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);
+      stats.songs++;updateStatsDisplay();
+      return{success:true,title:songQueue[queueIdx].title};
+    }
+  }catch(e){}
+  return{success:false,msg:'Queue empty.'};
+}
+
+apiKey=load('yt_api_key','');
+ytKey.value=apiKey;
+keyStatus.textContent=apiKey?'● saved':'○ no key';
+saveKeyBtn.addEventListener('click',()=>{
+  const k=ytKey.value.trim();
+  store('yt_api_key',k||null);
+  apiKey=k;
+  keyStatus.textContent=k?'● saved':'○ cleared';
+  musicWarn.textContent='';
+  toast(k?'API key saved!':'API key cleared','success');
+});
+mPlayPause.addEventListener('click',()=>{
+  if(!ytPlayer||!ytReady){musicWarn.textContent='No track loaded.';return;}
+  musicPlaying?ytPlayer.pauseVideo():ytPlayer.playVideo();
+});
+mStop.addEventListener('click',()=>{
+  if(ytPlayer&&ytReady) ytPlayer.stopVideo();
+  musicPlaying=false;mPlayPause.textContent='▶ Play';vinylDisc.classList.remove('spinning');
+  trackName.textContent='Nothing playing';trackTime.textContent='0:00';
+  if(progressTick){clearInterval(progressTick);progressTick=null;}
+  ytEmbed.style.display='none';
+});
+mNext.addEventListener('click',async()=>{
+  const r=await nextSong();
+  if(r.success){addMsg('song',r.title);if(isBroadcasting&&!isPaused)await speakOneOff('Now playing: '+r.title);}
+  else{musicWarn.textContent=r.msg;toast(r.msg,'error');}
+});
+
+// ════════════════════════════════════════════════════
+//  ONE-OFF SPEAK (interrupts broadcast then resumes)
+// ════════════════════════════════════════════════════
+async function speakOneOff(text){
+  const wasOnAir=isBroadcasting&&!isPaused;
+  if(wasOnAir){isPaused=true;stopTTS();}
+  addMsg('host',text);
+  await speakOne(text);
+  if(wasOnAir){
+    isPaused=false;
+    setStatus('ON AIR','live');
+    setSpeaking(true);
+    setAvatarStatus('Broadcasting live…');
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  AI CHAT HANDLER
+// ════════════════════════════════════════════════════
+async function handleUserInput(msg){
+  msg=msg.trim();
+  if(!msg) return;
+  userInput.value='';
+  addMsg('user',msg);
+  stats.msgs++;
+  updateStatsDisplay();
+
+  const wasBroadcasting=isBroadcasting&&!isPaused;
+  if(wasBroadcasting){
+    isPaused=true; stopTTS();
+    setStatus('PAUSED','');
+    setSpeaking(false);
+    setAvatarStatus('Listening to you…');
+  }
+
+  setStatus('Thinking…','thinking');
+  setThinking(true);
+  setSubtitle('Sensy is thinking…',true,true);
+
+  const typingEl=addTypingIndicator();
+  let reply='';
+  let musicResult=null;
+
+  try{
+    await loadPuter();
+    const langName=currentLang==='hi'?'Hindi':currentLang==='te'?'Telugu':'English';
+    const currentSong=trackName.textContent!=='Nothing playing'?trackName.textContent:'none';
+
+    const intent=await aiChat(`You are Sensy, an enthusiastic anime radio host AI.
+User says: "${msg}"
+Currently playing: "${currentSong}"
+
+Classify intent and respond:
+- Play/search a song → respond ONLY: PLAY: <search query>
+- Next/skip song → respond ONLY: NEXT
+- Pause music → respond ONLY: PAUSE_MUSIC
+- Stop music → respond ONLY: STOP_MUSIC
+- Current song/artist info → respond ONLY: INFO: <question>
+- Anime question / news / recommend → respond ONLY: ANIME: <topic or question>
+- General chat → respond naturally as Sensy in ${langName}, 1-3 sentences, warm & fun.
+No asterisks, no actions, no stage directions in your response.`);
+
+    removeTypingIndicator();
+
+    if(intent.startsWith('PLAY:')){
+      const q=intent.replace(/^PLAY:\s*/,'').trim();
+      setSubtitle('Searching: '+q,true,true);
+      try{
+        const r=await playSong(q);
+        reply=r.success?`Playing "${r.title}" for you! Great taste!`:`Couldn't find "${q}" — try a different title.`;
+        if(r.success)addMsg('song',r.title+' — '+r.channel);
+      }catch(e){
+        reply=e.message||'Couldn\'t play that. Is your YouTube API key saved?';
+      }
+    } else if(intent==='NEXT'){
+      const r=await nextSong();
+      reply=r.success?`Skipping ahead — now playing: ${r.title}!`:'Nothing else in the queue!';
+      if(r.success)addMsg('song',r.title);
+    } else if(intent==='PAUSE_MUSIC'){
+      if(ytPlayer&&ytReady&&musicPlaying){ytPlayer.pauseVideo();reply='Music paused!';}
+      else reply='Music is already paused.';
+    } else if(intent==='STOP_MUSIC'){
+      mStop.click(); reply='Music stopped!';
+    } else if(intent.startsWith('INFO:')){
+      const q=intent.replace(/^INFO:\s*/,'').trim();
+      const infoTxt=await aiChat(`You're a friendly radio host. About "${currentSong!=='none'?currentSong:'this topic'}", answer: ${q}. 2-3 sentences, conversational, no asterisks.`);
+      reply=infoTxt||"I couldn't find info on that!";
+    } else if(intent.startsWith('ANIME:')){
+      const q=intent.replace(/^ANIME:\s*/,'').trim();
+      setSubtitle('Looking up: '+q+'…',true,true);
+      const animeReply=await aiChat(`You are Sensy, an anime radio host. Answer this about anime: "${q}"
+Give an interesting, accurate answer in 2-4 sentences. Conversational radio tone. No asterisks or stage directions.
+Language: ${langName}.`);
+      reply=animeReply||`I'd love to tell you about "${q}" but I'm drawing a blank — ask me something else!`;
+    } else {
+      reply=intent||"That's interesting! What else can I do for you?";
+    }
+  }catch(e){
+    removeTypingIndicator();
+    console.warn('AI error, using fallback:',e);
+    // Smart keyword fallback
+    const low=msg.toLowerCase();
+    if((/\b(play|queue|put on)\b/.test(low))&&!(/\b(pause|stop)\b/.test(low))){
+      const match=msg.match(/(?:play|queue|put on)\s+(.+)/i);
+      if(match){
+        try{
+          const r=await playSong(match[1]);
+          if(r.success){reply=`Playing "${r.title}"!`;addMsg('song',r.title+' — '+r.channel);}
+          else reply=`Couldn't find "${match[1]}".`;
+        }catch(err){reply=err.message||'Need YouTube API key.';}
+      } else reply='What song would you like to play?';
+    } else if(/\b(next|skip)\b/.test(low)){
+      const r=await nextSong();
+      reply=r.success?`Now playing: ${r.title}`:'Queue is empty!';
+      if(r.success)addMsg('song',r.title);
+    } else if(/\bpause\b/.test(low)){
+      if(ytPlayer&&ytReady&&musicPlaying){ytPlayer.pauseVideo();reply='Paused!';}
+      else reply='Nothing is playing.';
+    } else if(/\bstop\b/.test(low)){
+      mStop.click();reply='Stopped!';
+    } else {
+      const animeKw=['anime','manga','naruto','attack','titan','demon','slayer','jujutsu','one piece','dragon','frieren','genshin','bleach','fairy','hero','academia'];
+      if(animeKw.some(k=>low.includes(k))){
+        reply='That\'s a great anime topic! AI is offline right now but I\'d love to chat about it — try again in a moment!';
+      } else {
+        reply="I'm here! Ask me about anime, request a song, or hit GO ON AIR to start the show!";
+      }
+    }
+  }
+
+  reply=(reply||'').replace(/<[^>]*>/g,'').replace(/\*[^*]*\*/g,'').trim();
+  if(!reply) reply="What else can I help with?";
+
+  addMsg('host',reply);
+  setStatus('Speaking…','live');
+  setThinking(false);
+  setAvatarStatus('Responding…');
+  await speakOne(reply);
+
+  if(wasBroadcasting&&isBroadcasting){
+    isPaused=false;
+    setStatus('ON AIR','live');
+    setSpeaking(true);
+    setAvatarStatus('Broadcasting live…');
+    setSubtitle('Resuming broadcast…',false,true);
+    addMsg('system','Resuming broadcast…');
+  } else {
+    setStatus('READY');
+    setSpeaking(false);
+    setAvatarStatus('Ready to broadcast');
+    setSubtitle('Ask me anything, or hit GO ON AIR.',true,true);
+  }
+}
+
+sendBtn.addEventListener('click',()=>handleUserInput(userInput.value));
+userInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendBtn.click();});
+
+// ════════════════════════════════════════════════════
+//  SPEECH RECOGNITION
+// ════════════════════════════════════════════════════
+if(SR){
+  recognition=new SR();
+  recognition.continuous=false;
+  recognition.interimResults=true;
+
+  recognition.onstart=()=>{
+    isListening=true;
+    micBtn.classList.add('live');micBtn.textContent='🔴';
+    transcriptRow.className='transcript-row listening';
+    transcriptRow.textContent='Listening…';
+    if(isBroadcasting&&!isPaused){isPaused=true;stopTTS();setSpeaking(false);}
+    window._oscSetAmp&&window._oscSetAmp(0.4,'#b06fff');
+  };
+  recognition.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal)final+=t; else interim+=t;
+    }
+    if(final){
+      transcriptRow.className='transcript-row final';
+      transcriptRow.textContent='✓ '+final;
+      userInput.value=final;
+      setTimeout(()=>sendBtn.click(),300);
+    } else if(interim){
+      transcriptRow.textContent='🎤 '+interim;
+    }
+  };
+  recognition.onerror=(e)=>{
+    const msgs={'not-allowed':'Mic access denied.','no-speech':'Nothing heard.','network':'Network issue.','audio-capture':'No mic found.'};
+    transcriptRow.className='transcript-row';
+    transcriptRow.textContent=msgs[e.error]||'Error: '+e.error;
+    micBtn.classList.remove('live');micBtn.textContent='🎤';
+    isListening=false;
+    window._oscSetAmp&&window._oscSetAmp(isBroadcasting&&!isPaused?0.85:0);
+  };
+  recognition.onend=()=>{
+    micBtn.classList.remove('live');micBtn.textContent='🎤';
+    isListening=false;
+    if(!transcriptRow.textContent.startsWith('✓')&&!transcriptRow.textContent.includes('denied')){
+      transcriptRow.className='transcript-row';
+      transcriptRow.textContent='Mic off — type or click 🎤';
+    }
+  };
+
+  micBtn.addEventListener('click',()=>{
+    if(isListening){recognition.stop();return;}
+    recognition.lang=currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US';
+    try{recognition.start();}catch(e){transcriptRow.textContent='Could not start mic.';}
+  });
+} else {
+  micBtn.disabled=true;
+  transcriptRow.textContent='Speech recognition not available — please type.';
+}
+
+// ════════════════════════════════════════════════════
+//  SESSION TIMER (mini stats bar)
+// ════════════════════════════════════════════════════
+setInterval(()=>{
+  const sec=Math.floor((Date.now()-stats.sessionStart)/1000);
+  const m=Math.floor(sec/60),s=sec%60;
+  statsTime.textContent=m+':'+(s<10?'0':'')+s;
+},1000);
+
+// ════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════
+const savedLang=load('sensy_lang','en');
+setChannel(savedLang);
+setMood('default');
+loadPuter().catch(()=>{});
+
+// Restore slider values
+[
+  [rateSlider,rateVal,'sensy_rate','0.88'],
+  [volSlider,volVal,'sensy_vol','1'],
+  [pitchSlider,pitchVal,'sensy_pitch','0.95'],
+].forEach(([slider,display,key,def])=>{
+  slider.value=load(key,def);
+  display.textContent=parseFloat(slider.value).toFixed(2);
+});
+
+console.log('%cSensyCilva Radio 📻','color:#00ffe7;font-size:20px;font-weight:bold;');
+console.log('%cAI anime radio host system loaded!','color:#b06fff;');
+
+})();
+</script>
+
+
+</body>
+</html>

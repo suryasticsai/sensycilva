@@ -1,3 +1,4 @@
+<!-- Claude -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -223,7 +224,6 @@
 
     <!-- Radio Tab -->
     <div id="tab-radio" class="tab-content active">
-        <!-- (same as before – unchanged) -->
         <div class="lang-selector">
             <label for="langSelect">🌐 Script Language</label>
             <select id="langSelect">
@@ -348,10 +348,29 @@
         const ytPlayerContainer = document.getElementById('ytPlayerContainer');
 
         // ============================================================
-        //  YOUTUBE API KEY MANAGEMENT (localStorage)
+        //  YOUTUBE API KEY MANAGEMENT
+        //  NOTE: localStorage does not work inside sandboxed iframes
+        //  (e.g. Claude.ai artifacts). We try localStorage first and
+        //  fall back to an in-memory variable for the session so the
+        //  app still works either way.
         // ============================================================
+        let inMemoryApiKey = '';
+        let storageAvailable = true;
+        try {
+            localStorage.setItem('__yt_test__', '1');
+            localStorage.removeItem('__yt_test__');
+        } catch (e) {
+            storageAvailable = false;
+            console.warn('localStorage unavailable — falling back to in-memory key storage for this session only.');
+        }
+
         function loadApiKey() {
-            const key = localStorage.getItem('yt_api_key') || '';
+            let key = '';
+            if (storageAvailable) {
+                key = localStorage.getItem('yt_api_key') || '';
+            } else {
+                key = inMemoryApiKey;
+            }
             ytApiKeyInput.value = key;
             updateKeyStatus(key);
             return key;
@@ -359,7 +378,7 @@
 
         function updateKeyStatus(key) {
             if (key) {
-                ytKeyStatus.textContent = '✅ Key loaded';
+                ytKeyStatus.textContent = storageAvailable ? '✅ Key loaded' : '✅ Key set (this session only)';
                 ytKeyStatus.style.color = '#4cd964';
             } else {
                 ytKeyStatus.textContent = '⭕ No key set';
@@ -370,13 +389,25 @@
         ytApiKeySave.addEventListener('click', () => {
             const key = ytApiKeyInput.value.trim();
             if (key) {
-                localStorage.setItem('yt_api_key', key);
+                if (storageAvailable) {
+                    localStorage.setItem('yt_api_key', key);
+                } else {
+                    inMemoryApiKey = key;
+                }
+                currentApiKey = key;
                 updateKeyStatus(key);
                 ytApiKeyInput.value = key;
-                musicWarning.textContent = '✅ API key saved. You can now search.';
+                musicWarning.textContent = storageAvailable
+                    ? '✅ API key saved. You can now search.'
+                    : '✅ Key set for this session (not persisted — storage unavailable here).';
                 setTimeout(() => { musicWarning.textContent = ''; }, 3000);
             } else {
-                localStorage.removeItem('yt_api_key');
+                if (storageAvailable) {
+                    localStorage.removeItem('yt_api_key');
+                } else {
+                    inMemoryApiKey = '';
+                }
+                currentApiKey = '';
                 updateKeyStatus('');
                 musicWarning.textContent = '⛔ Key removed.';
                 setTimeout(() => { musicWarning.textContent = ''; }, 2000);
@@ -442,19 +473,18 @@
                 results.forEach(song => {
                     const div = document.createElement('div');
                     div.className = 'result-item';
-                    div.innerHTML = `
-                        <span class="title">${song.title} – ${song.channel}</span>
-                        <button class="play-btn" data-id="${song.id}" data-title="${song.title}">▶ Play</button>
-                    `;
+                    const titleSpan = document.createElement('span');
+                    titleSpan.className = 'title';
+                    titleSpan.textContent = `${song.title} – ${song.channel}`;
+                    const playBtn = document.createElement('button');
+                    playBtn.className = 'play-btn';
+                    playBtn.textContent = '▶ Play';
+                    playBtn.dataset.id = song.id;
+                    playBtn.dataset.title = song.title;
+                    playBtn.addEventListener('click', () => playYouTubeVideo(song.id, song.title));
+                    div.appendChild(titleSpan);
+                    div.appendChild(playBtn);
                     musicResults.appendChild(div);
-                });
-                // Attach play events
-                document.querySelectorAll('.music-results .play-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const videoId = this.dataset.id;
-                        const title = this.dataset.title;
-                        playYouTubeVideo(videoId, title);
-                    });
                 });
             } catch (err) {
                 musicResults.innerHTML = `<div class="system error" style="color:#ff6a5a;">❌ ${err.message}</div>`;
@@ -471,29 +501,52 @@
         });
 
         // ============================================================
-        //  YOUTUBE PLAYER INITIALIZATION
+        //  YOUTUBE PLAYER INITIALIZATION (FIXED)
         // ============================================================
-        // Load the IFrame API script
+        // Previously this resolved on script.onload, which only means
+        // the *file* downloaded — not that YT.Player exists yet. The
+        // IFrame API finishes initializing asynchronously afterward
+        // and calls window.onYouTubeIframeAPIReady itself. We now wait
+        // for that real signal, and cache the promise so we never
+        // attach the script tag more than once.
+        let ytApiPromise = null;
+
         function loadYouTubeAPI() {
-            if (typeof YT !== 'undefined' && YT.Player) {
-                // API already loaded
-                return Promise.resolve();
-            }
-            return new Promise((resolve) => {
+            if (ytApiPromise) return ytApiPromise;
+
+            ytApiPromise = new Promise((resolve) => {
+                if (window.YT && window.YT.Player) {
+                    resolve();
+                    return;
+                }
+                const previousCallback = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = () => {
+                    if (typeof previousCallback === 'function') previousCallback();
+                    resolve();
+                };
                 const script = document.createElement('script');
                 script.src = 'https://www.youtube.com/iframe_api';
-                script.onload = resolve;
+                script.onerror = () => {
+                    console.error('Failed to load YouTube IFrame API script.');
+                };
                 document.head.appendChild(script);
-                // The API will call window.onYouTubeIframeAPIReady
-                window.onYouTubeIframeAPIReady = resolve;
+                // NOTE: no script.onload resolve here on purpose —
+                // we only resolve via onYouTubeIframeAPIReady above.
             });
+
+            return ytApiPromise;
         }
+
+        // Kick off loading as soon as the page runs, so the API is
+        // likely ready well before the user clicks "Play".
+        loadYouTubeAPI();
 
         // Create the player when API is ready
         function createPlayer(videoId) {
             if (ytPlayer) {
                 ytPlayer.destroy();
                 ytPlayer = null;
+                ytPlayerReady = false;
             }
             // Show the container
             ytPlayerContainer.style.display = 'block';
@@ -555,7 +608,6 @@
                 musicPlayPause.textContent = '▶️ Play';
                 nowPlaying.textContent = 'Finished';
                 musicProgress.textContent = '0:00';
-                // Hide player after a while? We can keep it.
             }
         }
 
@@ -595,17 +647,17 @@
             musicErrorDetail.textContent = '';
 
             try {
-                // Ensure API is loaded
+                // Ensure API is loaded (resolves instantly if already loaded)
                 await loadYouTubeAPI();
                 // Create player (or load new video)
-                if (ytPlayer && ytPlayer.loadVideoById) {
-                    // If player exists, load new video
+                if (ytPlayer && ytPlayerReady && ytPlayer.loadVideoById) {
                     ytPlayer.loadVideoById(videoId);
                 } else {
                     createPlayer(videoId);
                 }
                 nowPlaying.textContent = `▶ ${title}`;
-                // The play will start automatically via autoplay.
+                // The play will start automatically via autoplay,
+                // or in onPlayerReady for a brand-new player.
             } catch (err) {
                 console.error('YouTube load error:', err);
                 musicWarning.textContent = '⚠️ Failed to load YouTube player.';
@@ -643,8 +695,6 @@
             musicPlayPause.textContent = '▶️ Play';
             nowPlaying.textContent = 'No song playing';
             musicProgress.textContent = '0:00';
-            // Optionally hide player? We'll keep it but it will be blank.
-            // Clear progress interval
             if (playerProgressInterval) {
                 clearInterval(playerProgressInterval);
                 playerProgressInterval = null;
@@ -664,11 +714,12 @@
         });
 
         // ============================================================
-        //  RADIO HOST CODE (FULL – same as before)
+        //  RADIO HOST CODE
         // ============================================================
-        // (Insert your full radio host code here – it's long, but it's the same as the previous version)
-        // For brevity, I'll include a placeholder that shows it's present.
-        console.log('Radio host functionality is active (full code from previous version).');
+        // Your full radio-host script generation, TTS, chat, and SFX
+        // logic goes here exactly as it was in your working version —
+        // nothing in this section needed to change for the YouTube fix.
+        console.log('Radio host functionality placeholder — paste your existing radio host code here.');
 
         // ============================================================
         //  BACKGROUND MUSIC – using reliable public domain track
@@ -712,9 +763,9 @@
         });
 
         // ============================================================
-        //  SFX AND FILLER (unchanged – same as previous)
+        //  SFX AND FILLER
         // ============================================================
-        // (Keep your SFX and filler code as before – it's long, so I'll assume it's present)
+        // Your existing SFX/filler code goes here unchanged.
 
         console.log('🎙️ SensyCilva – Studio Radio with YouTube Music loaded.');
         console.log('🔑 Enter your YouTube API key in the Music tab.');

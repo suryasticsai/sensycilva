@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SensyCilva — Multi‑Channel Anime Radio</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📻</text></svg>" />
+<style>
+  :root {
+    --bg: #0d0b14;
+    --panel: #161320;
+    --panel-2: #1d1929;
+    --line: #332b47;
+    --paper: #f5ede0;
+    --dim: #9a8fb0;
+    --dimmer: #6a6080;
+    --signal: #ff4d6d;
+    --signal-dim: #7a2a3a;
+    --amber: #ffb84d;
+    --teal: #5ee6c8;
+    --mono: 'SF Mono', 'JetBrains Mono', 'Courier New', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+  body {
+    background: radial-gradient(ellipse at 20% -10%, #2a1f3a 0%, transparent 55%),
+                radial-gradient(ellipse at 100% 110%, #1f2a3a 0%, transparent 50%),
+                var(--bg);
+    color: var(--paper);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .wrap { width:100%; max-width:880px; }
+
+  .station-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+  .station-id { display:flex; flex-direction:column; gap:2px; }
+  .station-id .freq {
+    font-family: var(--mono);
+    font-size:13px;
+    letter-spacing:0.18em;
+    color: var(--teal);
+    text-transform:uppercase;
+  }
+  h1 {
+    font-size:34px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    line-height:1;
+    text-transform:uppercase;
+    font-stretch:condensed;
+  }
+  h1 .accent { color: var(--signal); }
+  .tagline { color:var(--dim); font-size:13px; margin-top:4px; }
+
+  .on-air {
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase;
+    background:var(--panel); border:1px solid var(--line); border-radius:999px;
+    padding:8px 16px 8px 12px; color:var(--dim);
+  }
+  .on-air .lamp { width:9px; height:9px; border-radius:50%; background:var(--dimmer); box-shadow:0 0 0 rgba(255,77,109,0); transition:.25s; }
+  .on-air.live { color:var(--signal); border-color:var(--signal-dim); }
+  .on-air.live .lamp { background:var(--signal); box-shadow:0 0 10px 2px rgba(255,77,109,.55); animation:lamp-pulse 1.1s infinite; }
+  @keyframes lamp-pulse { 0%,100%{ opacity:1; } 50%{ opacity:.45; } }
+
+  .dial {
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:14px 18px;
+    margin-bottom:18px;
+    overflow:hidden;
+  }
+  .dial::before {
+    content:'';
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(180deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+  }
+  .dial-track { position:relative; height:34px; display:flex; align-items:center; }
+  .dial-ticks { position:absolute; inset:0; display:flex; justify-content:space-between; align-items:center; opacity:.55; }
+  .dial-ticks span { width:1px; height:14px; background:var(--dimmer); }
+  .dial-ticks span:nth-child(5n+1) { height:20px; background:var(--dim); }
+  .dial-needle {
+    position:absolute; top:0; bottom:0; width:2px; background:var(--amber);
+    box-shadow:0 0 8px 1px rgba(255,184,77,.6);
+    left:18%;
+    transition:left .6s cubic-bezier(.4,0,.2,1);
+  }
+  .dial-readout { display:flex; justify-content:space-between; margin-top:8px; font-family:var(--mono); font-size:11px; color:var(--dimmer); letter-spacing:.08em; }
+
+  .presets {
+    display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;
+  }
+  .preset-btn {
+    background:var(--panel-2); border:1px solid var(--line); color:var(--dim);
+    border-radius:999px; padding:6px 18px; font-size:13px; font-weight:600; cursor:pointer; transition:.15s;
+  }
+  .preset-btn:hover:not(.active) { border-color:var(--teal); color:var(--paper); }
+  .preset-btn.active { border-color:var(--teal); color:var(--teal); background:rgba(94,230,200,0.1); }
+  .preset-btn .indicator { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+  .preset-btn[data-channel="en"] .indicator { background:#ff4d6d; }
+  .preset-btn[data-channel="te"] .indicator { background:#5ee6c8; }
+  .preset-btn[data-channel="hi"] .indicator { background:#ffb84d; }
+
+  .panel {
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .panel h2 {
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:var(--dimmer);
+    margin-bottom:12px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel h2::after { content:''; flex:1; height:1px; background:var(--line); }
+
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  button { font-family:inherit; cursor:pointer; border-radius:999px; transition:.15s; }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+
+  .btn {
+    background:var(--panel-2); border:1px solid var(--line); color:var(--paper);
+    padding:10px 18px; font-weight:600; font-size:13px;
+  }
+  .btn:hover:not(:disabled) { border-color:var(--dim); background:#241f33; }
+  .btn.primary { background:var(--signal); border-color:var(--signal); color:#1a0a10; }
+  .btn.primary:hover:not(:disabled) { background:#ff6b85; }
+  .btn.ghost { background:transparent; }
+  .btn.teal { border-color:var(--teal); color:var(--teal); }
+  .btn.teal:hover:not(:disabled) { background:rgba(94,230,200,.1); }
+  .btn.amber { border-color:var(--amber); color:var(--amber); }
+  .btn.amber:hover:not(:disabled) { background:rgba(255,184,77,.1); }
+  .btn.danger { border-color:var(--signal-dim); color:var(--signal); }
+  .btn.danger:hover:not(:disabled) { background:rgba(255,77,109,.1); }
+  .btn.small { padding:6px 14px; font-size:12px; }
+  .icon-btn { min-width:44px; padding:10px; font-size:17px; background:var(--panel-2); border:1px solid var(--line); color:var(--paper); }
+  .icon-btn:hover:not(:disabled) { border-color:var(--dim); }
+  .icon-btn.live { background:var(--signal); border-color:var(--signal); color:#1a0a10; }
+
+  select, input[type=text] {
+    background:#0b0a12; border:1px solid var(--line); border-radius:999px;
+    color:var(--paper); font-family:inherit; font-size:13px; padding:8px 16px; outline:none;
+  }
+  select:focus, input[type=text]:focus { border-color:var(--teal); }
+  label.field { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--dim); }
+  input[type=range] { width:90px; accent-color:var(--teal); }
+  .val { color:var(--teal); font-family:var(--mono); font-size:12px; min-width:32px; }
+  .checkbox { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--dim); cursor:pointer; }
+  .checkbox input { accent-color:var(--teal); width:15px; height:15px; cursor:pointer; }
+
+  .status { font-family:var(--mono); font-size:12px; color:var(--teal); min-height:18px; margin:10px 0; letter-spacing:.02em; }
+  .status.thinking { color:var(--amber); animation:fade-pulse 1s infinite; }
+  .status.error { color:var(--signal); }
+  .status.warning { color:var(--amber); }
+
+  @keyframes fade-pulse { 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+
+  .script-box {
+    background:#0b0a12; border:1px solid var(--line); border-radius:14px;
+    padding:18px; min-height:240px; max-height:360px; overflow-y:auto;
+    white-space:pre-wrap; font-size:15px; line-height:1.75; color:var(--paper);
+  }
+  .script-box .empty { color:var(--dimmer); font-style:italic; }
+
+  .custom-area { margin-top:12px; display:none; flex-direction:column; gap:10px; }
+  .custom-area textarea {
+    background:#0b0a12; border:1px solid var(--line); border-radius:12px; padding:14px;
+    color:var(--paper); font-size:14px; font-family:inherit; min-height:140px; resize:vertical; outline:none;
+  }
+  .custom-area textarea:focus { border-color:var(--teal); }
+
+  .yt-frame {
+    position:relative; width:100%; padding-bottom:56.25%;
+    margin:12px 0; background:#000; border-radius:14px; overflow:hidden; display:none;
+    border:1px solid var(--line);
+  }
+  .yt-frame iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .now-playing {
+    display:flex; align-items:center; gap:10px; font-size:13px; color:var(--amber);
+    background:#0b0a12; border:1px solid var(--line); border-radius:12px; padding:10px 14px; margin:10px 0;
+  }
+  .now-playing .label { color:var(--dimmer); font-family:var(--mono); font-size:11px; letter-spacing:.08em; }
+  .now-playing .progress { margin-left:auto; font-family:var(--mono); color:var(--teal); font-size:12px; }
+
+  .chat-log {
+    background:#0b0a12; border:1px solid var(--line); border-radius:14px;
+    padding:14px; max-height:200px; overflow-y:auto; margin-bottom:10px;
+    font-size:14px; line-height:1.65;
+  }
+  .chat-log > div { margin-bottom:6px; }
+  .chat-log .user { color:var(--teal); }
+  .chat-log .host { color:var(--paper); }
+  .chat-log .filler { color:var(--amber); font-style:italic; }
+  .chat-log .song { color:var(--amber); font-weight:700; }
+  .chat-log .action { color:var(--teal); font-style:italic; }
+
+  .waveform { display:flex; align-items:center; gap:3px; height:26px; margin-bottom:8px; justify-content:center; }
+  .waveform .bar { width:4px; border-radius:2px; background:var(--dimmer); height:6px; transition:height .1s; }
+  .waveform.active .bar { animation:wave 0.4s infinite alternate ease-in-out; background:var(--teal); }
+  .waveform.thinking .bar { animation:wave-think 0.6s infinite alternate ease-in-out; }
+  .waveform .bar:nth-child(1){ animation-delay:0s; } .waveform .bar:nth-child(2){ animation-delay:.1s; }
+  .waveform .bar:nth-child(3){ animation-delay:.2s; } .waveform .bar:nth-child(4){ animation-delay:.3s; }
+  .waveform .bar:nth-child(5){ animation-delay:.4s; } .waveform .bar:nth-child(6){ animation-delay:.5s; }
+  .waveform .bar:nth-child(7){ animation-delay:.6s; } .waveform .bar:nth-child(8){ animation-delay:.7s; }
+  @keyframes wave { 0%{ height:6px; background:var(--dimmer); } 100%{ height:24px; background:var(--teal); } }
+  @keyframes wave-think { 0%{ height:6px; background:#6a4a2a; } 100%{ height:24px; background:var(--amber); } }
+
+  .transcript {
+    background:#0b0a12; border:1px solid var(--line); border-radius:12px;
+    padding:10px 16px; min-height:32px; font-size:13px; font-style:italic; color:var(--dim);
+    margin-bottom:10px; transition:.2s;
+  }
+  .transcript.active { border-color:var(--teal); color:var(--teal); }
+  .transcript .final { color:var(--teal); font-style:normal; }
+  .transcript .error { color:var(--signal); font-style:normal; }
+  .transcript .thinking { color:var(--amber); animation:fade-pulse 1s infinite; }
+  .transcript .host-line { color:var(--paper); font-style:normal; }
+
+  .chat-input { display:flex; gap:8px; flex-wrap:wrap; }
+  .chat-input input[type=text] { flex:1; min-width:120px; }
+
+  .key-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .key-row input { flex:1; min-width:160px; }
+  .key-status { font-family:var(--mono); font-size:11px; color:var(--dimmer); }
+  .key-status.set { color:var(--teal); }
+  .hint { font-size:11px; color:var(--dimmer); margin-top:8px; font-style:italic; }
+  .warn-text { color:var(--signal); font-size:12px; margin-top:6px; }
+
+  .footer { text-align:center; font-size:11px; color:var(--dimmer); margin-top:8px; letter-spacing:.04em; }
+
+  @media (max-width:520px){
+    h1{ font-size:26px; }
+    .row label.field{ width:100%; }
+  }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--teal); outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="station-head">
+    <div class="station-id">
+      <div class="freq" id="freqReadout">FM 92.4 · SENSYCILVA NETWORK</div>
+      <h1>Sensy<span class="accent">Cilva</span> Radio</h1>
+      <div class="tagline" id="tagline">Anime broadcast, late‑night frequency · talk back any time</div>
+    </div>
+    <div class="on-air" id="onAirBadge"><span class="lamp"></span><span id="onAirText">STANDBY</span></div>
+  </div>
+
+  <!-- Channel presets -->
+  <div class="presets" id="presetContainer">
+    <button class="preset-btn active" data-channel="en"><span class="indicator"></span>English</button>
+    <button class="preset-btn" data-channel="te"><span class="indicator"></span>Telugu</button>
+    <button class="preset-btn" data-channel="hi"><span class="indicator"></span>Hindi</button>
+  </div>
+
+  <div class="dial">
+    <div class="dial-track">
+      <div class="dial-ticks" id="dialTicks"></div>
+      <div class="dial-needle" id="dialNeedle"></div>
+    </div>
+    <div class="dial-readout">
+      <span id="dialStateLeft">SCRIPT NOT LOADED</span>
+      <span id="dialStateRight">— : —</span>
+    </div>
+  </div>
+
+  <!-- Script panel -->
+  <div class="panel">
+    <h2>Broadcast script</h2>
+    <div class="row" style="margin-bottom:12px;">
+      <span id="puterStatus" style="font-size:11px;color:var(--teal);font-family:var(--mono);">⚡ AI ready</span>
+    </div>
+    <div class="row" style="margin-bottom:12px;">
+      <button class="btn primary" id="generateBtn">Generate script</button>
+      <button class="btn teal" id="playBtn" disabled>▶ Go live</button>
+      <button class="btn danger" id="stopBtn" disabled>■ Stop</button>
+      <button class="btn ghost" id="copyBtn" disabled>Copy</button>
+      <button class="btn amber" id="toggleCustomBtn">Paste your own</button>
+    </div>
+    <div class="status" id="status">Ready — generate a script to get on air.</div>
+    <div class="script-box" id="scriptBox"><span class="empty">Click "Generate script" to write tonight's show.</span></div>
+    <div class="custom-area" id="customArea">
+      <textarea id="customScriptText" placeholder="Paste your own script here…"></textarea>
+      <div class="row">
+        <button class="btn teal small" id="setCustomBtn">Use this script</button>
+        <button class="btn ghost small" id="cancelCustomBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voice panel -->
+  <div class="panel">
+    <h2>Voice & delivery</h2>
+    <div class="row">
+      <label class="field">Voice <select id="voiceSelect" style="max-width:220px;"></select></label>
+      <label class="field">Rate <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9"><span class="val" id="rateVal">0.90</span></label>
+      <label class="field">Pitch <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0"><span class="val" id="pitchVal">1.00</span></label>
+      <label class="field">Volume <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0"><span class="val" id="volumeVal">1.00</span></label>
+      <label class="checkbox"><input type="checkbox" id="randomizeToggle" checked> Randomize voice</label>
+      <label class="checkbox"><input type="checkbox" id="sfxToggle" checked> Sound effects</label>
+    </div>
+  </div>
+
+  <!-- Now playing / YouTube -->
+  <div class="panel">
+    <h2>Now playing</h2>
+    <div class="key-row">
+      <input type="text" id="ytApiKeyInput" placeholder="YouTube Data API key" />
+      <button class="btn small" id="ytApiKeySave">Save key</button>
+      <span class="key-status" id="ytKeyStatus">Not set</span>
+    </div>
+    <div class="hint">Saved only for this session. Ask the host to "play &lt;song name&gt;" in the chat below.</div>
+    <div class="yt-frame" id="ytPlayerContainer"><div id="ytPlayer"></div></div>
+    <div class="now-playing">
+      <span class="label">TRACK</span>
+      <span id="nowPlayingInfo">Nothing queued</span>
+      <span class="progress" id="musicProgress">0:00</span>
+    </div>
+    <div class="row">
+      <button class="btn small" id="musicPlayPause">▶ Play</button>
+      <button class="btn small ghost" id="musicStop">■ Stop</button>
+    </div>
+    <div class="warn-text" id="musicWarning"></div>
+  </div>
+
+  <!-- Chat panel -->
+  <div class="panel">
+    <h2>Talk to the host</h2>
+    <div class="chat-log" id="chatLog"><div class="host">🎙️ Welcome! Ask me to play a song: "play Bohemian Rhapsody"</div></div>
+    <div class="waveform" id="waveformContainer">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </div>
+    <div class="transcript" id="transcriptDisplay">Type a message or click the mic…</div>
+    <div class="chat-input">
+      <input type="text" id="userMessageInput" placeholder="Type a message or 'play <song>'…" />
+      <button class="icon-btn" id="micBtn">🎤</button>
+      <button class="btn" id="sendMessageBtn">Send</button>
+    </div>
+  </div>
+
+  <div class="footer">Browser TTS · AI‑written scripts · YouTube playback · Built for late‑night listening</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     CHANNEL DEFINITIONS
+  ============================================================ */
+  const CHANNELS = {
+    en: {
+      id: 'en',
+      name: 'SensyCilva English',
+      frequency: 'FM 92.4',
+      accentColor: '#ff4d6d',
+      hostName: 'Emma',
+      tagline: 'Anime broadcast, late‑night frequency · talk back any time',
+      language: 'en',
+      voiceHint: 'en',
+      script: '',
+      sentences: [],
+      currentSentenceIndex: 0,
+      isSpeaking: false,
+      nowPlaying: { videoId: null, title: 'Nothing queued', artist: '' },
+    },
+    te: {
+      id: 'te',
+      name: 'SensyCilva Telugu',
+      frequency: 'FM 98.3',
+      accentColor: '#5ee6c8',
+      hostName: 'Anjali',
+      tagline: 'అనిమే ప్రసారం, రాత్రి సమయం · ఎప్పుడైనా మాట్లాడండి',
+      language: 'te',
+      voiceHint: 'te',
+      script: '',
+      sentences: [],
+      currentSentenceIndex: 0,
+      isSpeaking: false,
+      nowPlaying: { videoId: null, title: 'Nothing queued', artist: '' },
+    },
+    hi: {
+      id: 'hi',
+      name: 'SensyCilva Hindi',
+      frequency: 'FM 101.1',
+      accentColor: '#ffb84d',
+      hostName: 'Priya',
+      tagline: 'एनिमे प्रसारण, देर रात की आवृत्ति · कभी भी बात करें',
+      language: 'hi',
+      voiceHint: 'hi',
+      script: '',
+      sentences: [],
+      currentSentenceIndex: 0,
+      isSpeaking: false,
+      nowPlaying: { videoId: null, title: 'Nothing queued', artist: '' },
+    }
+  };
+
+  let currentChannelId = 'en';
+  let currentChannel = CHANNELS.en;
+
+  /* ============================================================
+     DOM REFS
+  ============================================================ */
+  const generateBtn = document.getElementById('generateBtn');
+  const playBtn = document.getElementById('playBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const toggleCustomBtn = document.getElementById('toggleCustomBtn');
+  const customArea = document.getElementById('customArea');
+  const customScriptText = document.getElementById('customScriptText');
+  const setCustomBtn = document.getElementById('setCustomBtn');
+  const cancelCustomBtn = document.getElementById('cancelCustomBtn');
+  const scriptBox = document.getElementById('scriptBox');
+  const status = document.getElementById('status');
+  const voiceSelect = document.getElementById('voiceSelect');
+  const rateSlider = document.getElementById('rateSlider');
+  const pitchSlider = document.getElementById('pitchSlider');
+  const volumeSlider = document.getElementById('volumeSlider');
+  const rateVal = document.getElementById('rateVal');
+  const pitchVal = document.getElementById('pitchVal');
+  const volumeVal = document.getElementById('volumeVal');
+  const randomizeToggle = document.getElementById('randomizeToggle');
+  const sfxToggle = document.getElementById('sfxToggle');
+  const puterStatus = document.getElementById('puterStatus');
+  const chatLog = document.getElementById('chatLog');
+  const userMessageInput = document.getElementById('userMessageInput');
+  const sendMessageBtn = document.getElementById('sendMessageBtn');
+  const micBtn = document.getElementById('micBtn');
+  const waveformContainer = document.getElementById('waveformContainer');
+  const transcriptDisplay = document.getElementById('transcriptDisplay');
+  const onAirBadge = document.getElementById('onAirBadge');
+  const onAirText = document.getElementById('onAirText');
+  const dialNeedle = document.getElementById('dialNeedle');
+  const dialTicks = document.getElementById('dialTicks');
+  const dialStateLeft = document.getElementById('dialStateLeft');
+  const dialStateRight = document.getElementById('dialStateRight');
+  const freqReadout = document.getElementById('freqReadout');
+  const tagline = document.getElementById('tagline');
+  const presetContainer = document.getElementById('presetContainer');
+
+  const ytApiKeyInput = document.getElementById('ytApiKeyInput');
+  const ytApiKeySave = document.getElementById('ytApiKeySave');
+  const ytKeyStatus = document.getElementById('ytKeyStatus');
+  const ytPlayerContainer = document.getElementById('ytPlayerContainer');
+  const nowPlayingInfo = document.getElementById('nowPlayingInfo');
+  const musicPlayPause = document.getElementById('musicPlayPause');
+  const musicStop = document.getElementById('musicStop');
+  const musicProgress = document.getElementById('musicProgress');
+  const musicWarning = document.getElementById('musicWarning');
+
+  /* ============================================================
+     BUILD DIAL TICKS
+  ============================================================ */
+  for (let i = 0; i < 41; i++) {
+    const tick = document.createElement('span');
+    dialTicks.appendChild(tick);
+  }
+
+  function setOnAir(live) {
+    onAirBadge.classList.toggle('live', live);
+    onAirText.textContent = live ? 'ON AIR' : 'STANDBY';
+  }
+  function setDialNeedle(pct) {
+    dialNeedle.style.left = Math.max(2, Math.min(98, pct)) + '%';
+  }
+
+  /* ============================================================
+     STORAGE HELPERS
+  ============================================================ */
+  let storageAvailable = true;
+  try {
+    localStorage.setItem('__t__', '1');
+    localStorage.removeItem('__t__');
+  } catch (e) {
+    storageAvailable = false;
+    console.warn('localStorage unavailable — using in‑memory storage.');
+  }
+  const memStore = {};
+  function storeGet(key) {
+    if (storageAvailable) return localStorage.getItem(key);
+    return Object.prototype.hasOwnProperty.call(memStore, key) ? memStore[key] : null;
+  }
+  function storeSet(key, val) {
+    if (storageAvailable) { localStorage.setItem(key, val); return; }
+    memStore[key] = val;
+  }
+  function storeRemove(key) {
+    if (storageAvailable) { localStorage.removeItem(key); return; }
+    delete memStore[key];
+  }
+
+  /* ============================================================
+     YOUTUBE PLAYER
+  ============================================================ */
+  let ytPlayer = null;
+  let ytPlayerReady = false;
+  let isMusicPlaying = false;
+  let playerProgressInterval = null;
+  let ytApiPromise = null;
+  let currentApiKey = '';
+
+  function loadApiKey() {
+    const key = storeGet('yt_api_key') || '';
+    ytApiKeyInput.value = key;
+    currentApiKey = key;
+    updateKeyStatus(key);
+    return key;
+  }
+  function updateKeyStatus(key) {
+    if (key) {
+      ytKeyStatus.textContent = storageAvailable ? '● key loaded' : '● key set (session only)';
+      ytKeyStatus.classList.add('set');
+    } else {
+      ytKeyStatus.textContent = '○ no key set';
+      ytKeyStatus.classList.remove('set');
+    }
+  }
+  ytApiKeySave.addEventListener('click', () => {
+    const key = ytApiKeyInput.value.trim();
+    if (key) {
+      storeSet('yt_api_key', key);
+      currentApiKey = key;
+      updateKeyStatus(key);
+      musicWarning.textContent = '';
+    } else {
+      storeRemove('yt_api_key');
+      currentApiKey = '';
+      updateKeyStatus('');
+      musicWarning.textContent = 'Key removed.';
+      setTimeout(() => { musicWarning.textContent = ''; }, 2000);
+    }
+  });
+
+  function loadYouTubeAPI() {
+    if (ytApiPromise) return ytApiPromise;
+    ytApiPromise = new Promise((resolve) => {
+      if (window.YT && window.YT.Player) { resolve(); return; }
+      const previous = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (typeof previous === 'function') previous();
+        resolve();
+      };
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.onerror = () => console.error('Failed to load YouTube IFrame API.');
+      document.head.appendChild(script);
+    });
+    return ytApiPromise;
+  }
+  loadYouTubeAPI();
+
+  function createPlayer(videoId) {
+    if (ytPlayer) { ytPlayer.destroy(); ytPlayer = null; ytPlayerReady = false; }
+    ytPlayerContainer.style.display = 'block';
+    ytPlayer = new YT.Player('ytPlayer', {
+      height: '200',
+      width: '100%',
+      videoId: videoId,
+      playerVars: { autoplay: 1, controls: 1, modestbranding: 1, rel: 0, fs: 0 },
+      events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange, onError: onPlayerError }
+    });
+  }
+
+  function onPlayerReady(event) {
+    ytPlayerReady = true;
+    event.target.setVolume(80);
+    if (playerProgressInterval) clearInterval(playerProgressInterval);
+    playerProgressInterval = setInterval(() => {
+      if (ytPlayer && ytPlayer.getCurrentTime) {
+        const current = ytPlayer.getCurrentTime();
+        const duration = ytPlayer.getDuration();
+        if (duration) {
+          const mins = Math.floor(current / 60);
+          const secs = Math.floor(current % 60);
+          musicProgress.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+      }
+    }, 1000);
+    musicWarning.textContent = '';
+    event.target.playVideo();
+    isMusicPlaying = true;
+    musicPlayPause.textContent = '⏸ Pause';
+  }
+
+  function onPlayerStateChange(event) {
+    const state = event.data;
+    if (state === YT.PlayerState.PLAYING) {
+      isMusicPlaying = true;
+      musicPlayPause.textContent = '⏸ Pause';
+    } else if (state === YT.PlayerState.PAUSED) {
+      isMusicPlaying = false;
+      musicPlayPause.textContent = '▶ Play';
+    } else if (state === YT.PlayerState.ENDED) {
+      isMusicPlaying = false;
+      musicPlayPause.textContent = '▶ Play';
+      nowPlayingInfo.textContent = 'Finished';
+      musicProgress.textContent = '0:00';
+      currentChannel.nowPlaying.videoId = null;
+      currentChannel.nowPlaying.title = 'Nothing queued';
+      currentChannel.nowPlaying.artist = '';
+    }
+  }
+
+  function onPlayerError(event) {
+    console.error('YouTube player error:', event.data);
+    let errorMsg = 'Playback error.';
+    if (event.data === 2) errorMsg = 'Invalid video.';
+    else if (event.data === 5) errorMsg = 'Player error — try a different track.';
+    else if (event.data === 100) errorMsg = 'Video not found.';
+    else if (event.data === 101 || event.data === 150) errorMsg = 'This video disabled embedding.';
+    musicWarning.textContent = errorMsg;
+    nowPlayingInfo.textContent = 'Error';
+    isMusicPlaying = false;
+    musicPlayPause.textContent = '▶ Play';
+  }
+
+  function togglePlayPause() {
+    if (!ytPlayer || !ytPlayerReady) {
+      musicWarning.textContent = 'No track loaded yet — ask the host to play one.';
+      return;
+    }
+    if (isMusicPlaying) ytPlayer.pauseVideo(); else ytPlayer.playVideo();
+  }
+  function stopMusic() {
+    if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+    isMusicPlaying = false;
+    musicPlayPause.textContent = '▶ Play';
+    nowPlayingInfo.textContent = 'Nothing queued';
+    musicProgress.textContent = '0:00';
+    if (playerProgressInterval) { clearInterval(playerProgressInterval); playerProgressInterval = null; }
+    currentChannel.nowPlaying.videoId = null;
+    currentChannel.nowPlaying.title = 'Nothing queued';
+    currentChannel.nowPlaying.artist = '';
+  }
+  musicPlayPause.addEventListener('click', togglePlayPause);
+  musicStop.addEventListener('click', stopMusic);
+
+  async function searchYouTube(query) {
+    const key = currentApiKey || loadApiKey();
+    if (!key) throw new Error('Add a YouTube Data API key above first.');
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${key}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || 'Search failed.');
+    }
+    const data = await response.json();
+    return data.items.map(item => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+    }));
+  }
+
+  async function playSongRequest(query, channel = currentChannel) {
+    try {
+      const results = await searchYouTube(query);
+      if (results.length === 0) return { success: false, message: "couldn't find that one." };
+      const top = results[0];
+      await loadYouTubeAPI();
+      if (ytPlayer && ytPlayerReady && ytPlayer.loadVideoById) {
+        ytPlayer.loadVideoById(top.id);
+      } else {
+        createPlayer(top.id);
+      }
+      channel.nowPlaying.videoId = top.id;
+      channel.nowPlaying.title = top.title;
+      channel.nowPlaying.artist = top.artist;
+      nowPlayingInfo.textContent = `${top.title} — ${top.artist}`;
+      addHostReply(`🎵 Now playing: "${top.title}" by ${top.artist}`);
+      return { success: true, title: top.title, artist: top.artist };
+    } catch (err) {
+      console.error('Song request error:', err);
+      return { success: false, message: err.message };
+    }
+  }
+
+  /* ============================================================
+     SFX (removed stopSFX and its listener)
+  ============================================================ */
+  const SFX = {
+    introJingle: 'https://archive.org/download/dj-fm-daddy-radio-kick-tune/DJ%20FM%20Daddy%20Radio%20Kick%20Tune.mp3',
+    transitionSweeper: 'https://archive.org/download/syndi-jingle-2020-v-1-de/Syndi-Jingle_2020_v1_DE.mp3',
+    fillerSound: 'https://archive.org/download/synth-textures_202303/Synth_Textures_02.mp3',
+    outroJingle: 'https://archive.org/download/dj-fm-daddy-radio-kick-tune/DJ%20FM%20Daddy%20Radio%20Kick%20Tune.mp3',
+  };
+  let sfxEnabled = true;
+  let currentSFX = null;
+  function playSFX(url, volume = 0.3) {
+    if (!sfxEnabled || !url) return;
+    try {
+      const audio = new Audio(url);
+      audio.volume = volume;
+      currentSFX = audio;
+      audio.play().catch(() => {});
+    } catch (e) { /* ignore */ }
+  }
+  // The old stopSFX function and listener are removed — we inline stop logic where needed.
+  // We'll keep a helper to stop current sfx inline:
+  function stopCurrentSFX() {
+    if (currentSFX) { currentSFX.pause(); currentSFX.currentTime = 0; currentSFX = null; }
+  }
+  // Keep sfxToggle for enabling/disabling, but we removed the listener that called stopSFX.
+  // We'll add a simple listener just to toggle the flag.
+  sfxToggle.addEventListener('change', () => {
+    sfxEnabled = sfxToggle.checked;
+    if (!sfxEnabled) stopCurrentSFX();
+  });
+
+  /* ============================================================
+     SETTINGS PERSISTENCE
+  ============================================================ */
+  function loadSettings() {
+    const savedRate = parseFloat(storeGet('sensy_rate')) || 0.9;
+    const savedPitch = parseFloat(storeGet('sensy_pitch')) || 1.0;
+    const savedVolume = parseFloat(storeGet('sensy_volume')) || 1.0;
+    const savedRandomize = storeGet('sensy_randomize') !== 'false';
+    const savedChannel = storeGet('sensy_channel') || 'en';
+    rateSlider.value = savedRate;
+    pitchSlider.value = savedPitch;
+    volumeSlider.value = savedVolume;
+    rateVal.textContent = savedRate.toFixed(2);
+    pitchVal.textContent = savedPitch.toFixed(2);
+    volumeVal.textContent = savedVolume.toFixed(2);
+    randomizeToggle.checked = savedRandomize;
+    return savedChannel;
+  }
+  function saveSettings() {
+    storeSet('sensy_voice', voiceSelect.value);
+    storeSet('sensy_rate', rateSlider.value);
+    storeSet('sensy_pitch', pitchSlider.value);
+    storeSet('sensy_volume', volumeSlider.value);
+    storeSet('sensy_randomize', randomizeToggle.checked);
+    storeSet('sensy_channel', currentChannelId);
+  }
+
+  function populateVoices() {
+    const voices = speechSynth.getVoices();
+    voiceSelect.innerHTML = '';
+    const sorted = voices.slice().sort((a, b) => {
+      if (a.lang.startsWith('en') && !b.lang.startsWith('en')) return -1;
+      if (!a.lang.startsWith('en') && b.lang.startsWith('en')) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    sorted.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.voiceURI;
+      opt.text = `${v.name} (${v.lang})`;
+      voiceSelect.appendChild(opt);
+    });
+    const langHint = currentChannel.voiceHint;
+    let preferred = sorted.find(v => v.lang.startsWith(langHint));
+    if (!preferred) preferred = sorted.find(v => v.lang.startsWith('en'));
+    if (preferred) voiceSelect.value = preferred.voiceURI;
+    const savedVoice = storeGet('sensy_voice');
+    if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
+      voiceSelect.value = savedVoice;
+    }
+  }
+
+  function cleanForTTS(text) {
+    let cleaned = text.replace(/<[^>]*>/g, '');
+    const interjections = [
+      /\b(whoa|wow|oh|ah|uh|um|hmm|hey|hello|hi|okay|alright|well|so|now)\b/gi,
+      /\b(अरे|यार|वाह|ओहो|हाँ|अच्छा|चलो|क्या|हाय)\b/gi,
+      /\b(అరెరే|అయ్యో|ఓహో|వాహ్|ఏంటి|కదా|రేయ్)\b/gi,
+      /(whoa!|wow!|oh!|ah!|uh!|um!|hey!|hello!|hi!|okay!|alright!|well!|so!|now!|arre!|yaar!|wah!|oho!)/gi,
+      /(!|\.\.\.|…)/g
+    ];
+    interjections.forEach(pattern => { cleaned = cleaned.replace(pattern, ''); });
+    cleaned = cleaned.replace(/\[.*?\]/g, '');
+    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+    cleaned = cleaned.replace(/^[.!?,;:\s]+/, '').replace(/[.!?,;:\s]+$/, '');
+    return cleaned;
+  }
+
+  function formatShortLines(text) {
+    const sents = text.match(/[^.!?]+[.!?]+/g) || [text];
+    return sents.map(s => s.trim()).join('\n');
+  }
+
+  function updateDial() {
+    const ch = currentChannel;
+    if (!ch.sentences || ch.sentences.length === 0) {
+      dialStateLeft.textContent = 'SCRIPT NOT LOADED';
+      dialStateRight.textContent = '— : —';
+      setDialNeedle(4);
+      return;
+    }
+    const pct = (ch.currentSentenceIndex / ch.sentences.length) * 100;
+    setDialNeedle(4 + pct * 0.92);
+    dialStateLeft.textContent = ch.isSpeaking ? 'BROADCASTING' : 'READY';
+    dialStateRight.textContent = `${Math.min(ch.currentSentenceIndex + (ch.isSpeaking ? 1 : 0), ch.sentences.length)} / ${ch.sentences.length}`;
+  }
+
+  function displayScript(script, isCustom = false) {
+    const ch = currentChannel;
+    ch.script = script;
+    const clean = cleanForTTS(script);
+    ch.sentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
+    ch.currentSentenceIndex = 0;
+    ch.isSpeaking = false;
+    const displayText = formatShortLines(clean);
+    scriptBox.textContent = displayText || 'No script content.';
+    status.textContent = `Script ready (${displayText.length} characters)`;
+    status.className = 'status success';
+    playBtn.disabled = false;
+    copyBtn.disabled = false;
+    chatLog.innerHTML = '<div class="host">🎙️ New script loaded. Ask me to play a song!</div>';
+    updateDial();
+  }
+
+  function loadPuter() {
+    return new Promise((resolve, reject) => {
+      if (typeof puter !== 'undefined') {
+        puterStatus.textContent = '⚡ AI ready';
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://js.puter.com/v2/';
+      script.onload = () => { puterStatus.textContent = '⚡ AI ready'; resolve(); };
+      script.onerror = () => { puterStatus.textContent = '⚠ AI unavailable'; reject(new Error('Failed to load Puter')); };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function generate() {
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Writing…';
+    status.textContent = 'Writing tonight\'s script…';
+    status.className = 'status thinking';
+    scriptBox.innerHTML = '<span class="empty">Writing…</span>';
+    try {
+      if (typeof puter === 'undefined') {
+        try { await loadPuter(); } catch (e) {
+          // No fallback — show error
+          status.textContent = 'AI unavailable. Please refresh or try again later.';
+          status.className = 'status error';
+          scriptBox.innerHTML = '<span class="empty">AI unavailable — cannot generate script.</span>';
+          generateBtn.disabled = false;
+          generateBtn.textContent = 'Generate script';
+          return;
+        }
+      }
+      const ch = currentChannel;
+      const lang = ch.language;
+      const langName = lang === 'hi' ? 'Hindi' : lang === 'te' ? 'Telugu' : 'English';
+      const hostName = ch.hostName;
+      const prompt = `Write a complete anime radio show script in ${langName} for "${ch.name}" hosted by ${hostName}.
+      Use short, broken sentences. Each sentence on its own line.
+      Do not use any emotional expressions like <shock>, <laugh>, <excite>, etc.
+      Keep it plain, conversational, and neutral.
+      Include: a greeting, news (Attack on Titan finale), featured anime (Frieren), recommendation (Mashle), trivia (Sailor Moon creator marriage), and a sign-off.
+      The script must be at least 300 words.
+      Output with line breaks after every sentence.`;
+      const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
+      let script = response.message?.content || response;
+      if (script && script.length > 100) {
+        displayScript(script, false);
+        status.textContent = 'Script generated by AI.';
+        status.className = 'status success';
+      } else {
+        throw new Error('Short response');
+      }
+    } catch (err) {
+      console.warn('AI generation failed:', err);
+      status.textContent = 'AI generation failed. Please try again.';
+      status.className = 'status error';
+      scriptBox.innerHTML = '<span class="empty">Failed to generate script. Check console.</span>';
+    }
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generate script';
+  }
+
+  function speakSentence(text, callback, retryCount = 0) {
+    const voiceURI = voiceSelect.value;
+    const voices = speechSynth.getVoices();
+    let selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+    if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = selectedVoice;
+    utterance.volume = parseFloat(volumeSlider.value);
+    const baseRate = parseFloat(rateSlider.value);
+    const basePitch = parseFloat(pitchSlider.value);
+    if (randomizeToggle.checked) {
+      const rateOffset = (Math.random() - 0.5) * 0.15;
+      const pitchOffset = (Math.random() - 0.5) * 0.3;
+      utterance.rate = Math.min(2, Math.max(0.5, baseRate + rateOffset));
+      utterance.pitch = Math.min(1.5, Math.max(0.5, basePitch + pitchOffset));
+    } else {
+      utterance.rate = baseRate;
+      utterance.pitch = basePitch;
+    }
+    utterance.onend = () => { if (callback) callback(); };
+    utterance.onerror = (event) => {
+      console.warn('TTS error:', event.error);
+      if (retryCount < 3) {
+        const allVoices = speechSynth.getVoices();
+        const fallbackVoice = allVoices.find(v => v.voiceURI !== voiceURI && v.lang.startsWith('en')) || allVoices[0];
+        if (fallbackVoice) {
+          voiceSelect.value = fallbackVoice.voiceURI;
+          saveSettings();
+          speakSentence(text, callback, retryCount + 1);
+          return;
+        }
+      }
+      if (callback) callback();
+    };
+    speechSynth.speak(utterance);
+    transcriptDisplay.innerHTML = `<span class="host-line">🎙️ ${text}</span>`;
+    transcriptDisplay.className = 'transcript active';
+  }
+
+  function speakText(text) {
+    return new Promise((resolve) => {
+      if (speechSynth.speaking) speechSynth.cancel();
+      if (isFillerPlaying) stopFiller();
+      speakSentence(text, () => resolve());
+    });
+  }
+
+  function playScript() {
+    const ch = currentChannel;
+    if (!ch.script) {
+      status.textContent = 'No script loaded yet.';
+      status.className = 'status error';
+      return;
+    }
+    if (ch.isSpeaking) {
+      speechSynth.cancel();
+      if (isFillerPlaying) stopFiller();
+      ch.isSpeaking = false;
+      playBtn.textContent = '▶ Go live';
+      stopBtn.disabled = true;
+      status.textContent = 'Stopped.';
+      status.className = 'status';
+      ch.currentSentenceIndex = 0;
+      stopCurrentSFX(); // inline stop
+      setOnAir(false);
+      updateDial();
+      return;
+    }
+    if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
+    if (ch.currentSentenceIndex === 0) playSFX(SFX.introJingle, 0.25);
+    status.textContent = `On air from sentence ${ch.currentSentenceIndex + 1}…`;
+    status.className = 'status';
+    playBtn.disabled = true;
+    stopBtn.disabled = false;
+    ch.isSpeaking = true;
+    setOnAir(true);
+    if (ch.currentSentenceIndex === 0) {
+      setTimeout(() => playSFX(SFX.transitionSweeper, 0.2), 1500);
+    }
+    speakNextSentence();
+  }
+
+  function speakNextSentence() {
+    const ch = currentChannel;
+    if (!ch.isSpeaking) return;
+    if (ch.currentSentenceIndex >= ch.sentences.length) {
+      playSFX(SFX.outroJingle, 0.25);
+      status.textContent = 'Broadcast finished.';
+      status.className = 'status success';
+      playBtn.textContent = '▶ Go live';
+      playBtn.disabled = false;
+      stopBtn.disabled = true;
+      ch.isSpeaking = false;
+      setOnAir(false);
+      updateDial();
+      return;
+    }
+    const text = ch.sentences[ch.currentSentenceIndex].trim();
+    if (text.length === 0) { ch.currentSentenceIndex++; speakNextSentence(); return; }
+    if (ch.currentSentenceIndex > 0 && ch.currentSentenceIndex % 3 === 0) playSFX(SFX.transitionSweeper, 0.15);
+    updateDial();
+    speakSentence(text, () => {
+      const wordCount = text.split(/\s+/).length;
+      const pauseMs = wordCount < 8 ? 1200 : 800;
+      setTimeout(() => { ch.currentSentenceIndex++; speakNextSentence(); }, pauseMs);
+    });
+  }
+
+  function stopAudio() {
+    const ch = currentChannel;
+    if (speechSynth.speaking) speechSynth.cancel();
+    if (isFillerPlaying) stopFiller();
+    stopCurrentSFX();
+    ch.isSpeaking = false;
+    playBtn.textContent = '▶ Go live';
+    playBtn.disabled = false;
+    stopBtn.disabled = true;
+    status.textContent = 'Stopped.';
+    status.className = 'status';
+    setOnAir(false);
+    updateDial();
+  }
+
+  /* ============================================================
+     FILLER
+  ============================================================ */
+  let isFillerPlaying = false;
+  let fillerUtterance = null;
+  const fillerChains = [
+    ["Hmm...", "Let me think about that.", "Okay, I see."],
+    ["Interesting question.", "Give me a moment.", "Alright."],
+    ["That's a good one.", "Let me process that.", "Right."],
+    ["Let me see...", "Okay, I've got that.", "Thanks for asking."],
+    ["Hmm, let me think...", "That's a great point.", "I appreciate that."],
+    ["Let me gather my thoughts.", "Okay, here we go.", "Right."]
+  ];
+  function getRandomChain() { return fillerChains[Math.floor(Math.random() * fillerChains.length)]; }
+
+  function playFiller() {
+    if (isFillerPlaying) return;
+    playSFX(SFX.fillerSound, 0.2);
+    const chain = getRandomChain();
+    let index = 0;
+    function speakNextFiller() {
+      if (index >= chain.length || !isFillerPlaying) { isFillerPlaying = false; return; }
+      const fillerText = chain[index];
+      const fillerDiv = document.createElement('div');
+      fillerDiv.className = 'filler';
+      fillerDiv.textContent = `🎙️ Host: ${fillerText}`;
+      chatLog.appendChild(fillerDiv);
+      chatLog.scrollTop = chatLog.scrollHeight;
+      const voiceURI = voiceSelect.value;
+      const voices = speechSynth.getVoices();
+      const selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
+      const utterance = new SpeechSynthesisUtterance(fillerText);
+      utterance.voice = selectedVoice;
+      utterance.rate = 0.85;
+      utterance.pitch = 1.0;
+      utterance.volume = parseFloat(volumeSlider.value) * 0.8;
+      utterance.onstart = () => {
+        isFillerPlaying = true;
+        status.textContent = 'Host is thinking…';
+        status.className = 'status thinking';
+        waveformContainer.className = 'waveform thinking';
+        transcriptDisplay.textContent = '🤔 Host is thinking…';
+        transcriptDisplay.className = 'transcript thinking';
+      };
+      utterance.onend = () => { index++; setTimeout(speakNextFiller, 500); };
+      utterance.onerror = () => { index++; setTimeout(speakNextFiller, 500); };
+      fillerUtterance = utterance;
+      speechSynth.speak(utterance);
+    }
+    speakNextFiller();
+  }
+
+  function stopFiller() {
+    if (fillerUtterance && isFillerPlaying) { speechSynth.cancel(); isFillerPlaying = false; fillerUtterance = null; }
+    stopCurrentSFX();
+    status.textContent = 'Ready.';
+    status.className = 'status';
+    waveformContainer.className = 'waveform';
+    transcriptDisplay.textContent = 'Ready.';
+    transcriptDisplay.className = 'transcript';
+  }
+
+  /* ============================================================
+     CHAT & INTENT PARSING
+  ============================================================ */
+  function addHostReply(text) {
+    let cleanReply = text.trim();
+    if (!/[.!?]$/.test(cleanReply)) cleanReply += '.';
+    const hostDiv = document.createElement('div');
+    hostDiv.className = 'host';
+    hostDiv.textContent = `🎙️ Host: ${cleanReply}`;
+    chatLog.appendChild(hostDiv);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    return cleanReply;
+  }
+  function addUserMessage(text) {
+    const userDiv = document.createElement('div');
+    userDiv.className = 'user';
+    userDiv.textContent = `👤 You: ${text}`;
+    chatLog.appendChild(userDiv);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+  function addActionMessage(text) {
+    const div = document.createElement('div');
+    div.className = 'action';
+    div.textContent = `⚡ ${text}`;
+    chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  async function handleUserMessage() {
+    const msg = userMessageInput.value.trim();
+    if (!msg) return;
+    userMessageInput.value = '';
+    addUserMessage(msg);
+
+    const lower = msg.toLowerCase();
+
+    // 1. Switch channel
+    const channelMatch = lower.match(/(?:change|switch|go to)\s+(english|telugu|hindi)/);
+    if (channelMatch) {
+      const target = channelMatch[1];
+      let newId = null;
+      if (target === 'english') newId = 'en';
+      else if (target === 'telugu') newId = 'te';
+      else if (target === 'hindi') newId = 'hi';
+      if (newId && newId !== currentChannelId) {
+        switchChannel(newId);
+        const reply = `Switching to ${CHANNELS[newId].name}.`;
+        addHostReply(reply);
+        await speakText(reply);
+      } else if (newId === currentChannelId) {
+        const reply = `We're already on ${currentChannel.name}.`;
+        addHostReply(reply);
+        await speakText(reply);
+      } else {
+        const reply = "I didn't catch that channel. Say English, Telugu, or Hindi.";
+        addHostReply(reply);
+        await speakText(reply);
+      }
+      return;
+    }
+
+    // 2. Generate script
+    if (lower.includes('generate') && lower.includes('script')) {
+      addActionMessage('Generating script…');
+      await generate();
+      if (!currentChannel.script) {
+        const reply = "Sorry, I couldn't generate a script. Please try again.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      const reply = `Here's a new script for ${currentChannel.name}. Ready when you are.`;
+      addHostReply(reply);
+      await speakText(reply);
+      return;
+    }
+
+    // 3. Play script (go live)
+    if (lower.includes('play script') || lower.includes('go live') || lower.includes('start broadcast')) {
+      if (!currentChannel.script) {
+        const reply = "No script loaded. Say 'generate script' first.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      if (currentChannel.isSpeaking) {
+        const reply = "Already broadcasting. Say 'stop script' to stop.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      addActionMessage('Starting broadcast…');
+      playScript(); // will speak automatically
+      return;
+    }
+
+    // 4. Stop script
+    if (lower.includes('stop script') || lower.includes('stop broadcast') || lower.includes('end broadcast')) {
+      if (!currentChannel.isSpeaking) {
+        const reply = "I'm not broadcasting right now.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      addActionMessage('Stopping broadcast…');
+      stopAudio();
+      const reply = "Broadcast stopped.";
+      addHostReply(reply);
+      await speakText(reply);
+      return;
+    }
+
+    // 5. Play song
+    const playRegex = /^(?:play\s+song\s+|play\s+)(.+)/i;
+    const match = msg.match(playRegex);
+    if (match) {
+      const songQuery = match[1].trim();
+      if (!songQuery) {
+        addHostReply("Please tell me the song name, like 'play Bohemian Rhapsody'.");
+        await speakText('Please tell me the song name.');
+        return;
+      }
+      if (currentChannel.isSpeaking) {
+        // pause broadcast temporarily
+        speechSynth.cancel();
+        if (isFillerPlaying) stopFiller();
+        currentChannel.isSpeaking = false;
+        playBtn.textContent = '▶ Go live';
+        stopBtn.disabled = true;
+        setOnAir(false);
+      }
+      playFiller();
+      const result = await playSongRequest(songQuery);
+      stopFiller();
+      if (result.success) {
+        const reply = `Yeah, we got your song! Hope you enjoy ${result.title}.`;
+        addHostReply(reply);
+        await speakText(reply);
+      } else {
+        const reply = `Sorry, I ${result.message || "couldn't find that song. Try a different name."}`;
+        addHostReply(reply);
+        await speakText(reply);
+      }
+      // Resume broadcast if it was active
+      if (currentChannel.script && !currentChannel.isSpeaking) {
+        // don't auto-resume, let user manually start
+      }
+      return;
+    }
+
+    // 6. Next song (skip)
+    if (lower.includes('next song') || lower.includes('skip song') || lower.includes('next track')) {
+      if (!ytPlayer || !ytPlayerReady) {
+        const reply = "No song is playing right now. Ask me to play something first.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      // Skip: search a random new song? For simplicity, we'll just stop and ask.
+      stopMusic();
+      const reply = "Skipped. Want me to play something else?";
+      addHostReply(reply);
+      await speakText(reply);
+      return;
+    }
+
+    // 7. Pause / stop music
+    if (lower.includes('pause music') || lower.includes('pause song')) {
+      if (!ytPlayer || !ytPlayerReady) {
+        const reply = "No song is playing.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      if (isMusicPlaying) {
+        ytPlayer.pauseVideo();
+        const reply = "Paused the music.";
+        addHostReply(reply);
+        await speakText(reply);
+      } else {
+        const reply = "Music is already paused. Say 'play music' to resume.";
+        addHostReply(reply);
+        await speakText(reply);
+      }
+      return;
+    }
+    if (lower.includes('resume music') || lower.includes('play music') || lower.includes('unpause')) {
+      if (!ytPlayer || !ytPlayerReady) {
+        const reply = "No song is loaded.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      if (!isMusicPlaying) {
+        ytPlayer.playVideo();
+        const reply = "Resuming music.";
+        addHostReply(reply);
+        await speakText(reply);
+      } else {
+        const reply = "Music is already playing.";
+        addHostReply(reply);
+        await speakText(reply);
+      }
+      return;
+    }
+
+    // 8. Reject / "not my song"
+    if (lower.includes('not my song') || lower.includes('wrong song') || lower.includes('this isn\'t my song')) {
+      if (!ytPlayer || !ytPlayerReady) {
+        const reply = "You haven't requested any song yet.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+      // Stop current, search for a new random song? Or just apologize and ask.
+      stopMusic();
+      const reply = "Oh, sorry about that. Let me find something else. What would you like to hear?";
+      addHostReply(reply);
+      await speakText(reply);
+      return;
+    }
+
+    // 9. What's playing?
+    if (lower.includes('what\'s playing') || lower.includes('what song') || lower.includes('now playing')) {
+      if (currentChannel.nowPlaying.videoId) {
+        const reply = `Currently playing: "${currentChannel.nowPlaying.title}" by ${currentChannel.nowPlaying.artist}.`;
+        addHostReply(reply);
+        await speakText(reply);
+      } else {
+        const reply = "No song is playing right now.";
+        addHostReply(reply);
+        await speakText(reply);
+      }
+      return;
+    }
+
+    // 10. General chat — use AI to reply
+    if (currentChannel.isSpeaking) {
+      // interrupt broadcast
+      speechSynth.cancel();
+      if (isFillerPlaying) stopFiller();
+      currentChannel.isSpeaking = false;
+      playBtn.textContent = '▶ Go live';
+      stopBtn.disabled = true;
+      setOnAir(false);
+    }
+    playFiller();
+
+    if (typeof puter === 'undefined') {
+      try { await loadPuter(); } catch (e) {
+        stopFiller();
+        const reply = "AI is not available right now. Please try again later.";
+        addHostReply(reply);
+        await speakText(reply);
+        return;
+      }
+    }
+
+    try {
+      const ch = currentChannel;
+      const context = ch.sentences.length > 0 ? ch.sentences[Math.min(ch.currentSentenceIndex, ch.sentences.length - 1)] : 'The host is not saying anything specific right now.';
+      const lang = ch.language;
+      const langName = lang === 'hi' ? 'Hindi' : lang === 'te' ? 'Telugu' : 'English';
+      const prompt = `You are the host of ${ch.name} (${ch.hostName}). You are currently saying: "${context}".
+A listener says: "${msg}".
+Reply in ${langName} with 2-3 sentences (at least 14 words, at most 25 words).
+Keep it plain, without emotions, and in short sentences.`;
+      const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
+      let reply = response.message?.content || response;
+      reply = cleanForTTS(reply);
+      if (!reply || reply.length < 14) {
+        reply = "Thanks for your message! I appreciate you reaching out. Let's keep the conversation going.";
+      }
+      if (reply.length > 250) reply = reply.substring(0, 250) + '…';
+      stopFiller();
+      const cleanReply = addHostReply(reply);
+      await speakText(cleanReply);
+    } catch (err) {
+      console.warn('Reply generation failed:', err);
+      stopFiller();
+      const reply = "I'm having trouble thinking of a reply. Please try again.";
+      addHostReply(reply);
+      await speakText(reply);
+    }
+  }
+
+  /* ============================================================
+     SWITCH CHANNEL
+  ============================================================ */
+  function switchChannel(channelId) {
+    // Stop current broadcast and music
+    stopAudio();
+    stopMusic();
+    currentChannelId = channelId;
+    currentChannel = CHANNELS[channelId];
+    // Update UI
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.channel === channelId);
+    });
+    freqReadout.textContent = currentChannel.frequency + ' · ' + currentChannel.name.toUpperCase();
+    tagline.textContent = currentChannel.tagline;
+    // Load script if any
+    if (currentChannel.script) {
+      displayScript(currentChannel.script, false);
+    } else {
+      scriptBox.innerHTML = '<span class="empty">No script for this channel yet. Generate one.</span>';
+      playBtn.disabled = true;
+      copyBtn.disabled = true;
+      status.textContent = 'Switch to ' + currentChannel.name + '. Generate a script.';
+      status.className = 'status';
+      updateDial();
+    }
+    // Update now playing
+    if (currentChannel.nowPlaying.videoId) {
+      nowPlayingInfo.textContent = `${currentChannel.nowPlaying.title} — ${currentChannel.nowPlaying.artist}`;
+    } else {
+      nowPlayingInfo.textContent = 'Nothing queued';
+    }
+    // Update voice selection to prefer this language
+    populateVoices();
+    saveSettings();
+  }
+
+  /* ============================================================
+     SPEECH RECOGNITION
+  ============================================================ */
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let isListening = false;
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add('live');
+      micBtn.textContent = '🔴';
+      waveformContainer.classList.add('active');
+      transcriptDisplay.classList.add('active');
+      transcriptDisplay.textContent = 'Listening…';
+      status.textContent = 'Listening…';
+      status.className = 'status';
+    };
+    recognition.onresult = (event) => {
+      let interim = '', final = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) final += transcript; else interim += transcript;
+      }
+      if (final) {
+        transcriptDisplay.innerHTML = `<span class="final">✅ ${final}</span>`;
+        userMessageInput.value = final;
+        setTimeout(() => { sendMessageBtn.click(); }, 300);
+      } else if (interim) {
+        transcriptDisplay.innerHTML = `<span class="interim">🎤 ${interim}</span>`;
+        userMessageInput.value = interim;
+      }
+    };
+    recognition.onerror = (event) => {
+      console.warn('Speech recognition error:', event.error);
+      let errorMsg = '';
+      if (event.error === 'not-allowed') errorMsg = 'Microphone access denied.';
+      else if (event.error === 'no-speech') errorMsg = 'No speech detected.';
+      else if (event.error === 'network') errorMsg = 'Network error — typing still works.';
+      else if (event.error === 'audio-capture') errorMsg = 'No microphone found.';
+      else errorMsg = `Error: ${event.error}`;
+      transcriptDisplay.innerHTML = `<span class="error">${errorMsg}</span>`;
+      status.textContent = errorMsg;
+      status.className = 'status error';
+      micBtn.classList.remove('live');
+      micBtn.textContent = '🎤';
+      waveformContainer.classList.remove('active');
+      transcriptDisplay.classList.remove('active');
+      isListening = false;
+    };
+    recognition.onend = () => {
+      micBtn.classList.remove('live');
+      micBtn.textContent = '🎤';
+      waveformContainer.classList.remove('active');
+      transcriptDisplay.classList.remove('active');
+      isListening = false;
+      if (!transcriptDisplay.textContent.includes('✅') && !transcriptDisplay.textContent.includes('Error') && !transcriptDisplay.textContent.includes('Network')) {
+        transcriptDisplay.textContent = 'Type a message or click the mic…';
+      }
+    };
+  } else {
+    micBtn.disabled = true;
+    micBtn.title = 'Speech recognition not supported';
+    micBtn.style.opacity = '0.5';
+    transcriptDisplay.textContent = 'Speech recognition not supported here. Type instead.';
+  }
+
+  micBtn.addEventListener('click', () => {
+    if (!recognition) return;
+    if (isListening) {
+      recognition.stop();
+      micBtn.classList.remove('live');
+      micBtn.textContent = '🎤';
+      waveformContainer.classList.remove('active');
+      transcriptDisplay.classList.remove('active');
+      isListening = false;
+      status.textContent = 'Stopped listening.';
+      status.className = 'status';
+      return;
+    }
+    transcriptDisplay.textContent = 'Listening…';
+    try { recognition.start(); } catch (err) {
+      console.warn('Could not start speech recognition:', err);
+      status.textContent = 'Could not start microphone.';
+      status.className = 'status error';
+      transcriptDisplay.innerHTML = `<span class="error">Could not start microphone. Try typing instead.</span>`;
+    }
+  });
+
+  /* ============================================================
+     EVENT WIRING
+  ============================================================ */
+  sendMessageBtn.addEventListener('click', handleUserMessage);
+  userMessageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessageBtn.click(); });
+
+  generateBtn.addEventListener('click', generate);
+  playBtn.addEventListener('click', playScript);
+  stopBtn.addEventListener('click', stopAudio);
+  copyBtn.addEventListener('click', copyScript);
+  toggleCustomBtn.addEventListener('click', toggleCustom);
+  setCustomBtn.addEventListener('click', setCustomScript);
+  cancelCustomBtn.addEventListener('click', () => {
+    customArea.style.display = 'none';
+    toggleCustomBtn.textContent = 'Paste your own';
+  });
+
+  rateSlider.addEventListener('input', () => { rateVal.textContent = parseFloat(rateSlider.value).toFixed(2); saveSettings(); });
+  pitchSlider.addEventListener('input', () => { pitchVal.textContent = parseFloat(pitchSlider.value).toFixed(2); saveSettings(); });
+  volumeSlider.addEventListener('input', () => { volumeVal.textContent = parseFloat(volumeSlider.value).toFixed(2); saveSettings(); });
+  voiceSelect.addEventListener('change', saveSettings);
+  randomizeToggle.addEventListener('change', saveSettings);
+
+  function copyScript() {
+    if (!currentChannel.script) {
+      status.textContent = 'Nothing to copy yet.';
+      status.className = 'status error';
+      return;
+    }
+    const displayText = scriptBox.textContent;
+    navigator.clipboard.writeText(displayText).then(() => {
+      status.textContent = 'Copied!';
+      status.className = 'status success';
+      setTimeout(() => { status.textContent = 'Script ready'; }, 2000);
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = displayText;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      status.textContent = 'Copied!';
+      status.className = 'status success';
+    });
+  }
+
+  function setCustomScript() {
+    const text = customScriptText.value.trim();
+    if (!text) {
+      status.textContent = 'Paste some text first.';
+      status.className = 'status error';
+      return;
+    }
+    displayScript(text, true);
+    customArea.style.display = 'none';
+    toggleCustomBtn.textContent = 'Paste your own';
+  }
+  function toggleCustom() {
+    if (customArea.style.display === 'flex') {
+      customArea.style.display = 'none';
+      toggleCustomBtn.textContent = 'Paste your own';
+    } else {
+      customArea.style.display = 'flex';
+      toggleCustomBtn.textContent = 'Close';
+      if (currentChannel.script) customScriptText.value = currentChannel.script;
+    }
+  }
+
+  /* ============================================================
+     PRESET BUTTONS
+  ============================================================ */
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ch = btn.dataset.channel;
+      if (ch && ch !== currentChannelId) {
+        switchChannel(ch);
+      }
+    });
+  });
+
+  /* ============================================================
+     INIT
+  ============================================================ */
+  const speechSynth = window.speechSynthesis;
+  if (speechSynth) {
+    speechSynth.onvoiceschanged = () => { populateVoices(); };
+    setTimeout(() => { if (speechSynth.getVoices().length > 0) { populateVoices(); } }, 200);
+  }
+
+  const savedChannel = loadSettings();
+  // Set initial channel
+  if (savedChannel && CHANNELS[savedChannel]) {
+    currentChannelId = savedChannel;
+    currentChannel = CHANNELS[savedChannel];
+  }
+  // Update UI for initial channel
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.channel === currentChannelId);
+  });
+  freqReadout.textContent = currentChannel.frequency + ' · ' + currentChannel.name.toUpperCase();
+  tagline.textContent = currentChannel.tagline;
+  updateDial();
+  // Load script if any (none initially)
+  scriptBox.innerHTML = '<span class="empty">No script for this channel yet. Generate one.</span>';
+  playBtn.disabled = true;
+  copyBtn.disabled = true;
+  status.textContent = 'Welcome to ' + currentChannel.name + '. Generate a script to start.';
+  status.className = 'status';
+
+  if (typeof puter === 'undefined') {
+    loadPuter().catch(() => { puterStatus.textContent = '⚠ AI unavailable'; });
+  }
+
+  console.log('🎙️ SensyCilva Multi‑Channel Radio loaded.');
+  console.log('🎵 Request a song by typing: play <song name>');
+})();
+</script>
+</body>
+</html>

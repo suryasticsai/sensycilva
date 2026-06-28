@@ -223,7 +223,7 @@
       <button class="btn small" id="ytApiKeySave">Save key</button>
       <span class="key-status" id="ytKeyStatus">Not set</span>
     </div>
-    <div class="hint">Just chat naturally: "play shape of you", "next", "pause", "stop", "tell me about this song"</div>
+    <div class="hint">Just chat naturally: "play shape of you", "next", "pause", "stop", "tell me about this song", "continue with your broadcast"</div>
 
     <div class="yt-frame" id="ytPlayerContainer"><div id="ytPlayer"></div></div>
     <div class="row">
@@ -381,7 +381,7 @@
   setChannel(savedChannel);
 
   // ============================================================
-  //  YOUTUBE PLAYER
+  //  YOUTUBE PLAYER (unchanged)
   // ============================================================
   let ytPlayer = null;
   let ytPlayerReady = false;
@@ -524,7 +524,6 @@
     nowPlayingInfo.textContent = title;
   }
 
-  // Get song details from YouTube
   async function getYouTubeVideoDetails(videoId) {
     const key = currentApiKey || loadApiKey();
     if (!key) throw new Error('YouTube API key missing.');
@@ -885,6 +884,7 @@
       return;
     }
     if (isSpeaking && !isPaused) {
+      // Already playing – ignore
       return;
     }
     if (isPaused) {
@@ -1076,7 +1076,10 @@ Your job is to understand their request and respond with a single command prefix
 6. If they want to know more about the current song (they say "tell me about this song", "what's playing", "who is the artist", "information about this song", "what is this song"), respond with:
    "SONG_INFO"
 
-7. If they are just chatting (greeting, asking about you, etc.), reply conversationally in ${langName}.
+7. If they want to stop the music and continue with the radio broadcast (they say "continue with your broadcast", "resume the show", "go back to the radio", "stop music and continue", "back to the show", "continue with the broadcast"), respond with:
+   "BROADCAST"
+
+8. If they are just chatting (greeting, asking about you, etc.), reply conversationally in ${langName}.
 
 Important rules:
 - If they mention "stop" or "bored" but also mention a new song, treat it as "PLAY" for that new song.
@@ -1106,6 +1109,8 @@ Now respond with the appropriate command.`;
         intent = 'stop';
       } else if (reply.startsWith('SONG_INFO')) {
         intent = 'song_info';
+      } else if (reply.startsWith('BROADCAST')) {
+        intent = 'broadcast';
       } else {
         intent = 'chat';
       }
@@ -1114,7 +1119,47 @@ Now respond with the appropriate command.`;
       let result = null;
       let responseMessage = '';
 
-      if (intent === 'song_info') {
+      if (intent === 'broadcast') {
+        // Stop music if playing
+        if (isMusicPlaying) {
+          stopMusic();
+        }
+        // Resume or start broadcast
+        if (sentences.length === 0) {
+          responseMessage = "I don't have a script loaded. Let me generate one for you.";
+          addHostReply(responseMessage);
+          await speakText(responseMessage);
+          // Generate script
+          generateScript(); // This will load a script and enable On Air
+          // After generation, we need to start broadcast automatically? We'll prompt user to press On Air.
+          responseMessage = "Script generated. Press 'On Air' to start the broadcast.";
+          addHostReply(responseMessage);
+          await speakText(responseMessage);
+        } else {
+          // Resume broadcast
+          if (isSpeaking && isPaused) {
+            startBroadcast(); // will resume
+          } else if (!isSpeaking) {
+            // Start from beginning or resume
+            if (currentSentenceIndex >= sentences.length) {
+              currentSentenceIndex = 0;
+            }
+            startBroadcast(); // will start from where it left off
+          } else {
+            // already speaking
+            responseMessage = "The broadcast is already running.";
+            addHostReply(responseMessage);
+            await speakText(responseMessage);
+          }
+          // After starting, send a confirmation
+          responseMessage = "Continuing the broadcast.";
+          addHostReply(responseMessage);
+          await speakText(responseMessage);
+        }
+        // We've already sent replies, so skip further processing
+        reply = responseMessage; // just to avoid undefined
+
+      } else if (intent === 'song_info') {
         if (currentVideoId) {
           try {
             const details = await getYouTubeVideoDetails(currentVideoId);
@@ -1187,12 +1232,15 @@ Now respond with the appropriate command.`;
         if (!/[.!?]$/.test(reply)) reply += '.';
       }
 
-      stopFiller();
-      const cleanReply = addHostReply(reply);
-      status.textContent = 'Speaking…';
-      status.className = 'status';
-      waveformContainer.className = 'waveform active';
-      await speakText(cleanReply);
+      // Only speak if we haven't already spoken inside broadcast handling
+      if (intent !== 'broadcast') {
+        stopFiller();
+        const cleanReply = addHostReply(reply);
+        status.textContent = 'Speaking…';
+        status.className = 'status';
+        waveformContainer.className = 'waveform active';
+        await speakText(cleanReply);
+      }
 
       status.textContent = 'Ready.';
       status.className = 'status';
@@ -1368,7 +1416,7 @@ Now respond with the appropriate command.`;
     loadPuter().catch(() => {});
   }
 
-  console.log('🎙️ SensyCilva Radio — now can tell you about the current song!');
+  console.log('🎙️ SensyCilva Radio — voice command "continue with your broadcast" now works.');
 })();
 </script>
 </body>

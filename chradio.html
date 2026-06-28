@@ -18,7 +18,6 @@
   }
   .wrap { width:100%; max-width:900px; }
 
-  /* channel themes (overridden per channel) */
   :root {
     --accent: #ff4d6d;
     --accent-dim: #7a2a3a;
@@ -238,7 +237,7 @@
   'use strict';
 
   /* ============================================================
-     CHANNEL DEFINITIONS
+     CHANNEL DEFINITIONS with gender‑specific host names
   ============================================================ */
   const CHANNELS = {
     en: {
@@ -246,7 +245,8 @@
       name: 'SensyCilva English',
       frequency: 'FM 92.4',
       accentColor: '#ff4d6d',
-      hostName: 'Emma',
+      hostNameMale: 'David',
+      hostNameFemale: 'Emma',
       tagline: 'Anime broadcast, late‑night frequency',
       language: 'en',
       voiceHint: 'en',
@@ -255,13 +255,15 @@
       currentSentenceIndex: 0,
       isSpeaking: false,
       nowPlaying: { videoId: null, title: 'Nothing queued', artist: '', duration: 0 },
+      currentHostName: 'David', // will be updated based on voice gender
     },
     te: {
       id: 'te',
       name: 'SensyCilva Telugu',
       frequency: 'FM 98.3',
       accentColor: '#5ee6c8',
-      hostName: 'Anjali',
+      hostNameMale: 'Ravi',
+      hostNameFemale: 'Anjali',
       tagline: 'అనిమే ప్రసారం, రాత్రి సమయం',
       language: 'te',
       voiceHint: 'te',
@@ -270,13 +272,15 @@
       currentSentenceIndex: 0,
       isSpeaking: false,
       nowPlaying: { videoId: null, title: 'Nothing queued', artist: '', duration: 0 },
+      currentHostName: 'Ravi',
     },
     hi: {
       id: 'hi',
       name: 'SensyCilva Hindi',
       frequency: 'FM 101.1',
       accentColor: '#ffb84d',
-      hostName: 'Priya',
+      hostNameMale: 'Amit',
+      hostNameFemale: 'Priya',
       tagline: 'एनिमे प्रसारण, देर रात की आवृत्ति',
       language: 'hi',
       voiceHint: 'hi',
@@ -285,6 +289,7 @@
       currentSentenceIndex: 0,
       isSpeaking: false,
       nowPlaying: { videoId: null, title: 'Nothing queued', artist: '', duration: 0 },
+      currentHostName: 'Amit',
     }
   };
 
@@ -433,7 +438,7 @@
           if(ch.nowPlaying.title && ch.nowPlaying.artist){
             const durStr = formatDuration(ch.nowPlaying.duration);
             const msg = `Now playing ${ch.nowPlaying.title} by ${ch.nowPlaying.artist}, duration ${durStr}.`;
-            speakText(msg, true); // priority
+            speakText(msg, true);
           }
         },
         onStateChange: (e)=>{
@@ -519,7 +524,6 @@
       channel.nowPlaying.videoId = top.id;
       channel.nowPlaying.title = top.title;
       channel.nowPlaying.artist = top.artist;
-      // duration will be set in onReady
       nowPlayingInfo.textContent = `${top.title} — ${top.artist}`;
       addLogLine(`🎵 Now playing: "${top.title}" by ${top.artist}`, 'song');
       return { success:true, title:top.title, artist:top.artist };
@@ -545,6 +549,35 @@
   }
   function stopCurrentSFX(){ if(currentSFX){ currentSFX.pause(); currentSFX.currentTime=0; currentSFX=null; } }
   sfxToggle.addEventListener('change', ()=>{ sfxEnabled=sfxToggle.checked; if(!sfxEnabled) stopCurrentSFX(); });
+
+  /* ============================================================
+     VOICE GENDER DETECTION & HOST NAME UPDATE
+  ============================================================ */
+  function getVoiceGender(voice) {
+    const name = voice.name.toLowerCase();
+    if (/male|man|boy|guy|dude|he/i.test(name)) return 'male';
+    if (/female|woman|girl|lady|she|her/i.test(name)) return 'female';
+    // Some voices like "Google UK English Female" - check for gender
+    if (/\bfemale\b/.test(name)) return 'female';
+    if (/\bmale\b/.test(name)) return 'male';
+    return 'unknown';
+  }
+
+  function updateHostNameForChannel(channel) {
+    const selectedVoiceURI = voiceSelect.value;
+    const voices = speechSynth.getVoices();
+    const selectedVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
+    if (!selectedVoice) return;
+    const gender = getVoiceGender(selectedVoice);
+    if (gender === 'male') {
+      channel.currentHostName = channel.hostNameMale || 'Host';
+    } else if (gender === 'female') {
+      channel.currentHostName = channel.hostNameFemale || 'Host';
+    } else {
+      // fallback: use male if unknown
+      channel.currentHostName = channel.hostNameMale || 'Host';
+    }
+  }
 
   /* ============================================================
      SETTINGS & VOICES
@@ -579,21 +612,25 @@
       opt.text = `${v.name} (${v.lang})`;
       voiceSelect.appendChild(opt);
     });
-    // Auto-select based on channel's language hint
+    // Auto-select based on channel's language hint, prefer male if available (we can change later)
     const langHint = currentChannel.voiceHint;
     let preferred = sorted.find(v => v.lang.startsWith(langHint));
-    // For Telugu, prefer female if available (simple heuristic: name includes 'female' or 'girl')
-    if (langHint === 'te') {
-      const female = sorted.find(v => v.lang.startsWith('te') && /female|girl/i.test(v.name));
-      if (female) preferred = female;
-    }
     if (!preferred) preferred = sorted.find(v => v.lang.startsWith('en'));
     if (preferred) voiceSelect.value = preferred.voiceURI;
     const savedVoice = storeGet('sensy_voice');
     if (savedVoice && [...voiceSelect.options].some(o => o.value === savedVoice)) {
       voiceSelect.value = savedVoice;
     }
+    // Update host name based on selected voice
+    updateHostNameForChannel(currentChannel);
   }
+
+  // Listen to voice changes to update host name
+  voiceSelect.addEventListener('change', () => {
+    updateHostNameForChannel(currentChannel);
+    saveSettings();
+    // Optionally re-introduce? We'll do it on channel switch or on demand.
+  });
 
   function cleanForTTS(text) {
     let cleaned = text.replace(/<[^>]*>/g, '');
@@ -640,7 +677,6 @@
     ch.sentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
     ch.currentSentenceIndex = 0;
     ch.isSpeaking = false;
-    // Clear log and show script
     combinedLog.innerHTML = '';
     ch.sentences.forEach((s, i) => {
       const div = document.createElement('div');
@@ -683,7 +719,7 @@
       const ch = currentChannel;
       const lang = ch.language;
       const langName = lang==='hi'?'Hindi':lang==='te'?'Telugu':'English';
-      const hostName = ch.hostName;
+      const hostName = ch.currentHostName || ch.hostNameMale;
       const prompt = `Write a complete anime radio show script in ${langName} for "${ch.name}" hosted by ${hostName}.
 Each sentence should be at least 15-20 words long. Keep it plain and conversational.
 Include: greeting, news (Attack on Titan finale), featured anime (Frieren), recommendation (Mashle), trivia (Sailor Moon creator marriage), and sign-off.
@@ -741,7 +777,6 @@ The entire script must have at least 25 sentences. Output one sentence per line.
       if(callback) callback();
     };
     speechSynth.speak(utterance);
-    // update transcript (subtitles) - we'll show in a small overlay? We'll just update status
     status.textContent = `🗣️ ${text.substring(0,60)}…`;
   }
 
@@ -751,6 +786,17 @@ The entire script must have at least 25 sentences. Output one sentence per line.
       if (isFillerPlaying) stopFiller();
       speakSentence(text, () => resolve());
     });
+  }
+
+  // Host introduction
+  function introduceHost() {
+    const ch = currentChannel;
+    const name = ch.currentHostName || ch.hostNameMale || 'Host';
+    const intro = `Hello, I am ${name}, your radio host for ${ch.name}.`;
+    addLogLine(`🎙️ Host: ${intro}`, 'host');
+    // Speak with priority (interrupts anything else)
+    if (speechSynth.speaking) speechSynth.cancel();
+    speakSentence(intro, () => {});
   }
 
   function playScript() {
@@ -769,15 +815,32 @@ The entire script must have at least 25 sentences. Output one sentence per line.
       updateDial();
       return;
     }
-    if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
-    if (ch.currentSentenceIndex === 0) playSFX(SFX.introJingle, 0.25);
-    status.textContent = `Broadcasting from sentence ${ch.currentSentenceIndex+1}…`;
-    playBtn.disabled = true;
-    stopBtn.disabled = false;
-    ch.isSpeaking = true;
-    setOnAir(true);
-    if (ch.currentSentenceIndex === 0) setTimeout(() => playSFX(SFX.transitionSweeper,0.2), 1500);
-    speakNextSentence();
+    if (ch.currentSentenceIndex === 0) {
+      // Introduce host at start of broadcast
+      introduceHost();
+      // Wait a moment before starting script
+      setTimeout(() => {
+        if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
+        playSFX(SFX.introJingle, 0.25);
+        status.textContent = `Broadcasting from sentence ${ch.currentSentenceIndex+1}…`;
+        playBtn.disabled = true;
+        stopBtn.disabled = false;
+        ch.isSpeaking = true;
+        setOnAir(true);
+        if (ch.currentSentenceIndex === 0) setTimeout(() => playSFX(SFX.transitionSweeper,0.2), 1500);
+        speakNextSentence();
+      }, 1000);
+    } else {
+      if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
+      playSFX(SFX.introJingle, 0.25);
+      status.textContent = `Broadcasting from sentence ${ch.currentSentenceIndex+1}…`;
+      playBtn.disabled = true;
+      stopBtn.disabled = false;
+      ch.isSpeaking = true;
+      setOnAir(true);
+      if (ch.currentSentenceIndex === 0) setTimeout(() => playSFX(SFX.transitionSweeper,0.2), 1500);
+      speakNextSentence();
+    }
   }
 
   function speakNextSentence() {
@@ -1031,7 +1094,7 @@ The entire script must have at least 25 sentences. Output one sentence per line.
       const context = ch.sentences.length > 0 ? ch.sentences[Math.min(ch.currentSentenceIndex, ch.sentences.length-1)] : 'Nothing specific.';
       const lang = ch.language;
       const langName = lang==='hi'?'Hindi':lang==='te'?'Telugu':'English';
-      const prompt = `You are the host of ${ch.name} (${ch.hostName}). You are currently saying: "${context}".
+      const prompt = `You are the host of ${ch.name} (${ch.currentHostName || ch.hostNameMale}). You are currently saying: "${context}".
 A listener says: "${msg}".
 Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain, without emotions, and in short sentences.`;
       const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
@@ -1065,6 +1128,11 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
     mainPanel.className = 'main-panel channel-' + channelId;
     freqReadout.textContent = currentChannel.frequency + ' · ' + currentChannel.name.toUpperCase();
     tagline.textContent = currentChannel.tagline;
+    // Auto-select voice (populateVoices will pick based on language)
+    populateVoices();
+    // Update host name based on selected voice (done inside populateVoices via updateHostNameForChannel)
+    // Now introduce host
+    introduceHost();
     // Load script if any
     if (currentChannel.script) {
       displayScript(currentChannel.script);
@@ -1083,8 +1151,6 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
       nowPlayingInfo.textContent = 'Nothing queued';
       musicDuration.textContent = '0:00';
     }
-    // Auto-select voice
-    populateVoices();
     saveSettings();
   }
 
@@ -1145,7 +1211,6 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
     });
   });
   toggleCustomBtn.addEventListener('click', ()=>{
-    // simple paste: prompt for script
     const custom = prompt('Paste your own script (multi‑line):', currentChannel.script || '');
     if(custom !== null && custom.trim()) {
       displayScript(custom.trim());
@@ -1189,6 +1254,11 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
   tagline.textContent = currentChannel.tagline;
   combinedLog.innerHTML = '<div class="line host">🎙️ Welcome to ' + currentChannel.name + '! Generate a script or ask me to play a song.</div>';
   status.textContent = 'Ready.';
+  // Auto-select voice and introduce host after voices load
+  setTimeout(() => {
+    populateVoices();
+    introduceHost();
+  }, 500);
   updateDial();
 
   if (typeof puter === 'undefined') {

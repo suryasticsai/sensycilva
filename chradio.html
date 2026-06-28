@@ -341,6 +341,14 @@
   const musicWarning = document.getElementById('musicWarning');
 
   /* ============================================================
+     SPEECH SYNTH (moved to top to avoid ReferenceError)
+  ============================================================ */
+  const speechSynth = window.speechSynthesis;
+  let isSpeakingNow = false;
+  let isFillerPlaying = false;
+  let fillerUtterance = null;
+
+  /* ============================================================
      BUILD DIAL TICKS
   ============================================================ */
   for (let i = 0; i < 41; i++) {
@@ -557,7 +565,6 @@
     const name = voice.name.toLowerCase();
     if (/male|man|boy|guy|dude|he/i.test(name)) return 'male';
     if (/female|woman|girl|lady|she|her/i.test(name)) return 'female';
-    // Some voices like "Google UK English Female" - check for gender
     if (/\bfemale\b/.test(name)) return 'female';
     if (/\bmale\b/.test(name)) return 'male';
     return 'unknown';
@@ -574,7 +581,6 @@
     } else if (gender === 'female') {
       channel.currentHostName = channel.hostNameFemale || 'Host';
     } else {
-      // fallback: use male if unknown
       channel.currentHostName = channel.hostNameMale || 'Host';
     }
   }
@@ -612,7 +618,7 @@
       opt.text = `${v.name} (${v.lang})`;
       voiceSelect.appendChild(opt);
     });
-    // Auto-select based on channel's language hint, prefer male if available (we can change later)
+    // Auto-select based on channel's language hint
     const langHint = currentChannel.voiceHint;
     let preferred = sorted.find(v => v.lang.startsWith(langHint));
     if (!preferred) preferred = sorted.find(v => v.lang.startsWith('en'));
@@ -629,7 +635,6 @@
   voiceSelect.addEventListener('change', () => {
     updateHostNameForChannel(currentChannel);
     saveSettings();
-    // Optionally re-introduce? We'll do it on channel switch or on demand.
   });
 
   function cleanForTTS(text) {
@@ -745,11 +750,6 @@ The entire script must have at least 25 sentences. Output one sentence per line.
   /* ============================================================
      SPEECH & BROADCAST
   ============================================================ */
-  const speechSynth = window.speechSynthesis;
-  let isSpeakingNow = false;
-  let isFillerPlaying = false;
-  let fillerUtterance = null;
-
   function speakSentence(text, callback, retryCount=0) {
     const voiceURI = voiceSelect.value;
     const voices = speechSynth.getVoices();
@@ -794,7 +794,6 @@ The entire script must have at least 25 sentences. Output one sentence per line.
     const name = ch.currentHostName || ch.hostNameMale || 'Host';
     const intro = `Hello, I am ${name}, your radio host for ${ch.name}.`;
     addLogLine(`🎙️ Host: ${intro}`, 'host');
-    // Speak with priority (interrupts anything else)
     if (speechSynth.speaking) speechSynth.cancel();
     speakSentence(intro, () => {});
   }
@@ -816,9 +815,7 @@ The entire script must have at least 25 sentences. Output one sentence per line.
       return;
     }
     if (ch.currentSentenceIndex === 0) {
-      // Introduce host at start of broadcast
       introduceHost();
-      // Wait a moment before starting script
       setTimeout(() => {
         if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
         playSFX(SFX.introJingle, 0.25);

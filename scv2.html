@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SensyCilva — Anime Pirate Radio</title>
+<title>SensyCilva Radio</title>
+<link rel="icon" href="logo.png" type="image/png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='32' y='48' text-anchor='middle' font-size='48' font-family='Arial'%3E🎙%3C/text%3E%3C/svg%3E">
 <style>
-/* ─────────────────────────────────────────
-   DESIGN TOKENS
-───────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS — each channel overrides these
+═══════════════════════════════════════════════════ */
 :root{
+  /* Base darks */
   --bg:#080612;
   --bg2:#0d0a1a;
   --bg3:#110e21;
@@ -23,8 +26,20 @@
   --paper-dim:#9990bb;
   --paper-dimmer:#5a537a;
 
+  /* English channel default — Electric Pink/Cyan */
+  --accent:#ff2d78;
+  --accent-dim:rgba(255,45,120,.15);
+  --accent-glow:rgba(255,45,120,.35);
+  --accent2:#00ffe7;
+  --accent2-dim:rgba(0,255,231,.15);
+  --accent2-glow:rgba(0,255,231,.3);
+  --accent3:#b06fff;
+  --accent3-dim:rgba(176,111,255,.15);
+  --accent3-glow:rgba(176,111,255,.3);
+
+  /* Legacy aliases for non-theme-specific elements */
   --signal:#ff2d78;
-  --signal-dim:#7a0f38;
+  --signal-dim:rgba(255,45,120,.15);
   --signal-glow:rgba(255,45,120,.35);
   --cyan:#00ffe7;
   --cyan-dim:rgba(0,255,231,.15);
@@ -41,15 +56,53 @@
   --mono:'JetBrains Mono','SF Mono','Fira Code','Courier New',monospace;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --display:'Inter','Segoe UI',system-ui,sans-serif;
-
   --radius:14px;
   --radius-sm:8px;
   --radius-pill:999px;
+
+  /* Channel hero bg override */
+  --hero-bg:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,45,120,.18) 0%, transparent 70%);
 }
 
-/* ─────────────────────────────────────────
-   RESET & BASE
-───────────────────────────────────────── */
+/* ─── HINDI CHANNEL THEME: Saffron/Gold/Deep Purple ─── */
+body.lang-hi{
+  --bg:#090610;
+  --bg2:#0e0a0e;
+  --bg3:#140c12;
+  --panel2:#1e1225;
+  --panel3:#251630;
+  --accent:#ff9500;
+  --accent-dim:rgba(255,149,0,.15);
+  --accent-glow:rgba(255,149,0,.35);
+  --accent2:#d946ef;
+  --accent2-dim:rgba(217,70,239,.15);
+  --accent2-glow:rgba(217,70,239,.3);
+  --accent3:#f43f5e;
+  --accent3-dim:rgba(244,63,94,.15);
+  --accent3-glow:rgba(244,63,94,.3);
+  --hero-bg:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,149,0,.2) 0%, transparent 70%);
+}
+
+/* ─── TELUGU CHANNEL THEME: Teal/Emerald/Deep Navy ─── */
+body.lang-te{
+  --bg:#060b10;
+  --bg2:#080e14;
+  --bg3:#0b1219;
+  --panel2:#0f1a22;
+  --panel3:#132030;
+  --accent:#10d9a8;
+  --accent-dim:rgba(16,217,168,.15);
+  --accent-glow:rgba(16,217,168,.35);
+  --accent2:#3b82f6;
+  --accent2-dim:rgba(59,130,246,.15);
+  --accent2-glow:rgba(59,130,246,.3);
+  --accent3:#f59e0b;
+  --accent3-dim:rgba(245,158,11,.15);
+  --accent3-glow:rgba(245,158,11,.3);
+  --hero-bg:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16,217,168,.18) 0%, transparent 70%);
+}
+
+/* ─── RESET ─── */
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overscroll-behavior:none;}
 body{
@@ -59,19 +112,13 @@ body{
   min-height:100vh;
   overflow-x:hidden;
   position:relative;
+  transition:background .6s ease;
 }
 
-/* ─────────────────────────────────────────
-   STARFIELD CANVAS — ambient atmosphere
-───────────────────────────────────────── */
-#starfield{
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  opacity:.55;
-}
+/* ─── STARFIELD ─── */
+#starfield{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55;}
 
-/* ─────────────────────────────────────────
-   GRID OVERLAY
-───────────────────────────────────────── */
+/* ─── GRID OVERLAY ─── */
 .grid-overlay{
   position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:
@@ -81,197 +128,153 @@ body{
   mask-image:radial-gradient(ellipse 90% 70% at 50% 50%,black 10%,transparent 100%);
 }
 
-/* ─────────────────────────────────────────
-   LAYOUT WRAPPER
-───────────────────────────────────────── */
-.app{
-  position:relative;z-index:1;
-  min-height:100vh;
-  display:flex;flex-direction:column;
-}
+/* ─── APP WRAPPER ─── */
+.app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
 
-/* ─────────────────────────────────────────
-   HERO / HEADER
-───────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════════ */
 .hero{
-  background:linear-gradient(180deg,rgba(8,6,18,0) 0%,rgba(13,10,26,.96) 100%);
+  background:linear-gradient(180deg,rgba(8,6,18,.1) 0%,rgba(13,10,26,.97) 100%);
   backdrop-filter:blur(12px);
   -webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line2);
   padding:18px 28px 14px;
-  position:relative;
-  overflow:hidden;
+  position:relative;overflow:hidden;
+  transition:background .6s ease;
 }
 .hero-glow{
-  position:absolute;top:-80px;left:50%;transform:translateX(-50%);
-  width:600px;height:200px;
-  background:radial-gradient(ellipse,rgba(176,111,255,.12) 0%,transparent 70%);
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:var(--hero-bg);
   pointer-events:none;
+  transition:background 1s ease;
 }
-.hero-inner{
-  max-width:1100px;margin:0 auto;
-  display:flex;flex-direction:column;gap:14px;
-}
-.hero-top{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
-}
+.hero-inner{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px;}
+.hero-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 
 /* Brand */
 .brand-row{display:flex;align-items:center;gap:16px;}
 .brand-logo{
-  width:52px;height:52px;border-radius:14px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--signal),var(--violet));
-  display:flex;align-items:center;justify-content:center;font-size:26px;
-  box-shadow:0 0 28px var(--signal-glow),0 0 60px rgba(176,111,255,.15);
+  width:54px;height:54px;border-radius:12px;flex-shrink:0;
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:none;
   position:relative;overflow:hidden;
+  transition:box-shadow .6s ease;
 }
-.brand-logo::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.2) 0%,transparent 60%);
-}
+.brand-logo img{width:54px;height:54px;object-fit:contain;border-radius:12px;position:relative;z-index:1;}
+.brand-logo::after{display:none;}
+
 .brand-text .eyebrow{
   font-family:var(--mono);font-size:9px;letter-spacing:.25em;
-  color:var(--cyan);text-transform:uppercase;margin-bottom:3px;
+  color:var(--accent2);text-transform:uppercase;margin-bottom:3px;
   display:flex;align-items:center;gap:6px;
+  transition:color .6s ease;
 }
 .eyebrow-dot{
-  width:5px;height:5px;border-radius:50%;background:var(--cyan);
+  width:5px;height:5px;border-radius:50%;background:var(--accent2);
   animation:dot-blink 2s infinite;
+  transition:background .6s ease;
 }
-@keyframes dot-blink{0%,100%{opacity:1;}50%{opacity:.2;}}
-.brand-text h1{
-  font-family:var(--display);font-size:30px;font-weight:900;
-  letter-spacing:-.03em;line-height:1;
-}
-.brand-text h1 .pink{
-  color:var(--signal);
-  text-shadow:0 0 30px var(--signal-glow),0 0 60px rgba(255,45,120,.2);
+@keyframes dot-blink{0%,100%{opacity:1;}50%{opacity:.15;}}
+.brand-text h1{font-family:var(--display);font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1;}
+.brand-text h1 .brand-color{
+  color:var(--accent);
+  text-shadow:0 0 30px var(--accent-glow),0 0 60px var(--accent-dim);
+  transition:color .6s ease, text-shadow .6s ease;
 }
 .brand-text .tagline{font-size:11px;color:var(--paper-dimmer);margin-top:3px;letter-spacing:.02em;}
 
-/* On-Air Button */
+/* ─── ON AIR BUTTON — animated pill ─── */
 .onair-btn{
   display:flex;align-items:center;gap:10px;
-  padding:12px 24px;border-radius:var(--radius-pill);
+  padding:13px 26px;border-radius:var(--radius-pill);
   font-family:var(--mono);font-size:12px;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;
-  cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
   position:relative;overflow:hidden;
   background:var(--panel2);border:1.5px solid var(--line3);
   color:var(--paper-dim);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
 }
 .onair-btn::before{
   content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 60%);
+  background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,transparent 60%);
 }
-.onair-btn .lamp{
-  width:9px;height:9px;border-radius:50%;
-  background:var(--paper-dimmer);flex-shrink:0;transition:.3s;
-}
-.onair-btn:hover:not(.live){border-color:var(--line3);filter:brightness(1.15);}
+.onair-btn .lamp{width:9px;height:9px;border-radius:50%;background:var(--paper-dimmer);flex-shrink:0;transition:.3s;}
+.onair-btn:hover:not(.live){border-color:var(--accent);color:var(--accent);box-shadow:0 0 20px var(--accent-dim);}
 .onair-btn.live{
-  background:linear-gradient(135deg,rgba(255,45,120,.18),rgba(255,45,120,.06));
-  border-color:var(--signal);color:var(--signal);
-  box-shadow:0 0 24px var(--signal-glow),inset 0 0 16px rgba(255,45,120,.06);
+  background:linear-gradient(135deg,var(--accent-dim),rgba(0,0,0,.1));
+  border-color:var(--accent);color:var(--accent);
+  box-shadow:0 0 28px var(--accent-glow),inset 0 0 18px var(--accent-dim);
+  animation:btn-breathe 2s infinite;
 }
+@keyframes btn-breathe{0%,100%{box-shadow:0 0 28px var(--accent-glow);}50%{box-shadow:0 0 50px var(--accent-glow),0 0 80px var(--accent-dim);}}
 .onair-btn.live .lamp{
-  background:var(--signal);
-  box-shadow:0 0 14px 4px var(--signal-glow);
+  background:var(--accent);
+  box-shadow:0 0 14px 4px var(--accent-glow);
   animation:lamp-pulse 1.1s infinite;
 }
 .onair-btn.paused{
-  background:rgba(245,166,35,.1);border-color:var(--amber);color:var(--amber);
+  background:var(--amber-dim);border-color:var(--amber);color:var(--amber);
 }
 .onair-btn.paused .lamp{background:var(--amber);box-shadow:0 0 10px rgba(245,166,35,.5);}
-@keyframes lamp-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.8);}}
+@keyframes lamp-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.25;transform:scale(.75);}}
 
-/* Channels */
+/* ─── CHANNEL BUTTONS ─── */
 .hero-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .channels{display:flex;gap:6px;flex-wrap:wrap;}
 .ch-btn{
   background:var(--panel2);border:1px solid var(--line2);
-  color:var(--paper-dimmer);padding:6px 18px;border-radius:var(--radius-pill);
-  font-size:11px;font-weight:600;cursor:pointer;transition:.2s;
+  color:var(--paper-dimmer);padding:7px 20px;border-radius:var(--radius-pill);
+  font-size:11px;font-weight:600;cursor:pointer;
   font-family:inherit;letter-spacing:.03em;
+  position:relative;overflow:hidden;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
 }
-.ch-btn:hover{border-color:var(--line3);color:var(--paper);}
+.ch-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 60%);opacity:0;transition:.2s;}
+.ch-btn:hover::before{opacity:1;}
+.ch-btn:hover{border-color:var(--accent);color:var(--paper);transform:translateY(-1px);}
 .ch-btn.active{
-  background:var(--violet-dim);border-color:var(--violet);
-  color:var(--violet);box-shadow:0 0 12px var(--violet-glow);
+  background:var(--accent-dim);border-color:var(--accent);
+  color:var(--accent);box-shadow:0 0 14px var(--accent-glow);
+  transform:none;
 }
 
-/* Stats mini bar */
-.mini-stats{
-  display:flex;gap:16px;flex-wrap:wrap;
-}
-.stat-item{
-  display:flex;align-items:center;gap:5px;
-  font-family:var(--mono);font-size:10px;color:var(--paper-dimmer);
-  letter-spacing:.06em;
-}
-.stat-item .sv{color:var(--cyan);font-weight:700;}
+/* Mini stats */
+.mini-stats{display:flex;gap:16px;flex-wrap:wrap;}
+.stat-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--paper-dimmer);letter-spacing:.06em;}
+.stat-item .sv{color:var(--accent2);font-weight:700;transition:color .6s;}
 
-/* ─────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    OSCILLOSCOPE BAR
-───────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 .osc-bar{
-  position:relative;
-  background:var(--bg3);
-  border-bottom:1px solid var(--line2);
-  height:72px;
-  overflow:hidden;
-  display:flex;align-items:center;
+  position:relative;background:var(--bg3);
+  border-bottom:1px solid var(--line2);height:72px;
+  overflow:hidden;display:flex;align-items:center;
 }
-.osc-bar::before,
-.osc-bar::after{
-  content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;
-}
+.osc-bar::before,.osc-bar::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;}
 .osc-bar::before{left:0;background:linear-gradient(90deg,var(--bg3),transparent);}
 .osc-bar::after{right:0;background:linear-gradient(-90deg,var(--bg3),transparent);}
-#oscCanvas{
-  position:absolute;inset:0;width:100%;height:100%;
-}
-.osc-overlay{
-  position:relative;z-index:3;
-  width:100%;
-  padding:0 28px;
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  pointer-events:none;
-}
-.subtitle-text{
-  flex:1;font-size:17px;font-weight:500;line-height:1.45;color:var(--paper);
-  text-shadow:0 0 20px rgba(0,255,231,.2);
-  min-height:24px;
-  /* typing cursor handled by JS */
-}
-.subtitle-text.dim{
-  color:var(--paper-dimmer);font-size:13px;font-style:italic;font-weight:400;
-  text-shadow:none;
-}
+#oscCanvas{position:absolute;inset:0;width:100%;height:100%;}
+.osc-overlay{position:relative;z-index:3;width:100%;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;pointer-events:none;}
+.subtitle-text{flex:1;font-size:17px;font-weight:500;line-height:1.45;color:var(--paper);text-shadow:0 0 20px var(--accent2-glow);min-height:24px;}
+.subtitle-text.dim{color:var(--paper-dimmer);font-size:13px;font-style:italic;font-weight:400;text-shadow:none;}
 .status-cluster{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.status-pill{
-  font-family:var(--mono);font-size:10px;padding:5px 14px;
-  border-radius:var(--radius-pill);letter-spacing:.08em;
-  background:var(--panel2);border:1px solid var(--line2);
-  color:var(--paper-dimmer);transition:.3s;
-}
-.status-pill.live{background:var(--cyan-dim);border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 12px var(--cyan-glow);}
+.status-pill{font-family:var(--mono);font-size:10px;padding:5px 14px;border-radius:var(--radius-pill);letter-spacing:.08em;background:var(--panel2);border:1px solid var(--line2);color:var(--paper-dimmer);transition:.3s;}
+.status-pill.live{background:var(--accent2-dim);border-color:var(--accent2);color:var(--accent2);box-shadow:0 0 12px var(--accent2-glow);}
 .status-pill.thinking{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);animation:fade-pulse .85s infinite;}
-.status-pill.error{background:rgba(255,45,120,.1);border-color:var(--signal);color:var(--signal);}
-@keyframes fade-pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+.status-pill.error{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+@keyframes fade-pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
 
-/* ─────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    MAIN GRID
-───────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 .main{
-  flex:1;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  max-width:1100px;
-  margin:0 auto;
-  width:100%;
-  border-left:1px solid var(--line);
-  border-right:1px solid var(--line);
+  flex:1;display:grid;grid-template-columns:1fr 1fr;
+  max-width:1100px;margin:0 auto;width:100%;
+  border-left:1px solid var(--line);border-right:1px solid var(--line);
 }
 @media(max-width:720px){
   .main{grid-template-columns:1fr;}
@@ -279,65 +282,82 @@ body{
   .hero{padding:14px 16px 12px;}
 }
 
-/* ─────────────────────────────────────────
-   PANES
-───────────────────────────────────────── */
-.pane{
-  border-right:1px solid var(--line);
-  display:flex;flex-direction:column;
-  min-height:0;
-}
+/* ─── PANES ─── */
+.pane{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;}
 .pane:last-child{border-right:none;}
 .pane-head{
-  padding:12px 20px;
-  border-bottom:1px solid var(--line);
+  padding:12px 20px;border-bottom:1px solid var(--line);
   display:flex;align-items:center;justify-content:space-between;gap:10px;
-  background:var(--panel);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  background:var(--panel);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   position:sticky;top:0;z-index:10;
 }
-.pane-head h2{
-  font-size:10px;text-transform:uppercase;
-  letter-spacing:.18em;color:var(--paper-dimmer);font-weight:700;
-}
-.pane-body{
-  flex:1;padding:18px 20px;
-  overflow-y:auto;
-  display:flex;flex-direction:column;gap:14px;
-}
+.pane-head h2{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--paper-dimmer);font-weight:700;}
+.pane-body{flex:1;padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
 
-/* ─────────────────────────────────────────
-   BUTTONS
-───────────────────────────────────────── */
-button{font-family:inherit;cursor:pointer;transition:all .18s;}
-button:disabled{opacity:.38;cursor:not-allowed!important;}
+/* ═══════════════════════════════════════════════════
+   BUTTON SYSTEM — stylish animated controls
+═══════════════════════════════════════════════════ */
+button{font-family:inherit;cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1);}
+button:disabled{opacity:.35;cursor:not-allowed!important;}
+
+/* Pill Button base */
 .btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
   background:var(--panel2);border:1px solid var(--line2);
   color:var(--paper);padding:9px 18px;border-radius:var(--radius-pill);
   font-weight:600;font-size:12px;letter-spacing:.04em;
   position:relative;overflow:hidden;
 }
-.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 50%);transition:.2s;}
-.btn:hover:not(:disabled){border-color:var(--line3);background:var(--panel3);transform:translateY(-1px);}
+.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%);transition:.2s;opacity:0;}
+.btn:hover:not(:disabled)::before{opacity:1;}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 20px var(--accent-dim);}
 .btn:active:not(:disabled){transform:translateY(0);}
-.btn.primary{background:var(--signal);border-color:var(--signal);color:#fff;box-shadow:0 0 20px var(--signal-glow);}
-.btn.primary:hover:not(:disabled){background:#ff4d89;box-shadow:0 0 30px var(--signal-glow);}
-.btn.cyan{border-color:var(--cyan);color:var(--cyan);}
-.btn.cyan:hover:not(:disabled){background:var(--cyan-dim);box-shadow:0 0 14px var(--cyan-glow);}
-.btn.amber{border-color:var(--amber);color:var(--amber);}
-.btn.amber:hover:not(:disabled){background:var(--amber-dim);}
-.btn.violet{border-color:var(--violet);color:var(--violet);}
-.btn.violet:hover:not(:disabled){background:var(--violet-dim);box-shadow:0 0 14px var(--violet-glow);}
-.btn.signal{border-color:var(--signal);color:var(--signal);}
-.btn.signal:hover:not(:disabled){background:rgba(255,45,120,.1);}
+
+.btn.primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent3));
+  border-color:transparent;color:#fff;
+  box-shadow:0 0 24px var(--accent-glow);
+}
+.btn.primary:hover:not(:disabled){box-shadow:0 0 40px var(--accent-glow);filter:brightness(1.1);color:#fff;border-color:transparent;}
+
+.btn.glow-cyan{border-color:var(--accent2);color:var(--accent2);}
+.btn.glow-cyan:hover:not(:disabled){background:var(--accent2-dim);box-shadow:0 0 18px var(--accent2-glow);border-color:var(--accent2);color:var(--accent2);}
+
+.btn.glow-violet{border-color:var(--accent3);color:var(--accent3);}
+.btn.glow-violet:hover:not(:disabled){background:var(--accent3-dim);box-shadow:0 0 18px var(--accent3-glow);border-color:var(--accent3);color:var(--accent3);}
+
+.btn.glow-amber{border-color:var(--amber);color:var(--amber);}
+.btn.glow-amber:hover:not(:disabled){background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+
+.btn.glow-signal{border-color:var(--accent);color:var(--accent);}
+.btn.glow-signal:hover:not(:disabled){background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+
 .btn.sm{padding:6px 14px;font-size:11px;}
 .btn.xs{padding:4px 10px;font-size:10px;}
-.btn.icon{padding:8px 12px;min-width:36px;}
+.btn.icon{padding:0;width:36px;height:36px;border-radius:50%;}
 
-/* ─────────────────────────────────────────
+/* PAUSE button — special animated style */
+#pauseBtn{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--panel2);border:1.5px solid var(--line3);
+  color:var(--paper-dimmer);font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+#pauseBtn:not(:disabled):hover{
+  border-color:var(--amber);color:var(--amber);
+  box-shadow:0 0 20px rgba(245,166,35,.4);
+  transform:scale(1.1);
+}
+#pauseBtn.active-pause{
+  border-color:var(--accent2);color:var(--accent2);
+  box-shadow:0 0 16px var(--accent2-glow);
+  animation:none;
+}
+
+/* ═══════════════════════════════════════════════════
    SENSY AVATAR
-───────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 .sensy-avatar-wrap{
   display:flex;align-items:center;gap:14px;
   background:var(--panel2);border:1px solid var(--line2);
@@ -345,595 +365,413 @@ button:disabled{opacity:.38;cursor:not-allowed!important;}
   position:relative;overflow:hidden;
 }
 .sensy-avatar-wrap::before{
-  content:'';position:absolute;
-  top:-30px;right:-20px;width:120px;height:120px;border-radius:50%;
-  background:radial-gradient(circle,var(--violet-dim) 0%,transparent 70%);
+  content:'';position:absolute;top:-30px;right:-20px;width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,var(--accent3-dim) 0%,transparent 70%);
   pointer-events:none;
 }
 .avatar-orb{
-  width:56px;height:56px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,#ff2d78,#b06fff,#00ffe7);
+  width:56px;height:56px;border-radius:12px;flex-shrink:0;
+  background:transparent;
   display:flex;align-items:center;justify-content:center;
   font-size:26px;position:relative;
-  box-shadow:0 0 0 0 var(--violet-glow);
-  transition:box-shadow .3s;
+  box-shadow:none;
+  transition:box-shadow .3s, background .6s;
 }
 .avatar-orb.speaking{animation:orb-speak .5s infinite alternate;}
 @keyframes orb-speak{
-  0%{box-shadow:0 0 12px 2px var(--violet-glow),0 0 0 0 var(--cyan-glow);}
-  100%{box-shadow:0 0 28px 8px var(--violet-glow),0 0 50px 4px var(--cyan-glow);}
+  0%{box-shadow:0 0 12px 2px var(--accent3-glow);}
+  100%{box-shadow:0 0 32px 10px var(--accent3-glow),0 0 60px var(--accent-glow);}
 }
-.avatar-orb::after{
-  content:'';position:absolute;inset:-4px;border-radius:50%;
-  border:2px solid transparent;
-  background:linear-gradient(var(--bg2),var(--bg2)) padding-box,
-             linear-gradient(135deg,var(--violet),var(--cyan)) border-box;
-  animation:ring-spin 6s linear infinite;
-}
-@keyframes ring-spin{to{transform:rotate(360deg);}}
+.avatar-orb img{width:56px;height:56px;object-fit:contain;border-radius:12px;position:relative;z-index:1;}
 .avatar-info{flex:1;}
-.avatar-name{
-  font-weight:800;font-size:16px;letter-spacing:-.01em;margin-bottom:2px;
-}
-.avatar-name span{color:var(--signal);}
+.avatar-name{font-weight:800;font-size:16px;letter-spacing:-.01em;margin-bottom:2px;}
+.avatar-name span{color:var(--accent);}
 .avatar-status{font-size:11px;color:var(--paper-dimmer);}
-
-/* Lip sync bars inside avatar */
-.lip-bars{
-  display:flex;align-items:center;gap:2px;height:16px;margin-top:6px;
-}
-.lb{
-  width:3px;border-radius:2px;background:var(--paper-dimmer);height:4px;transition:.08s;
-}
-.lip-bars.speaking .lb{background:var(--cyan);animation:lb-anim .3s infinite alternate ease-in-out;}
+.lip-bars{display:flex;align-items:center;gap:2px;height:16px;margin-top:6px;}
+.lb{width:3px;border-radius:2px;background:var(--paper-dimmer);height:4px;transition:.08s;}
+.lip-bars.speaking .lb{background:var(--accent2);animation:lb-anim .3s infinite alternate ease-in-out;}
 .lb:nth-child(1){animation-delay:0s}.lb:nth-child(2){animation-delay:.04s}.lb:nth-child(3){animation-delay:.08s}
 .lb:nth-child(4){animation-delay:.12s}.lb:nth-child(5){animation-delay:.16s}.lb:nth-child(6){animation-delay:.2s}
 .lb:nth-child(7){animation-delay:.24s}.lb:nth-child(8){animation-delay:.28s}
 @keyframes lb-anim{0%{height:3px;}100%{height:14px;}}
 
-/* ─────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    PROGRESS TRACK
-───────────────────────────────────────── */
-.progress-track{
-  background:var(--panel2);border:1px solid var(--line2);
-  border-radius:var(--radius);padding:12px 16px;
-}
-.progress-label{
-  font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);
-  letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
-  display:flex;justify-content:space-between;
-}
-.progress-bar-wrap{
-  background:rgba(0,0,0,.5);border-radius:var(--radius-pill);
-  height:3px;overflow:hidden;margin-bottom:6px;
-}
+═══════════════════════════════════════════════════ */
+.progress-track{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);padding:12px 16px;}
+.progress-label{font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;}
+.progress-bar-wrap{background:rgba(0,0,0,.5);border-radius:var(--radius-pill);height:3px;overflow:hidden;margin-bottom:6px;}
 .progress-bar{
   height:3px;
-  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--signal));
+  background:linear-gradient(90deg,var(--accent2),var(--accent3),var(--accent));
   border-radius:var(--radius-pill);transition:width .5s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 0 10px var(--cyan-glow);
+  box-shadow:0 0 10px var(--accent2-glow);
 }
-.progress-stats{
-  display:flex;justify-content:space-between;
-  font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);
-}
-.progress-stats span{color:var(--cyan);}
+.progress-stats{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);}
+.progress-stats span{color:var(--accent2);}
 
-/* ─────────────────────────────────────────
-   SCRIPT PREVIEW
-───────────────────────────────────────── */
+/* ─── SCRIPT PREVIEW ─── */
 .script-box{
   background:#050310;border:1px solid var(--line2);border-radius:var(--radius);
   padding:14px;max-height:170px;overflow-y:auto;
-  font-size:12.5px;line-height:1.75;color:var(--paper-dimmer);
-  font-family:var(--mono);
+  font-size:12.5px;line-height:1.75;color:var(--paper-dimmer);font-family:var(--mono);
 }
-.script-box .hl{
-  color:var(--cyan);background:rgba(0,255,231,.08);
-  border-radius:4px;padding:1px 4px;
-  box-shadow:0 0 12px var(--cyan-glow);
-}
+.script-box .hl{color:var(--accent2);background:var(--accent2-dim);border-radius:4px;padding:1px 4px;box-shadow:0 0 12px var(--accent2-glow);}
 .script-box .done{color:var(--paper-dimmer);opacity:.3;}
 
-/* ─────────────────────────────────────────
-   CUSTOM SCRIPT AREA
-───────────────────────────────────────── */
+/* ─── CUSTOM SCRIPT ─── */
 .custom-area{display:none;flex-direction:column;gap:8px;}
 .custom-area textarea{
   background:#050310;border:1px solid var(--line2);border-radius:var(--radius);
   padding:12px;color:var(--paper);font-size:12.5px;font-family:var(--mono);
   min-height:90px;resize:vertical;outline:none;line-height:1.7;
 }
-.custom-area textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan-dim);}
+.custom-area textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 2px var(--accent2-dim);}
 
-/* ─────────────────────────────────────────
-   SECTION LABEL
-───────────────────────────────────────── */
-.section-label{
-  font-size:9px;text-transform:uppercase;letter-spacing:.18em;
-  color:var(--paper-dimmer);font-weight:700;margin-bottom:8px;
-  display:flex;align-items:center;gap:8px;
-}
-.section-label::after{
-  content:'';flex:1;height:1px;background:var(--line2);
-}
+/* ─── SECTION LABEL ─── */
+.section-label{font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--paper-dimmer);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--line2);}
 
-/* ─────────────────────────────────────────
-   SLIDERS
-───────────────────────────────────────── */
-.slider-row{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
-.slider-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--paper-dimmer);}
-.slider-item label{min-width:30px;font-family:var(--mono);}
-input[type=range]{
-  accent-color:var(--cyan);width:90px;height:4px;cursor:pointer;
-}
-.val{color:var(--cyan);font-family:var(--mono);font-size:10px;min-width:32px;}
-
-/* ─────────────────────────────────────────
-   MUSIC PLAYER
-───────────────────────────────────────── */
-.music-player{
+/* ═══════════════════════════════════════════════════
+   VOLUME KNOB — unique visual control
+═══════════════════════════════════════════════════ */
+.volume-control{
+  display:flex;align-items:center;gap:14px;
   background:var(--panel2);border:1px solid var(--line2);
-  border-radius:var(--radius);overflow:hidden;
+  border-radius:var(--radius);padding:12px 16px;
 }
+.knob-wrap{position:relative;width:58px;height:58px;flex-shrink:0;}
+.knob-track{
+  width:58px;height:58px;border-radius:50%;
+  background:conic-gradient(var(--accent2) 0deg, var(--accent2) 0deg, rgba(255,255,255,.08) 0deg, rgba(255,255,255,.08) 320deg);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;cursor:pointer;
+  box-shadow:0 0 0 3px var(--bg3),0 0 18px var(--accent2-dim);
+  transition:box-shadow .3s;
+}
+.knob-track:hover{box-shadow:0 0 0 3px var(--bg3),0 0 28px var(--accent2-glow);}
+.knob-center{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--panel3);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;font-weight:700;color:var(--accent2);
+  position:relative;z-index:2;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.5);
+}
+.knob-dot{
+  position:absolute;top:4px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--accent2);
+  box-shadow:0 0 6px var(--accent2-glow);
+  transform-origin:center 25px;
+}
+.vol-info{flex:1;}
+.vol-label{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--paper-dimmer);font-family:var(--mono);margin-bottom:4px;}
+.vol-desc{font-size:11px;color:var(--paper-dim);line-height:1.5;}
+.vol-btns{display:flex;gap:6px;margin-top:8px;}
+
+/* ═══════════════════════════════════════════════════
+   MUSIC PLAYER
+═══════════════════════════════════════════════════ */
+.music-player{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);overflow:hidden;}
 .music-player-header{
   padding:12px 14px 10px;
-  background:linear-gradient(135deg,rgba(245,166,35,.08),rgba(176,111,255,.05));
+  background:linear-gradient(135deg,var(--amber-dim),var(--accent3-dim));
   border-bottom:1px solid var(--line);
 }
-.music-vinyl{
-  display:flex;align-items:center;gap:12px;margin-bottom:10px;
-}
+.music-vinyl{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
 .vinyl-disc{
   width:44px;height:44px;border-radius:50%;
   background:conic-gradient(from 0deg,#1a1030,#2a1a50,#1a1030,#2a1a50);
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;position:relative;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;
 }
-.vinyl-disc::before{
-  content:'';position:absolute;inset:14px;border-radius:50%;
-  background:radial-gradient(circle,var(--amber) 0%,rgba(245,166,35,.3) 100%);
-}
-.vinyl-disc.spinning{animation:vinyl-spin 3s linear infinite;}
+.vinyl-disc::before{content:'';position:absolute;inset:14px;border-radius:50%;background:radial-gradient(circle,var(--amber) 0%,rgba(245,166,35,.3) 100%);}
+.vinyl-disc.spinning{animation:vinyl-spin 2.5s linear infinite;}
 @keyframes vinyl-spin{to{transform:rotate(360deg);}}
 .track-info{flex:1;min-width:0;}
-.track-name{
-  font-size:13px;font-weight:700;color:var(--amber);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  margin-bottom:2px;
-}
+.track-name{font-size:13px;font-weight:700;color:var(--amber);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
 .track-meta{font-size:10px;color:var(--paper-dimmer);display:flex;gap:10px;}
-.music-btns{display:flex;gap:6px;margin-top:8px;}
+.music-btns-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
 
-.key-row{display:flex;gap:6px;align-items:center;}
+/* Fun fact ticker */
+.fun-fact-ticker{
+  padding:8px 14px;
+  background:linear-gradient(90deg,var(--accent3-dim),var(--accent2-dim));
+  border-top:1px solid var(--line);
+  font-size:11px;color:var(--paper-dim);
+  display:flex;align-items:flex-start;gap:8px;
+  min-height:42px;
+  line-height:1.5;
+  display:none;
+}
+.fun-fact-ticker.visible{display:flex;}
+.fact-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.fact-text{flex:1;font-style:italic;}
+.fact-label{font-family:var(--mono);font-size:9px;color:var(--accent3);font-style:normal;font-weight:700;letter-spacing:.1em;display:block;margin-bottom:2px;}
+
+/* YouTube embed — collapsible */
+.yt-section{border-top:1px solid var(--line);}
+.yt-toggle-btn{
+  width:100%;padding:10px 14px;
+  background:none;border:none;
+  color:var(--paper-dimmer);font-size:11px;font-family:var(--mono);
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;transition:.2s;letter-spacing:.05em;
+}
+.yt-toggle-btn:hover{color:var(--paper);background:var(--panel3);}
+.yt-toggle-icon{transition:transform .3s;}
+.yt-toggle-btn.open .yt-toggle-icon{transform:rotate(180deg);}
+.yt-video-panel{
+  overflow:hidden;max-height:0;transition:max-height .4s cubic-bezier(.4,0,.2,1);
+}
+.yt-video-panel.open{max-height:200px;}
+.yt-video-panel iframe{display:block;width:100%;height:160px;border:none;}
+#ytPlayerContainer{width:100%;}
+
+.key-row{display:flex;gap:6px;align-items:center;padding:0 14px 12px;}
 .key-input{
   flex:1;background:#050310;border:1px solid var(--line2);border-radius:var(--radius-pill);
   color:var(--paper);font-family:var(--mono);font-size:11px;padding:7px 14px;outline:none;
 }
-.key-input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px var(--cyan-dim);}
+.key-input:focus{border-color:var(--accent2);box-shadow:0 0 0 2px var(--accent2-dim);}
 .key-status{font-family:var(--mono);font-size:10px;color:var(--paper-dimmer);}
-
-.yt-embed{border-radius:0 0 var(--radius) var(--radius);overflow:hidden;display:none;}
-.yt-embed iframe{display:block;width:100%;height:148px;border:none;}
 .music-warn{color:var(--signal);font-size:11px;font-family:var(--mono);margin-top:4px;}
 
-/* ─────────────────────────────────────────
-   CLIPS PANEL
-───────────────────────────────────────── */
-.clips-panel{
-  background:var(--panel2);border:1px solid var(--line2);
-  border-radius:var(--radius);
-}
-.clips-header{
-  padding:10px 14px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;
-  font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--paper-dimmer);font-weight:700;
-}
-.clips-list{
-  max-height:120px;overflow-y:auto;
-  display:flex;flex-direction:column;
-}
-.clip-item{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 14px;border-bottom:1px solid var(--line);
-  font-size:11px;color:var(--paper-dim);cursor:pointer;
-  transition:.15s;
-}
+/* ─── CLIPS PANEL ─── */
+.clips-panel{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);}
+.clips-header{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--paper-dimmer);font-weight:700;}
+.clips-list{max-height:120px;overflow-y:auto;display:flex;flex-direction:column;}
+.clip-item{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:11px;color:var(--paper-dim);cursor:pointer;transition:.15s;}
 .clip-item:last-child{border-bottom:none;}
 .clip-item:hover{background:var(--panel3);}
-.clip-item .ci{color:var(--violet);font-size:14px;flex-shrink:0;}
+.clip-item .ci{color:var(--accent3);font-size:14px;flex-shrink:0;}
 .clip-item .ct{flex:1;line-height:1.4;font-style:italic;}
-.clip-item .ct .ctag{font-size:9px;color:var(--paper-dimmer);font-style:normal;font-family:var(--mono);}
+.clip-item .ctag{font-size:9px;color:var(--paper-dimmer);font-style:normal;font-family:var(--mono);}
 .clip-item .c-del{opacity:0;font-size:11px;color:var(--signal);background:none;border:none;padding:2px 6px;}
 .clip-item:hover .c-del{opacity:.7;}
 .clips-empty{padding:14px;font-size:11px;color:var(--paper-dimmer);text-align:center;font-style:italic;}
 
-/* ─────────────────────────────────────────
-   STATS PANEL
-───────────────────────────────────────── */
-.stats-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;
-}
-.stat-card{
-  background:var(--panel2);border:1px solid var(--line2);
-  border-radius:var(--radius-sm);padding:10px 12px;
-  display:flex;flex-direction:column;gap:2px;
-}
-.stat-card .sv{
-  font-family:var(--mono);font-size:20px;font-weight:900;color:var(--cyan);
-  letter-spacing:-.02em;
-}
+/* ─── STATS GRID ─── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-card{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:10px 12px;display:flex;flex-direction:column;gap:2px;}
+.stat-card .sv{font-family:var(--mono);font-size:20px;font-weight:900;color:var(--accent2);letter-spacing:-.02em;transition:color .6s;}
 .stat-card .sl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--paper-dimmer);}
 
-/* ─────────────────────────────────────────
-   COMING SOON LIST
-───────────────────────────────────────── */
+/* ─── COMING SOON ─── */
 .future-list{display:flex;flex-direction:column;gap:6px;}
-.future-item{
-  display:flex;align-items:flex-start;gap:10px;
-  background:var(--panel2);border:1px solid var(--line);
-  border-radius:var(--radius-sm);padding:10px 12px;
-  transition:.2s;
-}
-.future-item:hover{border-color:var(--line2);}
+.future-item{display:flex;align-items:flex-start;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;transition:.2s;}
+.future-item:hover{border-color:var(--accent3-dim);}
 .fi-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
-.fi-title{font-size:11px;font-weight:700;color:var(--violet);margin-bottom:2px;}
+.fi-title{font-size:11px;font-weight:700;color:var(--accent3);margin-bottom:2px;}
 .fi-desc{font-size:10px;color:var(--paper-dimmer);line-height:1.5;}
 
-/* ─────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    CHAT PANEL
-───────────────────────────────────────── */
-.chat-log{
-  flex:1;background:#050310;border:1px solid var(--line2);
-  border-radius:var(--radius);padding:12px;
-  overflow-y:auto;display:flex;flex-direction:column;gap:10px;
-  min-height:220px;max-height:340px;
-}
+═══════════════════════════════════════════════════ */
+.chat-log{flex:1;background:#050310;border:1px solid var(--line2);border-radius:var(--radius);padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:220px;max-height:360px;}
 .msg{display:flex;flex-direction:column;gap:3px;}
-.msg .from{
-  font-size:9px;font-family:var(--mono);letter-spacing:.08em;
-  display:flex;align-items:center;gap:5px;
-}
-.msg .bubble{
-  padding:9px 14px;border-radius:14px;
-  font-size:12.5px;line-height:1.6;max-width:94%;
-}
-/* Host messages */
-.msg.host .from{color:var(--cyan);}
-.msg.host .bubble{
-  background:rgba(0,255,231,.06);border:1px solid rgba(0,255,231,.15);color:var(--paper);
-  border-radius:4px 14px 14px 14px;
-}
-/* User messages */
-.msg.user .from{color:var(--violet);align-self:flex-end;}
-.msg.user .bubble{
-  background:var(--violet-dim);border:1px solid rgba(176,111,255,.25);color:var(--paper);
-  align-self:flex-end;border-radius:14px 4px 14px 14px;
-}
-/* Special types */
-.msg.song .bubble{
-  background:rgba(245,166,35,.1);border:1px solid var(--amber);
-  color:var(--amber);font-weight:700;font-family:var(--mono);font-size:11px;
-}
-.msg.system .bubble{
-  background:var(--panel2);border:1px solid var(--line);
-  color:var(--paper-dimmer);font-size:11px;font-family:var(--mono);
-  border-radius:6px;
-}
-.msg.clip .bubble{
-  background:rgba(176,111,255,.08);border:1px solid rgba(176,111,255,.2);
-  color:var(--violet);font-size:11px;display:flex;align-items:center;gap:6px;
-  cursor:pointer;
-}
-
-/* Typing indicator */
-.msg.typing .bubble{
-  background:rgba(0,255,231,.05);border:1px solid rgba(0,255,231,.1);
-  padding:12px 16px;
-}
+.msg .from{font-size:9px;font-family:var(--mono);letter-spacing:.08em;display:flex;align-items:center;gap:5px;}
+.msg .bubble{padding:9px 14px;border-radius:14px;font-size:12.5px;line-height:1.6;max-width:94%;}
+.msg.host .from{color:var(--accent2);}
+.msg.host .bubble{background:var(--accent2-dim);border:1px solid rgba(0,255,231,.15);color:var(--paper);border-radius:4px 14px 14px 14px;}
+.msg.user .from{color:var(--accent3);align-self:flex-end;}
+.msg.user .bubble{background:var(--accent3-dim);border:1px solid rgba(176,111,255,.25);color:var(--paper);align-self:flex-end;border-radius:14px 4px 14px 14px;}
+.msg.song .bubble{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber);font-weight:700;font-family:var(--mono);font-size:11px;}
+.msg.system .bubble{background:var(--panel2);border:1px solid var(--line);color:var(--paper-dimmer);font-size:11px;font-family:var(--mono);border-radius:6px;}
+.msg.clip .bubble{background:var(--accent3-dim);border:1px solid rgba(176,111,255,.2);color:var(--accent3);font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;}
+.msg.typing .bubble{background:var(--accent2-dim);border:1px solid rgba(0,255,231,.12);padding:12px 16px;}
 .typing-dots{display:flex;gap:4px;align-items:center;}
-.typing-dots span{
-  width:6px;height:6px;border-radius:50%;background:var(--cyan);
-  animation:tdot .8s infinite ease-in-out;
-}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:tdot .8s infinite ease-in-out;}
 .typing-dots span:nth-child(2){animation-delay:.2s;}
 .typing-dots span:nth-child(3){animation-delay:.4s;}
 @keyframes tdot{0%,100%{transform:scale(.6);opacity:.4;}50%{transform:scale(1);opacity:1;}}
 
-/* ─────────────────────────────────────────
-   MIC + INPUT
-───────────────────────────────────────── */
-.transcript-row{
-  background:var(--panel2);border:1px solid var(--line);
-  border-radius:var(--radius-sm);padding:8px 14px;
-  font-size:11px;color:var(--paper-dimmer);font-style:italic;
-  min-height:34px;transition:.2s;font-family:var(--mono);
-}
-.transcript-row.listening{border-color:var(--violet);color:var(--violet);font-style:normal;background:var(--violet-dim);}
-.transcript-row.final{border-color:var(--cyan);color:var(--cyan);font-style:normal;background:var(--cyan-dim);}
-
+/* ─── TRANSCRIPT / MIC ─── */
+.transcript-row{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 14px;font-size:11px;color:var(--paper-dimmer);font-style:italic;min-height:34px;transition:.2s;font-family:var(--mono);}
+.transcript-row.listening{border-color:var(--accent3);color:var(--accent3);font-style:normal;background:var(--accent3-dim);}
+.transcript-row.final{border-color:var(--accent2);color:var(--accent2);font-style:normal;background:var(--accent2-dim);}
 .chat-input-row{display:flex;gap:8px;}
-.chat-input{
-  flex:1;background:#050310;border:1px solid var(--line2);
-  border-radius:var(--radius-pill);color:var(--paper);
-  font-family:inherit;font-size:13px;padding:10px 18px;outline:none;
-}
-.chat-input:focus{border-color:var(--violet);box-shadow:0 0 0 2px var(--violet-dim);}
+.chat-input{flex:1;background:#050310;border:1px solid var(--line2);border-radius:var(--radius-pill);color:var(--paper);font-family:inherit;font-size:13px;padding:10px 18px;outline:none;}
+.chat-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px var(--accent3-dim);}
 .chat-input::placeholder{color:var(--paper-dimmer);}
 .mic-btn{
-  width:42px;height:42px;border-radius:50%;background:var(--panel2);
-  border:1px solid var(--line2);color:var(--paper-dimmer);font-size:16px;flex-shrink:0;
+  width:42px;height:42px;border-radius:50%;
+  background:var(--panel2);border:1.5px solid var(--line2);
+  color:var(--paper-dimmer);font-size:16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .25s;
 }
-.mic-btn:hover{border-color:var(--violet);color:var(--violet);}
-.mic-btn.live{
-  background:rgba(255,45,120,.15);border-color:var(--signal);color:var(--signal);
-  animation:mic-pulse 1s infinite;
-}
-@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 var(--signal-glow);}50%{box-shadow:0 0 0 8px rgba(255,45,120,0);}}
+.mic-btn:hover{border-color:var(--accent3);color:var(--accent3);box-shadow:0 0 14px var(--accent3-glow);}
+.mic-btn.live{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);animation:mic-pulse 1s infinite;}
+@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 var(--accent-glow);}50%{box-shadow:0 0 0 8px rgba(255,45,120,0);}}
 
-/* ─────────────────────────────────────────
-   SEARCH RESULTS
-───────────────────────────────────────── */
+/* ─── SEARCH RESULTS ─── */
 .search-results{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
-.sr-item{
-  display:flex;gap:10px;align-items:center;
-  background:var(--panel2);border:1px solid var(--line2);
-  border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;transition:.18s;
-}
-.sr-item:hover{border-color:var(--amber);background:var(--panel3);}
+.sr-item{display:flex;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;transition:.18s;}
+.sr-item:hover{border-color:var(--amber);}
 .sr-thumb{width:66px;height:37px;border-radius:6px;object-fit:cover;flex-shrink:0;background:var(--panel3);}
 .sr-meta .t{font-size:11px;font-weight:600;color:var(--paper);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .sr-meta .c{font-size:10px;color:var(--paper-dimmer);margin-top:2px;font-family:var(--mono);}
-.sr-play-btn{
-  flex-shrink:0;width:28px;height:28px;border-radius:50%;
-  background:var(--amber-dim);border:1px solid var(--amber);
-  color:var(--amber);font-size:11px;display:flex;align-items:center;justify-content:center;
-}
+.sr-play-btn{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber);font-size:11px;display:flex;align-items:center;justify-content:center;}
 
-/* ─────────────────────────────────────────
-   VOICE BADGE
-───────────────────────────────────────── */
-.voice-badge{
-  display:flex;align-items:center;gap:7px;
-  background:var(--panel2);border:1px solid var(--line);
-  border-radius:var(--radius-sm);padding:7px 12px;
-  font-size:11px;color:var(--paper-dimmer);
-}
+/* ─── VOICE BADGE ─── */
+.voice-badge{display:flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:7px 12px;font-size:11px;color:var(--paper-dimmer);}
 .voice-dot{width:7px;height:7px;border-radius:50%;background:var(--paper-dimmer);flex-shrink:0;}
 .voice-dot.ok{background:var(--green);box-shadow:0 0 8px rgba(57,255,136,.5);}
 .voice-dot.err{background:var(--signal);}
 
-/* ─────────────────────────────────────────
-   MOOD RING INDICATOR
-───────────────────────────────────────── */
-.mood-strip{
-  height:2px;width:100%;border-radius:0;
-  background:linear-gradient(90deg,var(--cyan),var(--violet),var(--signal));
-  transition:background 1.5s ease;
-}
+/* ─── MOOD STRIP ─── */
+.mood-strip{height:3px;width:100%;border-radius:0;background:linear-gradient(90deg,var(--accent2),var(--accent3),var(--accent));transition:background 1.5s ease;}
 
-/* ─────────────────────────────────────────
-   HINT / WARN
-───────────────────────────────────────── */
+/* ─── SOCIAL LINKS ─── */
+.social-links{display:flex;gap:8px;align-items:center;}
+.social-link{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius-pill);
+  background:var(--panel2);border:1px solid var(--line2);
+  color:var(--paper-dimmer);font-size:11px;font-weight:600;
+  text-decoration:none;letter-spacing:.03em;
+  transition:all .2s;
+}
+.social-link:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 0 14px var(--accent-dim);transform:translateY(-1px);}
+.social-link .si{font-size:14px;}
+
+/* Icon-only social links in footer */
+.social-icon-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.social-icon-link{
+  display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:50%;
+  background:var(--panel2);border:1px solid var(--line2);
+  color:var(--paper-dimmer);text-decoration:none;
+  transition:all .22s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+  flex-shrink:0;
+}
+.social-icon-link svg{width:18px;height:18px;flex-shrink:0;}
+.social-icon-link::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,var(--accent-dim) 0%,transparent 70%);opacity:0;transition:.2s;}
+.social-icon-link:hover::before{opacity:1;}
+.social-icon-link:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px) scale(1.1);box-shadow:0 4px 16px var(--accent-glow);}
+
+/* ─── MISC UTILS ─── */
 .hint{color:var(--paper-dimmer);font-size:10.5px;line-height:1.6;font-style:italic;}
 .warn{color:var(--signal);font-size:11px;font-family:var(--mono);margin-top:2px;}
-
-/* ─────────────────────────────────────────
-   SELECT
-───────────────────────────────────────── */
-select{
-  background:#050310;border:1px solid var(--line2);border-radius:var(--radius-pill);
-  color:var(--paper);font-family:inherit;font-size:11px;padding:6px 12px;outline:none;
-}
-select:focus{border-color:var(--cyan);}
-
-/* ─────────────────────────────────────────
-   ROW UTIL
-───────────────────────────────────────── */
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+select{background:#050310;border:1px solid var(--line2);border-radius:var(--radius-pill);color:var(--paper);font-family:inherit;font-size:11px;padding:6px 12px;outline:none;}
+select:focus{border-color:var(--accent2);}
 
-/* ─────────────────────────────────────────
-   SCROLLBAR
-───────────────────────────────────────── */
+/* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--line3);}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px;}
 
-/* ─────────────────────────────────────────
-   FOCUS RING
-───────────────────────────────────────── */
-:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
-
-
-/* ─────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    FOOTER
-───────────────────────────────────────── */
+═══════════════════════════════════════════════════ */
 .site-footer{
   border-top:1px solid var(--line2);
-  background:var(--panel);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  padding:16px 28px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  flex-wrap:wrap;
+  background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding:18px 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
   position:relative;z-index:1;
 }
-.footer-brand{
-  display:flex;align-items:center;gap:10px;
+.footer-left{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.footer-logo{
+  width:36px;height:36px;border-radius:8px;flex-shrink:0;
+  background:transparent;display:flex;align-items:center;justify-content:center;
 }
-.footer-brand img{
-  width:28px;height:28px;border-radius:6px;object-fit:contain;
-  opacity:.85;
-}
-.footer-credit{
-  font-size:12px;color:var(--paper-dimmer);
-  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
-}
-.footer-credit .heart{color:var(--signal);animation:heartbeat 1.4s infinite;}
-@keyframes heartbeat{0%,100%{transform:scale(1);}14%{transform:scale(1.3);}28%{transform:scale(1);}42%{transform:scale(1.2);}70%{transform:scale(1);}}
-.footer-credit a{
-  color:var(--cyan);text-decoration:none;font-weight:700;
-  font-family:var(--mono);font-size:11px;letter-spacing:.04em;
-  transition:.2s;
-}
-.footer-credit a:hover{color:var(--violet);text-shadow:0 0 12px var(--violet-glow);}
-.footer-right{display:flex;align-items:center;gap:8px;}
+.footer-logo img{width:36px;height:36px;object-fit:contain;border-radius:8px;}
+.footer-brand-name{font-weight:800;font-size:14px;letter-spacing:-.01em;}
+.footer-brand-name span{color:var(--accent);}
+.footer-credit{font-size:11px;color:var(--paper-dimmer);display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.footer-credit .heart{color:var(--signal);animation:heartbeat 1.4s infinite;display:inline-block;}
+@keyframes heartbeat{0%,100%{transform:scale(1);}14%{transform:scale(1.35);}28%{transform:scale(1);}42%{transform:scale(1.2);}70%{transform:scale(1);}}
+.footer-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 
-/* ─────────────────────────────────────────
+/* ═══════════════════════════════════════════════════
    ABOUT MODAL
-───────────────────────────────────────── */
-.modal-backdrop{
-  position:fixed;inset:0;z-index:9000;
-  background:rgba(8,6,18,.85);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  display:none;align-items:center;justify-content:center;
-  padding:20px;
-}
+═══════════════════════════════════════════════════ */
+.modal-backdrop{position:fixed;inset:0;z-index:9000;background:rgba(8,6,18,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-backdrop.open{display:flex;}
-.modal{
-  background:var(--panel2);
-  border:1px solid var(--line2);
-  border-radius:20px;
-  width:100%;max-width:540px;
-  max-height:85vh;overflow-y:auto;
-  position:relative;
-  box-shadow:0 0 80px rgba(176,111,255,.15),0 0 0 1px rgba(176,111,255,.08);
-  animation:modal-in .3s cubic-bezier(.34,1.56,.64,1);
-}
+.modal{background:var(--panel2);border:1px solid var(--line2);border-radius:20px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto;position:relative;box-shadow:0 0 80px var(--accent3-dim);animation:modal-in .3s cubic-bezier(.34,1.56,.64,1);}
 @keyframes modal-in{from{opacity:0;transform:scale(.92) translateY(20px);}to{opacity:1;transform:none;}}
-.modal-header{
-  padding:22px 24px 16px;
-  border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:linear-gradient(135deg,rgba(176,111,255,.08),rgba(0,255,231,.04));
-}
-.modal-title{
-  display:flex;align-items:center;gap:12px;
-}
-.modal-title img{
-  width:40px;height:40px;border-radius:10px;object-fit:contain;
-  box-shadow:0 0 20px var(--violet-glow);
-}
-.modal-title h2{
-  font-size:20px;font-weight:900;letter-spacing:-.02em;
-}
-.modal-title h2 span{color:var(--signal);}
-.modal-close{
-  width:32px;height:32px;border-radius:50%;
-  background:var(--panel3);border:1px solid var(--line2);
-  color:var(--paper-dimmer);font-size:16px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-}
+.modal-header{padding:22px 24px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,var(--accent3-dim),var(--accent2-dim));}
+.modal-title{display:flex;align-items:center;gap:12px;}
+.modal-logo{width:40px;height:40px;border-radius:10px;background:transparent;display:flex;align-items:center;justify-content:center;}
+.modal-logo img{width:40px;height:40px;object-fit:contain;border-radius:10px;}
+.modal-title h2{font-size:20px;font-weight:900;letter-spacing:-.02em;}
+.modal-title h2 span{color:var(--accent);}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--panel3);border:1px solid var(--line2);color:var(--paper-dimmer);font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;}
 .modal-close:hover{border-color:var(--signal);color:var(--signal);}
 .modal-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:20px;}
-.about-section h3{
-  font-size:10px;text-transform:uppercase;letter-spacing:.18em;
-  color:var(--paper-dimmer);font-weight:700;margin-bottom:10px;
-  display:flex;align-items:center;gap:8px;
-}
+.about-section h3{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--paper-dimmer);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
 .about-section h3::after{content:'';flex:1;height:1px;background:var(--line2);}
 .about-steps{display:flex;flex-direction:column;gap:8px;}
-.about-step{
-  display:flex;align-items:flex-start;gap:12px;
-  background:var(--panel3);border:1px solid var(--line);
-  border-radius:10px;padding:12px 14px;
-}
-.about-step .step-num{
-  width:26px;height:26px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,var(--signal),var(--violet));
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:900;color:#fff;
-}
+.about-step{display:flex;align-items:flex-start;gap:12px;background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.about-step .step-num{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;}
 .about-step .step-body .st{font-size:13px;font-weight:700;color:var(--paper);margin-bottom:2px;}
 .about-step .step-body .sd{font-size:11px;color:var(--paper-dimmer);line-height:1.5;}
 .about-features{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.about-feature{
-  background:var(--panel3);border:1px solid var(--line);
-  border-radius:10px;padding:10px 12px;
-  display:flex;align-items:flex-start;gap:8px;
-}
+.about-feature{background:var(--panel3);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:8px;}
 .about-feature .fi{font-size:18px;flex-shrink:0;}
-.about-feature .ft{font-size:11px;font-weight:700;color:var(--violet);margin-bottom:2px;}
+.about-feature .ft{font-size:11px;font-weight:700;color:var(--accent3);margin-bottom:2px;}
 .about-feature .fd{font-size:10px;color:var(--paper-dimmer);line-height:1.4;}
-.about-tip{
-  background:rgba(0,255,231,.05);border:1px solid rgba(0,255,231,.15);
-  border-radius:10px;padding:12px 14px;
-  font-size:11px;color:var(--cyan);line-height:1.6;
-  display:flex;gap:10px;align-items:flex-start;
-}
+.about-tip{background:var(--accent2-dim);border:1px solid rgba(0,255,231,.15);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--accent2);line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
 .about-tip span{font-size:16px;flex-shrink:0;}
-@media(max-width:480px){
-  .about-features{grid-template-columns:1fr;}
-  .modal-body{padding:16px;}
-}
+@media(max-width:480px){.about-features{grid-template-columns:1fr;}.modal-body{padding:16px;}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
 
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
-}
-
-/* ─────────────────────────────────────────
-   TOAST NOTIFICATIONS
-───────────────────────────────────────── */
-.toast-container{
-  position:fixed;bottom:20px;right:20px;z-index:9999;
-  display:flex;flex-direction:column;gap:8px;pointer-events:none;
-}
-.toast{
-  background:var(--panel2);border:1px solid var(--line2);
-  border-radius:var(--radius-sm);padding:10px 16px;
-  font-size:12px;color:var(--paper);
-  display:flex;align-items:center;gap:8px;
-  animation:toast-in .3s cubic-bezier(.34,1.56,.64,1) forwards;
-  pointer-events:all;min-width:220px;max-width:300px;
-  box-shadow:0 8px 32px rgba(0,0,0,.4);
-}
-.toast.success{border-color:var(--cyan);color:var(--cyan);}
+/* ─── TOAST ─── */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:10px 16px;font-size:12px;color:var(--paper);display:flex;align-items:center;gap:8px;animation:toast-in .3s cubic-bezier(.34,1.56,.64,1) forwards;pointer-events:all;min-width:220px;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.toast.success{border-color:var(--green);color:var(--green);}
 .toast.error{border-color:var(--signal);color:var(--signal);}
-.toast.info{border-color:var(--violet);color:var(--violet);}
+.toast.info{border-color:var(--accent3);color:var(--accent3);}
 @keyframes toast-in{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
 @keyframes toast-out{to{opacity:0;transform:translateX(20px);}}
 
-/* ─────────────────────────────────────────
-   STATIC FLASH
-───────────────────────────────────────── */
-@keyframes static-flash{
-  0%{opacity:0}10%{opacity:.06}20%{opacity:0}30%{opacity:.04}100%{opacity:0}
-}
-.static-overlay{
-  position:fixed;inset:0;pointer-events:none;z-index:100;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  display:none;
-  animation:static-flash .4s forwards;
-}
+/* ─── STATIC FLASH ─── */
+@keyframes static-flash{0%{opacity:0}10%{opacity:.06}20%{opacity:0}30%{opacity:.04}100%{opacity:0}}
+.static-overlay{position:fixed;inset:0;pointer-events:none;z-index:100;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");display:none;animation:static-flash .4s forwards;}
 .static-overlay.active{display:block;}
+
+/* ─── CHANNEL TRANSITION ─── */
+.channel-transition-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:var(--accent);
+  opacity:0;pointer-events:none;
+  transition:opacity .15s ease;
+}
+.channel-transition-overlay.flash{opacity:.08;}
 </style>
 </head>
-<body>
+<body class="lang-en">
 
 <canvas id="starfield"></canvas>
 <div class="grid-overlay"></div>
 <div class="static-overlay" id="staticOverlay"></div>
 <div class="toast-container" id="toastContainer"></div>
+<div class="channel-transition-overlay" id="channelFlash"></div>
 
 <div class="app">
   <div class="mood-strip" id="moodStrip"></div>
 
-  <!-- ═══════════════ HERO ═══════════════ -->
+  <!-- ═══════ HERO ═══════ -->
   <div class="hero">
-    <div class="hero-glow"></div>
+    <div class="hero-glow" id="heroGlow"></div>
     <div class="hero-inner">
       <div class="hero-top">
         <div class="brand-row">
-          <div class="brand-logo"><img src="logo.png" alt="SensyCilva" style="width:38px;height:38px;object-fit:contain;border-radius:8px;"></div>
+          <div class="brand-logo">
+            <img src="logo.png" alt="SensyCilva" id="logoImg" onerror="this.style.display='none';this.parentElement.textContent='🎙'">
+          </div>
           <div class="brand-text">
             <div class="eyebrow">
               <div class="eyebrow-dot"></div>
-              <span id="freqReadout">FM 92.4 · SENSYCILVA NETWORK</span>
+              <span id="freqReadout">FM 92.4 · SENSYCILVA ENGLISH CHANNEL</span>
             </div>
-            <h1>Sensy<span class="pink">Cilva</span></h1>
-            <div class="tagline">Anime pirate radio · AI host · talk back any time</div>
+            <h1>Sensy<span class="brand-color">Cilva</span></h1>
+            <div class="tagline" id="channelTagline">Frequencies from another dimension — AI host, real vibes</div>
           </div>
         </div>
         <button class="onair-btn" id="onAirBtn">
@@ -946,7 +784,7 @@ select:focus{border-color:var(--cyan);}
           <button class="ch-btn active" data-lang="en">🇬🇧 English</button>
           <button class="ch-btn" data-lang="hi">🇮🇳 हिन्दी</button>
           <button class="ch-btn" data-lang="te">🇮🇳 తెలుగు</button>
-          <button class="btn sm violet" id="aboutBtn" style="padding:6px 16px;font-size:11px;">ℹ About</button>
+          <button class="btn sm glow-violet" id="aboutBtn" style="padding:6px 16px;font-size:11px;">ℹ About</button>
         </div>
         <div class="mini-stats" id="miniStats">
           <div class="stat-item">WORDS <span class="sv" id="statsWords">0</span></div>
@@ -957,19 +795,19 @@ select:focus{border-color:var(--cyan);}
     </div>
   </div>
 
-  <!-- ═══════════════ OSCILLOSCOPE BAR ═══════════════ -->
+  <!-- ═══════ OSC BAR ═══════ -->
   <div class="osc-bar">
     <canvas id="oscCanvas"></canvas>
     <div class="osc-overlay">
       <div class="subtitle-text dim" id="subtitleText">Sensy is ready — hit GO ON AIR to start the show</div>
       <div class="status-cluster">
         <div class="status-pill" id="statusPill">READY</div>
-        <button class="btn sm" id="pauseBtn" disabled>⏸</button>
+        <button id="pauseBtn" disabled title="Pause / Resume broadcast">⏸</button>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════ MAIN ═══════════════ -->
+  <!-- ═══════ MAIN ═══════ -->
   <div class="main">
 
     <!-- ─── LEFT PANE: Studio ─── -->
@@ -977,15 +815,16 @@ select:focus{border-color:var(--cyan);}
       <div class="pane-head">
         <h2>📡 Radio Studio</h2>
         <div class="row">
-          <button class="btn sm amber" id="customToggleBtn">✏ Script</button>
-          <button class="btn sm signal" id="clipBtn" title="Save this line">🔖</button>
+          <button class="btn sm glow-signal" id="clipBtn" title="Save this line">🔖 Clip</button>
         </div>
       </div>
       <div class="pane-body">
 
         <!-- Avatar -->
         <div class="sensy-avatar-wrap">
-          <div class="avatar-orb" id="avatarOrb"><img src="logo.png" alt="Sensy" style="width:38px;height:38px;object-fit:contain;border-radius:50%;position:relative;z-index:1;"></div>
+          <div class="avatar-orb" id="avatarOrb">
+            <img src="logo.png" alt="Sensy" id="avatarImg" onerror="this.style.display='none';this.parentElement.textContent='🎙'">
+          </div>
           <div class="avatar-info">
             <div class="avatar-name">Sensy<span>Cilva</span></div>
             <div class="avatar-status" id="avatarStatus">Ready to broadcast</div>
@@ -1010,42 +849,33 @@ select:focus{border-color:var(--cyan);}
           </div>
         </div>
 
-        <!-- Script preview -->
+        <!-- Script -->
         <div>
           <div class="section-label">Current Script</div>
           <div class="script-box" id="scriptPreview">No script loaded. Click GO ON AIR to auto-generate.</div>
         </div>
 
-        <!-- Custom script -->
-        <div class="custom-area" id="customArea">
-          <div class="section-label">Paste Custom Script</div>
-          <textarea id="customText" placeholder="One line per sentence — each will be spoken in order…"></textarea>
-          <div class="row">
-            <button class="btn sm cyan" id="useCustomBtn">Use this script</button>
-            <button class="btn sm" id="cancelCustomBtn">Cancel</button>
-          </div>
-        </div>
-
-        <!-- Delivery controls -->
+        <!-- Volume Knob -->
         <div>
-          <div class="section-label">Delivery</div>
-          <div class="slider-row">
-            <div class="slider-item">
-              <label>Rate</label>
-              <input type="range" id="rateSlider" min="0.55" max="1.8" step="0.05" value="0.88">
-              <span class="val" id="rateVal">0.88</span>
+          <div class="section-label">🔊 Volume Control</div>
+          <div class="volume-control">
+            <div class="knob-wrap">
+              <div class="knob-track" id="knobTrack" title="Click and drag to adjust volume">
+                <div class="knob-center" id="knobCenter">100%</div>
+                <div class="knob-dot" id="knobDot"></div>
+              </div>
             </div>
-            <div class="slider-item">
-              <label>Vol</label>
-              <input type="range" id="volSlider" min="0" max="1" step="0.05" value="1">
-              <span class="val" id="volVal">1.00</span>
-            </div>
-            <div class="slider-item">
-              <label>Pitch</label>
-              <input type="range" id="pitchSlider" min="0.7" max="1.4" step="0.05" value="0.95">
-              <span class="val" id="pitchVal">0.95</span>
+            <div class="vol-info">
+              <div class="vol-label">Voice Volume</div>
+              <div class="vol-desc">Drag the knob to control Sensy's voice level. Broadcast and chat both use this setting.</div>
+              <div class="vol-btns">
+                <button class="btn xs glow-cyan" id="volMute" title="Mute">🔇</button>
+                <button class="btn xs" id="vol50">50%</button>
+                <button class="btn xs glow-cyan" id="vol100">Max</button>
+              </div>
             </div>
           </div>
+          <input type="range" id="volSlider" min="0" max="1" step="0.01" value="1" style="display:none">
         </div>
 
         <!-- Music Player -->
@@ -1063,26 +893,43 @@ select:focus{border-color:var(--cyan);}
                   </div>
                 </div>
               </div>
-              <div class="music-btns">
-                <button class="btn sm" id="mPlayPause">▶ Play</button>
+              <div class="music-btns-row">
+                <button class="btn sm glow-amber" id="mPlayPause">▶ Play</button>
                 <button class="btn sm" id="mStop">■ Stop</button>
-                <button class="btn sm" id="mNext">⏭ Next</button>
+                <button class="btn sm glow-violet" id="mNext">⏭ Next</button>
               </div>
             </div>
-            <div style="padding:10px 14px 12px;display:flex;flex-direction:column;gap:8px;">
-              <div class="key-row">
+
+            <!-- Fun fact ticker -->
+            <div class="fun-fact-ticker" id="funFactTicker">
+              <span class="fact-icon">💡</span>
+              <div class="fact-text"><span class="fact-label">FUN FACT</span><span id="funFactText">Loading fact…</span></div>
+            </div>
+
+            <!-- YouTube section — collapsible -->
+            <div class="yt-section">
+              <button class="yt-toggle-btn" id="ytToggleBtn">
+                <span>🎬 Show Video Player</span>
+                <span class="yt-toggle-icon">▼</span>
+              </button>
+              <div class="yt-video-panel" id="ytVideoPanel">
+                <div id="ytPlayerContainer"></div>
+              </div>
+            </div>
+
+            <div style="padding:10px 14px 4px;">
+              <div class="key-row" style="padding:0;margin-bottom:6px;">
                 <input type="text" class="key-input" id="ytKey" placeholder="YouTube Data API key (optional)"/>
-                <button class="btn sm" id="saveKeyBtn">Save</button>
+                <button class="btn sm glow-cyan" id="saveKeyBtn">Save</button>
                 <span class="key-status" id="keyStatus"></span>
               </div>
               <p class="hint">Say "play Naruto OST", "next song", "pause music", "stop music"</p>
             </div>
-            <div class="yt-embed" id="ytEmbed"><div id="ytPlayerContainer"></div></div>
           </div>
           <div class="warn" id="musicWarn"></div>
         </div>
 
-        <!-- Episode Stats -->
+        <!-- Session Stats -->
         <div>
           <div class="section-label">📊 Session Stats</div>
           <div class="stats-grid">
@@ -1099,7 +946,7 @@ select:focus{border-color:var(--cyan);}
           <div class="clips-panel">
             <div class="clips-header">
               <span>Favorite Lines</span>
-              <button class="btn xs" id="clearClipsBtn">Clear all</button>
+              <button class="btn xs glow-signal" id="clearClipsBtn">Clear all</button>
             </div>
             <div class="clips-list" id="clipsList">
               <div class="clips-empty">No clips yet — click 🔖 while Sensy speaks to save a line</div>
@@ -1111,7 +958,7 @@ select:focus{border-color:var(--cyan);}
         <div>
           <div class="section-label">🚀 Coming Soon</div>
           <div class="future-list">
-            <div class="future-item"><div class="fi-icon">🌐</div><div><div class="fi-title">Live Anime News Feed</div><div class="fi-desc">Auto-fetch latest news from Crunchyroll & ANN before each broadcast</div></div></div>
+            <div class="future-item"><div class="fi-icon">🌐</div><div><div class="fi-title">Live Anime News Feed</div><div class="fi-desc">Auto-fetch latest news from Crunchyroll & ANN</div></div></div>
             <div class="future-item"><div class="fi-icon">🎭</div><div><div class="fi-title">Character Voices</div><div class="fi-desc">Switch Sensy's personality: cheerful, tsundere, calm sage</div></div></div>
             <div class="future-item"><div class="fi-icon">📅</div><div><div class="fi-title">Scheduled Broadcasts</div><div class="fi-desc">Set a time — Sensy auto-starts the show</div></div></div>
             <div class="future-item"><div class="fi-icon">🎵</div><div><div class="fi-title">Smart Playlist</div><div class="fi-desc">AI picks songs that match the current anime topic</div></div></div>
@@ -1119,7 +966,7 @@ select:focus{border-color:var(--cyan);}
         </div>
 
       </div>
-    </div>
+    </div><!-- /left pane -->
 
     <!-- ─── RIGHT PANE: Chat ─── -->
     <div class="pane">
@@ -1135,7 +982,7 @@ select:focus{border-color:var(--cyan);}
         <div class="chat-log" id="chatLog">
           <div class="msg host">
             <div class="from">🎙 SENSY</div>
-            <div class="bubble">Heyyy! I'm Sensy, your anime radio host. Hit GO ON AIR to start the show, or just talk to me! Ask me to play a song, quiz me on anime trivia, or just chat!</div>
+            <div class="bubble">Heyyy, welcome to SensyCilva Radio! I'm Sensy — your host, your guide, your anime companion. Hit GO ON AIR to start the show, or just talk to me right now! Ask me anything about anime, request a song, or quiz me on trivia 🎌</div>
           </div>
         </div>
 
@@ -1143,13 +990,12 @@ select:focus{border-color:var(--cyan);}
 
         <div class="chat-input-row">
           <input type="text" class="chat-input" id="userInput" placeholder="Ask about anime, request a song, or just chat…"/>
-          <button class="mic-btn" id="micBtn">🎤</button>
-          <button class="btn violet" id="sendBtn">Send</button>
+          <button class="mic-btn" id="micBtn" title="Voice input">🎤</button>
+          <button class="btn glow-violet" id="sendBtn">Send</button>
         </div>
 
         <div class="search-results" id="searchResults"></div>
 
-        <!-- Voice info -->
         <div class="voice-badge" style="margin-top:4px;">
           <div class="voice-dot" id="voiceDot2"></div>
           <span id="voiceInfo" style="font-family:var(--mono);font-size:10px;">Loading voices…</span>
@@ -1160,28 +1006,45 @@ select:focus{border-color:var(--cyan);}
 
   </div><!-- /main -->
 
-  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <!-- ═══════ FOOTER ═══════ -->
   <footer class="site-footer">
-    <div class="footer-brand">
-      <img src="logo.png" alt="SensyCilva Logo">
-      <div class="footer-credit">
-        Made with <span class="heart">❤️</span> and Passion by
-        <a href="https://twitter.com/suryasticsai" target="_blank" rel="noopener">@suryasticsai</a>
+    <div class="footer-left">
+      <div class="footer-logo">
+        <img src="logo.png" alt="SensyCilva" onerror="this.style.display='none';this.parentElement.textContent='🎙'">
+      </div>
+      <div>
+        <div class="footer-brand-name">Sensy<span>Cilva</span> Radio</div>
+        <div class="footer-credit">Made with <span class="heart">❤️</span> and Passion by @suryasticsai</div>
       </div>
     </div>
     <div class="footer-right">
-      <button class="btn sm violet" id="aboutBtnFooter">ℹ How to Use</button>
+      <div class="social-icon-row">
+        <a class="social-icon-link" href="https://instagram.com/suryasticsai" target="_blank" rel="noopener" title="Instagram @suryasticsai">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a class="social-icon-link" href="https://linkedin.com/in/suryasticsai" target="_blank" rel="noopener" title="LinkedIn @suryasticsai">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+        <a class="social-icon-link" href="https://github.com/suryasticsai" target="_blank" rel="noopener" title="GitHub @suryasticsai">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        </a>
+        <a class="social-icon-link" href="https://huggingface.co/suryasticsai" target="_blank" rel="noopener" title="HuggingFace @suryasticsai">
+          <svg viewBox="0 0 24 24" fill="currentColor"><text x="2" y="19" font-size="18" font-family="serif">🤗</text></svg>
+        </a>
+        <button class="btn sm glow-violet" id="aboutBtnFooter" style="font-size:11px;padding:7px 14px;">ℹ How to Use</button>
+      </div>
     </div>
   </footer>
-
 </div><!-- /app -->
 
-<!-- ═══════════════ ABOUT MODAL ═══════════════ -->
+<!-- ═══════ ABOUT MODAL ═══════ -->
 <div class="modal-backdrop" id="aboutModal">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">
-        <img src="logo.png" alt="SensyCilva">
+        <div class="modal-logo">
+          <img src="logo.png" alt="SensyCilva" onerror="this.style.display='none';this.parentElement.textContent='🎙'">
+        </div>
         <h2>Sensy<span>Cilva</span> Radio</h2>
       </div>
       <button class="modal-close" id="aboutClose">✕</button>
@@ -1189,69 +1052,45 @@ select:focus{border-color:var(--cyan);}
     <div class="modal-body">
 
       <div class="about-section">
-        <h3>What is SensyCilva?</h3>
+        <h3>What is SensyCilva Radio?</h3>
         <p style="font-size:12.5px;color:var(--paper-dim);line-height:1.7;">
-          SensyCilva is an <strong style="color:var(--cyan)">AI-powered anime pirate radio</strong> with a live host named <strong style="color:var(--signal)">Sensy</strong>. 
-          She broadcasts anime news, recommendations, and trivia — and you can talk back to her in real time in English, Hindi, or Telugu.
+          SensyCilva Radio is an <strong style="color:var(--accent2)">AI-powered multi-language broadcast experience</strong> with a live AI host named <strong style="color:var(--accent)">Sensy</strong>. 
+          She talks anime news, recommendations, and trivia — and you can talk back to her in English, Hindi, or Telugu, any time.
         </p>
       </div>
 
       <div class="about-section">
         <h3>Getting Started</h3>
         <div class="about-steps">
-          <div class="about-step">
-            <div class="step-num">1</div>
-            <div class="step-body">
-              <div class="st">Choose Your Language</div>
-              <div class="sd">Pick English 🇬🇧, Hindi 🇮🇳, or Telugu 🇮🇳 from the top bar. Sensy will speak and understand in that language.</div>
-            </div>
-          </div>
-          <div class="about-step">
-            <div class="step-num">2</div>
-            <div class="step-body">
-              <div class="st">Hit GO ON AIR</div>
-              <div class="sd">Sensy auto-generates a fresh anime broadcast script using AI, then reads it aloud with animated lip-sync and oscilloscope.</div>
-            </div>
-          </div>
-          <div class="about-step">
-            <div class="step-num">3</div>
-            <div class="step-body">
-              <div class="st">Talk Back to Sensy</div>
-              <div class="sd">Type or use 🎤 mic. Ask about anime, request a song, ask trivia, or just chat. Sensy pauses the broadcast, responds, then resumes automatically.</div>
-            </div>
-          </div>
-          <div class="about-step">
-            <div class="step-num">4</div>
-            <div class="step-body">
-              <div class="st">Play Music (optional)</div>
-              <div class="sd">Add a free <strong style="color:var(--amber)">YouTube Data API v3 key</strong> in the Music Player section. Then say "play Naruto OST" or any anime song. Get a key at <span style="color:var(--cyan);font-family:var(--mono);font-size:10px;">console.cloud.google.com</span></div>
-            </div>
-          </div>
+          <div class="about-step"><div class="step-num">1</div><div class="step-body"><div class="st">Choose Your Language</div><div class="sd">Pick English, Hindi, or Telugu. Each channel has its own unique theme, colors, and vibe. Sensy speaks your language!</div></div></div>
+          <div class="about-step"><div class="step-num">2</div><div class="step-body"><div class="st">Hit GO ON AIR</div><div class="sd">Sensy generates a fresh broadcast script using AI, then reads it aloud with animated lip-sync and a live oscilloscope waveform.</div></div></div>
+          <div class="about-step"><div class="step-num">3</div><div class="step-body"><div class="st">Talk Back to Sensy</div><div class="sd">Type or use 🎤 mic. Sensy pauses the broadcast, has a real conversation with you, then resumes automatically. She'll ask where you're calling from!</div></div></div>
+          <div class="about-step"><div class="step-num">4</div><div class="step-body"><div class="st">Play Music (Optional)</div><div class="sd">Add a free <strong style="color:var(--amber)">YouTube Data API v3 key</strong>. Then say "play Naruto OST" — Sensy queues it up! Get a key at <span style="color:var(--accent2);font-family:var(--mono);font-size:10px;">console.cloud.google.com</span></div></div></div>
         </div>
       </div>
 
       <div class="about-section">
         <h3>Key Features</h3>
         <div class="about-features">
-          <div class="about-feature"><div class="fi">📻</div><div><div class="ft">AI Broadcast</div><div class="fd">Auto-generated anime script read aloud with TTS</div></div></div>
-          <div class="about-feature"><div class="fi">🎵</div><div><div class="ft">Music Player</div><div class="fd">Search & play any song via YouTube (needs API key)</div></div></div>
+          <div class="about-feature"><div class="fi">📻</div><div><div class="ft">AI Broadcast</div><div class="fd">Auto-generated script read aloud with real TTS</div></div></div>
+          <div class="about-feature"><div class="fi">🎵</div><div><div class="ft">Music Player</div><div class="fd">Play any anime song via YouTube (needs API key)</div></div></div>
           <div class="about-feature"><div class="fi">🎤</div><div><div class="ft">Voice Chat</div><div class="fd">Speak to Sensy using your microphone</div></div></div>
           <div class="about-feature"><div class="fi">🌊</div><div><div class="ft">Live Oscilloscope</div><div class="fd">Waveform animates in real-time as Sensy speaks</div></div></div>
+          <div class="about-feature"><div class="fi">🌐</div><div><div class="ft">3 Channel Themes</div><div class="fd">English, Hindi, Telugu — each with a unique look</div></div></div>
           <div class="about-feature"><div class="fi">🔖</div><div><div class="ft">Clip Saver</div><div class="fd">Save your favorite lines Sensy says</div></div></div>
-          <div class="about-feature"><div class="fi">🌐</div><div><div class="ft">3 Languages</div><div class="fd">English, Hindi, and Telugu broadcasts</div></div></div>
-          <div class="about-feature"><div class="fi">✏️</div><div><div class="ft">Custom Script</div><div class="fd">Write your own script and have Sensy read it</div></div></div>
-          <div class="about-feature"><div class="fi">🎨</div><div><div class="ft">Mood Colors</div><div class="fd">Theme shifts color based on what Sensy is discussing</div></div></div>
+          <div class="about-feature"><div class="fi">💡</div><div><div class="ft">Song Fun Facts</div><div class="fd">Learn cool facts while music plays</div></div></div>
+          <div class="about-feature"><div class="fi">🎨</div><div><div class="ft">Mood Colors</div><div class="fd">Theme shifts based on what Sensy is talking about</div></div></div>
         </div>
       </div>
 
       <div class="about-section">
-        <h3>Voice Commands You Can Say</h3>
+        <h3>Things You Can Say</h3>
         <div class="about-tip">
           <span>💡</span>
           <div>
-            <strong>Music:</strong> "play Attack on Titan OST" · "next song" · "pause music" · "stop music"<br>
-            <strong>Anime:</strong> "recommend me a romance anime" · "what is One Piece about?" · "latest anime news"<br>
-            <strong>Chat:</strong> "who is your favourite character?" · "tell me a fun fact" · any question!
+            <strong>Music:</strong> "play Attack on Titan OST" · "next song" · "pause music"<br>
+            <strong>Anime:</strong> "recommend me a romance anime" · "what is One Piece about?"<br>
+            <strong>Chat:</strong> "where are you from?" · "tell me a fun fact" · "quiz me on anime!"
           </div>
         </div>
       </div>
@@ -1259,11 +1098,23 @@ select:focus{border-color:var(--cyan);}
       <div class="about-section">
         <h3>About the Creator</h3>
         <div class="about-step">
-          <div class="step-num" style="background:linear-gradient(135deg,var(--cyan),var(--violet));font-size:16px;">🚀</div>
+          <div class="step-num" style="background:linear-gradient(135deg,var(--accent2),var(--accent3));font-size:16px;">🚀</div>
           <div class="step-body">
-            <div class="st">Built by <a href="https://twitter.com/suryasticsai" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;">@suryasticsai</a></div>
-            <div class="sd">Made with ❤️ and Passion. SensyCilva is a passion project combining AI, anime culture, and radio nostalgia into one living, talking experience. Follow for more projects like this!</div>
+            <div class="st">Built by @suryasticsai</div>
+            <div class="sd">Made with ❤️ and Passion. SensyCilva is a passion project combining AI, anime culture, and the warmth of late-night radio into one living, talking experience.</div>
           </div>
+        </div>
+        <div class="social-icon-row" style="margin-top:10px;">
+          <a class="social-icon-link" href="https://instagram.com/suryasticsai" target="_blank" rel="noopener" title="Instagram @suryasticsai">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a class="social-icon-link" href="https://linkedin.com/in/suryasticsai" target="_blank" rel="noopener" title="LinkedIn @suryasticsai">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+          <a class="social-icon-link" href="https://github.com/suryasticsai" target="_blank" rel="noopener" title="GitHub @suryasticsai">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          </a>
+          <a class="social-icon-link" href="https://huggingface.co/suryasticsai" target="_blank" rel="noopener" title="HuggingFace @suryasticsai" style="font-size:20px;color:var(--paper-dimmer);">🤗</a>
         </div>
       </div>
 
@@ -1285,17 +1136,16 @@ const subtitleText=$('subtitleText'), statusPill=$('statusPill');
 const progressTrack=$('progressTrack'), progressBar=$('progressBar');
 const progressLeft=$('progressLeft'), progressRight=$('progressRight'), progressPct=$('progressPct');
 const scriptPreview=$('scriptPreview');
-const customArea=$('customArea'), customText=$('customText');
-const customToggleBtn=$('customToggleBtn'), useCustomBtn=$('useCustomBtn'), cancelCustomBtn=$('cancelCustomBtn');
-const rateSlider=$('rateSlider'), rateVal=$('rateVal');
-const volSlider=$('volSlider'), volVal=$('volVal');
-const pitchSlider=$('pitchSlider'), pitchVal=$('pitchVal');
+const volSlider=$('volSlider');
+const knobTrack=$('knobTrack'), knobCenter=$('knobCenter'), knobDot=$('knobDot');
+const volMute=$('volMute'), vol50=$('vol50'), vol100=$('vol100');
 const ytKey=$('ytKey'), saveKeyBtn=$('saveKeyBtn'), keyStatus=$('keyStatus');
-const ytEmbed=$('ytEmbed');
 const ytPlayerContainer=$('ytPlayerContainer');
+const ytToggleBtn=$('ytToggleBtn'), ytVideoPanel=$('ytVideoPanel');
 const trackName=$('trackName'), trackTime=$('trackTime'), trackChannel=$('trackChannel');
 const mPlayPause=$('mPlayPause'), mStop=$('mStop'), mNext=$('mNext');
 const musicWarn=$('musicWarn'), vinylDisc=$('vinylDisc');
+const funFactTicker=$('funFactTicker'), funFactText=$('funFactText');
 const chatLog=$('chatLog'), transcriptRow=$('transcriptRow');
 const userInput=$('userInput'), micBtn=$('micBtn'), sendBtn=$('sendBtn');
 const searchResults=$('searchResults');
@@ -1304,18 +1154,48 @@ const voiceInfo=$('voiceInfo');
 const avatarOrb=$('avatarOrb'), lipBars=$('lipBars'), avatarStatus=$('avatarStatus');
 const clipBtn=$('clipBtn'), clipsList=$('clipsList'), clearClipsBtn=$('clearClipsBtn');
 const moodStrip=$('moodStrip');
-const freqReadout=$('freqReadout');
+const freqReadout=$('freqReadout'), channelTagline=$('channelTagline');
 const chBtns=document.querySelectorAll('.ch-btn');
 const staticOverlay=$('staticOverlay');
 const toastContainer=$('toastContainer');
-// Stats
+const channelFlash=$('channelFlash');
 const stWords=$('stWords'), stSongs=$('stSongs'), stLines=$('stLines'), stMsgs=$('stMsgs');
 const statsWords=$('statsWords'), statsSongs=$('statsSongs'), statsTime=$('statsTime');
 
 // ════════════════════════════════════════════════════
+//  CHANNEL CONFIGS
+// ════════════════════════════════════════════════════
+const CHANNELS = {
+  en: {
+    label: 'FM 92.4 · SENSYCILVA ENGLISH CHANNEL',
+    tagline: 'Frequencies from another dimension — AI host, real vibes',
+    bodyClass: 'lang-en',
+    oscColor: '#00ffe7',
+    punchline: 'where every frequency tells a story.',
+    greeting: (v) => `Welcome to SensyCilva Radio — ${v}! I'm your English host, Sensy. ${CHANNELS.en.punchline} Let's get this show started!`,
+  },
+  hi: {
+    label: 'FM 94.0 · हिंदी चैनल · SENSYCILVA',
+    tagline: 'हर धुन एक कहानी — AI होस्ट, असली जोश',
+    bodyClass: 'lang-hi',
+    oscColor: '#d946ef',
+    punchline: 'जहाँ हर beat में anime की जान है।',
+    greeting: (v) => `SensyCilva Radio में आपका स्वागत है — ${v}! मैं हूँ आपकी हिंदी होस्ट Sensy। ${CHANNELS.hi.punchline} चलिए show शुरू करते हैं!`,
+  },
+  te: {
+    label: 'FM 96.2 · తెలుగు ఛానెల్ · SENSYCILVA',
+    tagline: 'ప్రతి beat లో anime జీవితం — AI host, నిజమైన energy',
+    bodyClass: 'lang-te',
+    oscColor: '#10d9a8',
+    punchline: 'ప్రతి melody లో ఒక anime కథ దాగి ఉంది.',
+    greeting: (v) => `SensyCilva Radio కి స్వాగతం — ${v}! నేను మీ తెలుగు host Sensy. ${CHANNELS.te.punchline} show మొదలు పెడదాం!`,
+  }
+};
+
+// ════════════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════════════
-const synth = window.speechSynthesis;
+const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
 let currentLang = 'en';
 let lockedVoice = null;
 let voicesLoaded = false;
@@ -1337,20 +1217,58 @@ let ytPlayer = null, ytReady = false, ytApiLoaded = false, ytApiPromise = null;
 let musicPlaying = false;
 let songQueue = [], queueIdx = -1;
 let progressTick = null;
+let funFactInterval = null;
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null, isListening = false;
 
-// Session stats
+let volValue = 1.0;  // 0..1
+
 let stats = { words:0, songs:0, lines:0, msgs:0, sessionStart:Date.now() };
 let clips = [];
 
-// Oscilloscope state
-let oscAnimFrame = null;
-let oscPhase = 0;
-let oscAmplitude = 0;   // 0 = flat, 1 = full
-let oscTargetAmp = 0;
 let oscColor = '#00ffe7';
+
+// ════════════════════════════════════════════════════
+//  SONG FUN FACTS
+// ════════════════════════════════════════════════════
+const SONG_FACTS = [
+  "Anime OSTs often outsell the anime's DVD releases in Japan!",
+  "Yoko Kanno composed over 100 tracks for Cowboy Bebop — in just months.",
+  "Attack on Titan's 'Guren no Yumiya' was performed live at NHK Hall.",
+  "Hiroyuki Sawano is known as the 'god of battle music' in the anime community.",
+  "The Naruto OST uses traditional Japanese shamisen mixed with modern beats.",
+  "LiSA became a household name in Japan after singing the Demon Slayer theme.",
+  "One Piece has over 1,000 original pieces in its soundtrack library.",
+  "RADWIMPS composed all of Your Name's music before the film was even finished.",
+  "The Bleach OST composer, Shiro Sagisu, also scored Evangelion's music.",
+  "Fullmetal Alchemist Brotherhood's OP1 'Again' by YUI broke download records.",
+  "K-ON! helped boost guitar sales in Japan by over 30% in 2009!",
+  "The Dragon Ball Z composer wrote over 400 pieces for the series.",
+  "Carole & Tuesday was praised for featuring real-world musicians as voice actors.",
+  "Sword Art Online's composer Yuki Kajiura also did Puella Magi Madoka Magica.",
+  "Most anime music is recorded at Avex Trax or Aniplex's in-house studios in Tokyo.",
+];
+
+let factIdx = 0;
+function showNextFunFact(){
+  factIdx = (factIdx + 1) % SONG_FACTS.length;
+  funFactText.textContent = SONG_FACTS[factIdx];
+  funFactTicker.style.opacity = '0';
+  setTimeout(() => { funFactTicker.style.opacity = '1'; }, 100);
+}
+funFactTicker.style.transition = 'opacity .4s ease';
+
+function startFunFacts(){
+  funFactTicker.classList.add('visible');
+  funFactText.textContent = SONG_FACTS[Math.floor(Math.random()*SONG_FACTS.length)];
+  if(funFactInterval) clearInterval(funFactInterval);
+  funFactInterval = setInterval(showNextFunFact, 8000);
+}
+function stopFunFacts(){
+  funFactTicker.classList.remove('visible');
+  if(funFactInterval){ clearInterval(funFactInterval); funFactInterval = null; }
+}
 
 // ════════════════════════════════════════════════════
 //  STORAGE
@@ -1376,16 +1294,70 @@ function toast(msg, type='info', duration=3000){
 }
 
 // ════════════════════════════════════════════════════
+//  VOLUME KNOB
+// ════════════════════════════════════════════════════
+let isDraggingKnob = false;
+let knobStartY = 0, knobStartVal = 1;
+
+function setVolume(v){
+  v = Math.max(0, Math.min(1, v));
+  volValue = v;
+  volSlider.value = v;
+  store('sensy_vol', v);
+  const pct = Math.round(v * 100);
+  knobCenter.textContent = pct + '%';
+  // Update conic gradient — 320deg is the full range
+  const deg = Math.round(v * 320);
+  knobTrack.style.background = `conic-gradient(var(--accent2) ${deg}deg, rgba(255,255,255,.08) ${deg}deg, rgba(255,255,255,.08) 320deg)`;
+  // Rotate dot: starts at -160deg offset, full range is 320deg
+  const rotateDeg = -160 + (v * 320);
+  knobDot.style.transform = `translateX(-50%) rotate(${rotateDeg}deg)`;
+}
+
+knobTrack.addEventListener('mousedown', (e)=>{
+  isDraggingKnob = true;
+  knobStartY = e.clientY;
+  knobStartVal = volValue;
+  document.body.style.userSelect = 'none';
+});
+knobTrack.addEventListener('touchstart', (e)=>{
+  isDraggingKnob = true;
+  knobStartY = e.touches[0].clientY;
+  knobStartVal = volValue;
+}, {passive:true});
+window.addEventListener('mousemove', (e)=>{
+  if(!isDraggingKnob) return;
+  const delta = (knobStartY - e.clientY) / 150;
+  setVolume(knobStartVal + delta);
+});
+window.addEventListener('touchmove', (e)=>{
+  if(!isDraggingKnob) return;
+  const delta = (knobStartY - e.touches[0].clientY) / 150;
+  setVolume(knobStartVal + delta);
+}, {passive:true});
+window.addEventListener('mouseup', ()=>{ isDraggingKnob = false; document.body.style.userSelect = ''; });
+window.addEventListener('touchend', ()=>{ isDraggingKnob = false; });
+
+volMute.addEventListener('click', ()=>{ setVolume(volValue > 0 ? 0 : 0.75); toast(volValue === 0 ? 'Muted' : 'Unmuted', 'info'); });
+vol50.addEventListener('click', ()=>{ setVolume(0.5); toast('Volume: 50%', 'info'); });
+vol100.addEventListener('click', ()=>{ setVolume(1); toast('Volume: 100%', 'success'); });
+
+// Scroll on knob
+knobTrack.addEventListener('wheel', (e)=>{
+  e.preventDefault();
+  setVolume(volValue + (e.deltaY < 0 ? 0.05 : -0.05));
+}, {passive:false});
+
+// ════════════════════════════════════════════════════
 //  VOICE SYSTEM
 // ════════════════════════════════════════════════════
 const VOICE_PREFS={
-  en:['Google UK English Female','Google UK English Male','Microsoft Hazel - English (Great Britain)',
-      'Karen','Moira','Samantha','Google US English','en-US','en-GB','en-IN','en'],
+  en:['Google UK English Female','Google UK English Male','Microsoft Hazel - English (Great Britain)','Karen','Moira','Samantha','Google US English','en-US','en-GB','en-IN','en'],
   hi:['Google हिन्दी','Google Hindi','Microsoft Swara - Hindi (India)','Lekha','hi-IN','hi'],
   te:['Google తెలుగు','Google Telugu','Microsoft Chitra','Chitra','te-IN','te']
 };
-
 function pickVoice(lang){
+  if(!synth) return null;
   const voices=synth.getVoices();
   if(!voices.length) return null;
   const prefs=VOICE_PREFS[lang]||VOICE_PREFS.en;
@@ -1397,80 +1369,54 @@ function pickVoice(lang){
   }
   return voices.find(v=>v.lang.startsWith(lang))||voices[0]||null;
 }
-
 function lockVoiceForLang(lang){
   const v=pickVoice(lang);
   lockedVoice=v;
   if(v){
-    voiceDot.className='voice-dot ok';
-    voiceDot2.className='voice-dot ok';
-    voiceNameDisplay.textContent=v.name;
-    voiceInfo.textContent=v.name+' ('+v.lang+')';
+    voiceDot.className='voice-dot ok'; voiceDot2.className='voice-dot ok';
+    voiceNameDisplay.textContent=v.name; voiceInfo.textContent=v.name+' ('+v.lang+')';
   } else {
-    voiceDot.className='voice-dot err';
-    voiceDot2.className='voice-dot err';
-    voiceNameDisplay.textContent='No voice — using default';
-    voiceInfo.textContent='No voice found';
+    voiceDot.className='voice-dot err'; voiceDot2.className='voice-dot err';
+    voiceNameDisplay.textContent='No voice — using default'; voiceInfo.textContent='No voice found';
   }
   return v;
 }
-
 function initVoices(){
+  if(!synth) return;
   const voices=synth.getVoices();
   if(voices.length){ voicesLoaded=true; lockVoiceForLang(currentLang); }
 }
-synth.onvoiceschanged=()=>initVoices();
-setTimeout(initVoices,200);
-setTimeout(initVoices,600);
-setTimeout(initVoices,1500);
+if(synth){
+  if('onvoiceschanged' in synth) synth.onvoiceschanged=()=>initVoices();
+  setTimeout(initVoices,200); setTimeout(initVoices,600); setTimeout(initVoices,1500);
+} else {
+  voiceDot.className='voice-dot err'; voiceDot2.className='voice-dot err';
+  voiceNameDisplay.textContent='TTS not supported'; voiceInfo.textContent='TTS unavailable in this browser';
+}
 
 // ════════════════════════════════════════════════════
-//  STARFIELD ANIMATION
+//  STARFIELD
 // ════════════════════════════════════════════════════
 (function initStarfield(){
   const canvas=$('starfield');
   const ctx=canvas.getContext('2d');
   let stars=[];
-  const N=120;
-
-  function resize(){
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
+  function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+  resize(); window.addEventListener('resize',resize);
+  for(let i=0;i<120;i++){
+    stars.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,r:Math.random()*1.2+.2,speed:Math.random()*.25+.05,opacity:Math.random()*.8+.2,twinkle:Math.random()*Math.PI*2,twinkleSpeed:Math.random()*.02+.005,color:Math.random()>.7?'#b06fff':Math.random()>.5?'#00ffe7':'#fff'});
   }
-  resize();
-  window.addEventListener('resize',resize);
-
-  for(let i=0;i<N;i++){
-    stars.push({
-      x:Math.random()*window.innerWidth,
-      y:Math.random()*window.innerHeight,
-      r:Math.random()*1.2+.2,
-      speed:Math.random()*.25+.05,
-      opacity:Math.random()*.8+.2,
-      twinkle:Math.random()*Math.PI*2,
-      twinkleSpeed:Math.random()*.02+.005,
-      color:Math.random()>.7?'#b06fff':Math.random()>.5?'#00ffe7':'#fff',
-    });
-  }
-
-  function drawStars(ts){
+  function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     for(const s of stars){
       s.twinkle+=s.twinkleSpeed;
-      const op=s.opacity*(0.6+0.4*Math.sin(s.twinkle));
-      ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=s.color;
-      ctx.globalAlpha=op;
-      ctx.fill();
-      // drift slowly downward
-      s.y+=s.speed*.1;
-      if(s.y>canvas.height+2) s.y=-2;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.color; ctx.globalAlpha=s.opacity*(0.6+0.4*Math.sin(s.twinkle)); ctx.fill();
+      s.y+=s.speed*.1; if(s.y>canvas.height+2) s.y=-2;
     }
-    ctx.globalAlpha=1;
-    requestAnimationFrame(drawStars);
+    ctx.globalAlpha=1; requestAnimationFrame(draw);
   }
-  requestAnimationFrame(drawStars);
+  requestAnimationFrame(draw);
 })();
 
 // ════════════════════════════════════════════════════
@@ -1480,65 +1426,29 @@ setTimeout(initVoices,1500);
   const canvas=$('oscCanvas');
   const ctx=canvas.getContext('2d');
   let w,h;
-
-  function resize(){
-    w=canvas.offsetWidth; h=canvas.offsetHeight;
-    canvas.width=w; canvas.height=h;
-  }
-  resize();
-  window.addEventListener('resize',resize);
-
-  let phase=0, amp=0, targetAmp=0, col='#00ffe7';
-  let harmonic=0, harmonicTarget=0;
-
-  window._oscSetAmp=(a,c)=>{ targetAmp=a; if(c) col=c; };
+  function resize(){ w=canvas.offsetWidth; h=canvas.offsetHeight; canvas.width=w; canvas.height=h; }
+  resize(); window.addEventListener('resize',resize);
+  let phase=0, amp=0, targetAmp=0, col='#00ffe7', harmonic=0, harmonicTarget=0;
+  window._oscSetAmp=(a,c)=>{ if(a!==undefined) targetAmp=a; if(c) col=c; };
   window._oscSetHarmonic=(h)=>{ harmonicTarget=h; };
-
   function draw(){
     ctx.clearRect(0,0,w,h);
-    amp+=(targetAmp-amp)*0.08;
-    harmonic+=(harmonicTarget-harmonic)*0.06;
-    phase+=0.04+amp*0.06;
-
+    amp+=(targetAmp-amp)*0.08; harmonic+=(harmonicTarget-harmonic)*0.06; phase+=0.04+amp*0.06;
     if(amp<0.01){
-      // Flat idle line
-      ctx.strokeStyle='rgba(255,255,255,0.06)';
-      ctx.lineWidth=1;
-      ctx.beginPath();
-      ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);
-      ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke();
     } else {
-      // Draw oscilloscope wave
       const grad=ctx.createLinearGradient(0,0,w,0);
-      grad.addColorStop(0,col+'00');
-      grad.addColorStop(0.15,col);
-      grad.addColorStop(0.85,col);
-      grad.addColorStop(1,col+'00');
-
-      ctx.strokeStyle=grad;
-      ctx.lineWidth=2;
-      ctx.shadowColor=col;
-      ctx.shadowBlur=amp*14;
+      grad.addColorStop(0,col+'00'); grad.addColorStop(0.15,col); grad.addColorStop(0.85,col); grad.addColorStop(1,col+'00');
+      ctx.strokeStyle=grad; ctx.lineWidth=2; ctx.shadowColor=col; ctx.shadowBlur=amp*14;
       ctx.beginPath();
-
-      const segments=200;
-      for(let i=0;i<=segments;i++){
-        const x=(i/segments)*w;
-        const t=i/segments;
-        const y=h/2
-          +Math.sin(t*Math.PI*8+phase)*amp*(h*0.28)
-          +Math.sin(t*Math.PI*16+phase*1.4)*amp*harmonic*(h*0.1)
-          +Math.sin(t*Math.PI*3.5+phase*0.7)*amp*(h*0.08);
+      for(let i=0;i<=200;i++){
+        const x=(i/200)*w,t=i/200;
+        const y=h/2+Math.sin(t*Math.PI*8+phase)*amp*(h*.28)+Math.sin(t*Math.PI*16+phase*1.4)*amp*harmonic*(h*.1)+Math.sin(t*Math.PI*3.5+phase*.7)*amp*(h*.08);
         i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
       }
-      ctx.stroke();
-      ctx.shadowBlur=0;
-
-      // Glow fill
-      ctx.globalAlpha=amp*0.06;
-      ctx.fillStyle=col;
-      ctx.fill();
-      ctx.globalAlpha=1;
+      ctx.stroke(); ctx.shadowBlur=0;
+      ctx.globalAlpha=amp*.06; ctx.fillStyle=col; ctx.fill(); ctx.globalAlpha=1;
     }
     requestAnimationFrame(draw);
   }
@@ -1546,23 +1456,21 @@ setTimeout(initVoices,1500);
 })();
 
 // ════════════════════════════════════════════════════
-//  MOOD SYSTEM — color theme shifts per topic
+//  MOOD SYSTEM
 // ════════════════════════════════════════════════════
 const MOODS={
-  action:{grad:'#ff2d78, #ff6b35', osc:'#ff6b35'},
-  fantasy:{grad:'#b06fff, #00ffe7', osc:'#b06fff'},
-  comedy:{grad:'#f5a623, #ff2d78', osc:'#f5a623'},
-  romance:{grad:'#ff2d78, #ff9eb5', osc:'#ff9eb5'},
-  default:{grad:'#00ffe7, #b06fff', osc:'#00ffe7'},
+  action:{grad:'var(--accent), #ff6b35', osc:'#ff6b35'},
+  fantasy:{grad:'var(--accent3), var(--accent2)', osc:'var(--accent3)'},
+  comedy:{grad:'var(--amber), var(--accent)', osc:'var(--amber)'},
+  romance:{grad:'var(--accent), #ff9eb5', osc:'#ff9eb5'},
+  default:{grad:'var(--accent2), var(--accent3)', osc:'var(--accent2)'},
 };
-
 function setMood(type='default'){
   const m=MOODS[type]||MOODS.default;
   moodStrip.style.background=`linear-gradient(90deg,${m.grad})`;
   if(window._oscSetAmp) window._oscSetAmp(undefined,m.osc);
   oscColor=m.osc;
 }
-
 function detectMood(text){
   const t=text.toLowerCase();
   if(/attack|titan|demon|slayer|jujutsu|dragon|fight|battle|sword|power/.test(t)) return 'action';
@@ -1581,10 +1489,8 @@ function setSpeaking(on, col){
   if(window._oscSetAmp) window._oscSetAmp(on?0.85:0, col||oscColor);
   if(window._oscSetHarmonic) window._oscSetHarmonic(on?0.6:0);
 }
-
 function setThinking(on){
-  avatarOrb.className='avatar-orb';
-  lipBars.className='lip-bars';
+  avatarOrb.className='avatar-orb'; lipBars.className='lip-bars';
   if(window._oscSetAmp) window._oscSetAmp(on?0.3:0,'#f5a623');
 }
 
@@ -1593,68 +1499,57 @@ function setThinking(on){
 // ════════════════════════════════════════════════════
 function setOnAirUI(state){
   onAirBtn.className='onair-btn';
+  pauseBtn.className='';
   if(state==='live'){
     onAirBtn.classList.add('live');
     onAirLabel.textContent='ON AIR — Click to Stop';
     pauseBtn.disabled=false;
     pauseBtn.textContent='⏸';
+    pauseBtn.title='Pause broadcast';
   } else if(state==='paused'){
     onAirBtn.classList.add('paused');
     onAirLabel.textContent='PAUSED — Resume';
     pauseBtn.disabled=false;
     pauseBtn.textContent='▶';
+    pauseBtn.classList.add('active-pause');
+    pauseBtn.title='Resume broadcast';
   } else {
     onAirLabel.textContent='GO ON AIR';
     pauseBtn.disabled=true;
     pauseBtn.textContent='⏸';
+    pauseBtn.title='';
   }
 }
-
 let typingTimeout=null;
 function setSubtitle(text, dim=false, immediate=false){
   clearTimeout(typingTimeout);
   subtitleText.className='subtitle-text'+(dim?' dim':'');
-  if(immediate||dim){
-    subtitleText.textContent=text; return;
-  }
-  // typewriter effect
-  subtitleText.textContent='';
-  let i=0;
-  function tick(){
-    if(i<text.length){
-      subtitleText.textContent=text.slice(0,++i);
-      typingTimeout=setTimeout(tick,20);
-    }
-  }
+  if(immediate||dim){ subtitleText.textContent=text; return; }
+  subtitleText.textContent=''; let i=0;
+  function tick(){ if(i<text.length){ subtitleText.textContent=text.slice(0,++i); typingTimeout=setTimeout(tick,20); } }
   tick();
 }
-
-function setStatus(text,type=''){
-  statusPill.textContent=text;
-  statusPill.className='status-pill'+(type?' '+type:'');
-}
-
+function setStatus(text,type=''){ statusPill.textContent=text; statusPill.className='status-pill'+(type?' '+type:''); }
 function setAvatarStatus(text){ avatarStatus.textContent=text; }
-
 function flashStatic(){
   staticOverlay.className='static-overlay active';
   setTimeout(()=>{ staticOverlay.className='static-overlay'; },450);
 }
-
+function flashChannel(){
+  channelFlash.classList.add('flash');
+  setTimeout(()=>channelFlash.classList.remove('flash'),300);
+}
 function updateProgress(){
   if(!sentences.length) return;
   const pct=Math.round((sentIdx/sentences.length)*100);
-  progressBar.style.width=pct+'%';
-  progressPct.textContent=pct+'%';
+  progressBar.style.width=pct+'%'; progressPct.textContent=pct+'%';
   progressLeft.textContent='Line '+sentIdx+' / '+sentences.length;
   const elapsed=broadcastStartTime?(Date.now()-broadcastStartTime+pausedElapsed):pausedElapsed;
   const sec=Math.floor(elapsed/1000);
   const m=Math.floor(sec/60),s=sec%60;
   const timeStr=m+':'+(s<10?'0':'')+s;
-  progressRight.textContent=timeStr+' elapsed';
-  statsTime.textContent=timeStr;
+  progressRight.textContent=timeStr+' elapsed'; statsTime.textContent=timeStr;
 }
-
 function highlightLine(idx){
   const preview=sentences.map((l,i)=>{
     const escaped=esc(l);
@@ -1666,55 +1561,28 @@ function highlightLine(idx){
   const hlEl=scriptPreview.querySelector('.hl');
   if(hlEl) hlEl.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
-
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
 function addMsg(role,text){
-  const div=document.createElement('div');
-  div.className='msg '+role;
-  const from=document.createElement('div');
-  from.className='from';
+  const div=document.createElement('div'); div.className='msg '+role;
+  const from=document.createElement('div'); from.className='from';
   const icons={host:'🎙 SENSY',user:'👤 YOU',song:'🎵 NOW PLAYING',system:'📡 SYSTEM',clip:'🔖 SAVED'};
   from.textContent=icons[role]||'🎙 SENSY';
-  const bubble=document.createElement('div');
-  bubble.className='bubble';
-  bubble.textContent=text;
-  div.appendChild(from); div.appendChild(bubble);
-  chatLog.appendChild(div);
-  chatLog.scrollTop=chatLog.scrollHeight;
-  stats.msgs++;
-  updateStatsDisplay();
+  const bubble=document.createElement('div'); bubble.className='bubble'; bubble.textContent=text;
+  div.appendChild(from); div.appendChild(bubble); chatLog.appendChild(div);
+  chatLog.scrollTop=chatLog.scrollHeight; stats.msgs++; updateStatsDisplay();
 }
-
 function addTypingIndicator(){
-  const div=document.createElement('div');
-  div.className='msg typing'; div.id='typingIndicator';
-  const from=document.createElement('div');
-  from.className='from'; from.textContent='🎙 SENSY';
-  const bubble=document.createElement('div');
-  bubble.className='bubble';
+  const div=document.createElement('div'); div.className='msg typing'; div.id='typingIndicator';
+  const from=document.createElement('div'); from.className='from'; from.textContent='🎙 SENSY';
+  const bubble=document.createElement('div'); bubble.className='bubble';
   bubble.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';
-  div.appendChild(from); div.appendChild(bubble);
-  chatLog.appendChild(div);
-  chatLog.scrollTop=chatLog.scrollHeight;
+  div.appendChild(from); div.appendChild(bubble); chatLog.appendChild(div); chatLog.scrollTop=chatLog.scrollHeight;
   return div;
 }
-
-function removeTypingIndicator(){
-  const el=$('typingIndicator');
-  if(el) el.remove();
-}
-
-// ════════════════════════════════════════════════════
-//  STATS
-// ════════════════════════════════════════════════════
+function removeTypingIndicator(){ const el=$('typingIndicator'); if(el) el.remove(); }
 function updateStatsDisplay(){
-  stWords.textContent=stats.words;
-  stSongs.textContent=stats.songs;
-  stLines.textContent=stats.lines;
-  stMsgs.textContent=stats.msgs;
-  statsWords.textContent=stats.words;
-  statsSongs.textContent=stats.songs;
+  stWords.textContent=stats.words; stSongs.textContent=stats.songs; stLines.textContent=stats.lines; stMsgs.textContent=stats.msgs;
+  statsWords.textContent=stats.words; statsSongs.textContent=stats.songs;
 }
 
 // ════════════════════════════════════════════════════
@@ -1722,115 +1590,72 @@ function updateStatsDisplay(){
 // ════════════════════════════════════════════════════
 clips=loadJSON('sensy_clips',[]);
 function renderClips(){
-  if(!clips.length){
-    clipsList.innerHTML='<div class="clips-empty">No clips yet — click 🔖 while Sensy speaks to save a line</div>';
-    return;
-  }
+  if(!clips.length){ clipsList.innerHTML='<div class="clips-empty">No clips yet — click 🔖 while Sensy speaks to save a line</div>'; return; }
   clipsList.innerHTML='';
   clips.slice(-8).reverse().forEach((c,i)=>{
-    const el=document.createElement('div');
-    el.className='clip-item';
-    el.innerHTML=`<span class="ci">🔖</span>
-      <div class="ct">"${esc(c.text)}" <div class="ctag">${c.time}</div></div>
-      <button class="c-del" title="Remove">✕</button>`;
-    el.querySelector('.c-del').addEventListener('click',(e)=>{
-      e.stopPropagation();
-      clips.splice(clips.length-1-i,1);
-      storeJSON('sensy_clips',clips);
-      renderClips();
-    });
-    el.addEventListener('click',()=>{
-      addMsg('clip',c.text);
-      if(!synth.speaking) speakOne(c.text);
-    });
+    const el=document.createElement('div'); el.className='clip-item';
+    el.innerHTML=`<span class="ci">🔖</span><div class="ct">"${esc(c.text)}" <div class="ctag">${c.time}</div></div><button class="c-del" title="Remove">✕</button>`;
+    el.querySelector('.c-del').addEventListener('click',(e)=>{ e.stopPropagation(); clips.splice(clips.length-1-i,1); storeJSON('sensy_clips',clips); renderClips(); });
+    el.addEventListener('click',()=>{ addMsg('clip',c.text); if(synth&&!synth.speaking) speakOne(c.text); });
     clipsList.appendChild(el);
   });
 }
 renderClips();
-
 function saveClip(){
   if(!currentSpokenLine) return;
   const now=new Date();
   clips.push({text:currentSpokenLine, time:now.toLocaleTimeString()});
-  storeJSON('sensy_clips',clips);
-  renderClips();
-  toast('Line saved to clips!','success');
+  storeJSON('sensy_clips',clips); renderClips(); toast('Line saved to clips!','success');
 }
-
 clipBtn.addEventListener('click',saveClip);
-clearClipsBtn.addEventListener('click',()=>{
-  clips=[];storeJSON('sensy_clips',[]);renderClips();
-  toast('Clips cleared','info');
-});
+clearClipsBtn.addEventListener('click',()=>{ clips=[]; storeJSON('sensy_clips',[]); renderClips(); toast('Clips cleared','info'); });
 
 // ════════════════════════════════════════════════════
 //  TTS ENGINE
 // ════════════════════════════════════════════════════
 function speakOne(text){
   return new Promise((resolve)=>{
+    if(!synth){ resolve(); return; }
     if(synth.speaking||synth.pending) synth.cancel();
-
     setTimeout(()=>{
       let voice=lockedVoice;
-      if(!voice){
-        const vv=synth.getVoices();
-        voice=vv.find(v=>v.lang.startsWith(currentLang))||vv[0]||null;
-      }
-
+      if(!voice){ const vv=synth.getVoices(); voice=vv.find(v=>v.lang.startsWith(currentLang))||vv[0]||null; }
       const utt=new SpeechSynthesisUtterance(text);
       utt.voice=voice||null;
-      utt.rate=parseFloat(rateSlider.value);
-      utt.volume=parseFloat(volSlider.value);
-      utt.pitch=parseFloat(pitchSlider.value);
+      utt.rate=0.88; utt.volume=volValue; utt.pitch=0.95;
       utt.lang=voice?voice.lang:(currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US');
-
       let resolved=false;
       const done=()=>{ if(!resolved){ resolved=true; resolve(); } };
-
       utt.onstart=()=>{
-        currentSpokenLine=text;
-        setSubtitle(text);
-        setSpeaking(true, oscColor);
-        setMood(detectMood(text));
-        // count words
-        stats.words+=(text.match(/\S+/g)||[]).length;
-        updateStatsDisplay();
+        currentSpokenLine=text; setSubtitle(text); setSpeaking(true, oscColor); setMood(detectMood(text));
+        stats.words+=(text.match(/\S+/g)||[]).length; updateStatsDisplay();
       };
-
-      const cleanup=(watchdog)=>{
-        clearTimeout(watchdog);
-        setSpeaking(false);
-        currentUtterance=null;
-      };
-
       const timeout=Math.max(6000,text.length*120);
-      const watchdog=setTimeout(()=>{
-        if(!resolved){
-          console.warn('TTS watchdog fired for:',text.slice(0,30));
-          if(synth.speaking) synth.cancel();
-          cleanup(null);
-          done();
-        }
-      },timeout);
-
-      utt.onend=()=>{ cleanup(watchdog); done(); };
-      utt.onerror=(e)=>{ console.warn('TTS error:',e.error); cleanup(watchdog); done(); };
-
-      currentUtterance=utt;
-      synth.speak(utt);
+      const watchdog=setTimeout(()=>{ if(!resolved){ if(synth.speaking) synth.cancel(); setSpeaking(false); currentUtterance=null; done(); } },timeout);
+      utt.onend=()=>{ clearTimeout(watchdog); setSpeaking(false); currentUtterance=null; done(); };
+      utt.onerror=(e)=>{ console.warn('TTS error:',e.error); clearTimeout(watchdog); setSpeaking(false); currentUtterance=null; done(); };
+      currentUtterance=utt; synth.speak(utt);
     },80);
   });
 }
-
-function stopTTS(){
-  if(synth.speaking||synth.pending) synth.cancel();
-  setSpeaking(false);
-  currentUtterance=null;
-}
+function stopTTS(){ if(synth&&(synth.speaking||synth.pending)) synth.cancel(); setSpeaking(false); currentUtterance=null; }
 
 // ════════════════════════════════════════════════════
 //  CHANNELS
 // ════════════════════════════════════════════════════
+function applyChannelTheme(lang){
+  // Remove all lang classes
+  document.body.classList.remove('lang-en','lang-hi','lang-te');
+  document.body.classList.add(CHANNELS[lang].bodyClass);
+  freqReadout.textContent = CHANNELS[lang].label;
+  channelTagline.textContent = CHANNELS[lang].tagline;
+  // Update osc color
+  oscColor = CHANNELS[lang].oscColor;
+  if(window._oscSetAmp) window._oscSetAmp(undefined, oscColor);
+  setMood('default');
+  flashChannel();
+}
+
 function setChannel(lang){
   if(lang===currentLang&&voicesLoaded) return;
   hardStop();
@@ -1839,9 +1664,9 @@ function setChannel(lang){
   store('sensy_lang',lang);
   lockVoiceForLang(lang);
   sentences=[]; sentIdx=0;
-  const names={en:'English (UK/US)',hi:'हिन्दी (Hindi)',te:'తెలుగు (Telugu)'};
+  applyChannelTheme(lang);
+  const names={en:'English',hi:'हिन्दी (Hindi)',te:'తెలుగు (Telugu)'};
   setSubtitle('Channel: '+names[lang]+' — Hit GO ON AIR',true,true);
-  freqReadout.textContent={en:'FM 92.4 · ENGLISH CHANNEL',hi:'FM 94.0 · हिंदी चैनल',te:'FM 96.2 · తెలుగు ఛానెల్'}[lang]||'FM 92.4';
 }
 chBtns.forEach(b=>b.addEventListener('click',()=>setChannel(b.dataset.lang)));
 
@@ -1849,69 +1674,51 @@ chBtns.forEach(b=>b.addEventListener('click',()=>setChannel(b.dataset.lang)));
 //  FALLBACK SCRIPTS
 // ════════════════════════════════════════════════════
 const FALLBACKS={
-en:`Welcome back to SensyCilva Anime Radio.
-I'm Sensy, your host for today's show.
-Let's jump right in with the latest from the anime world.
-First up — Attack on Titan's finale left the entire fandom speechless.
-Eren's plan unfolds in ways nobody expected.
-Mikasa finally gets her defining moment.
-I won't spoil the ending — just go watch if you haven't.
+en:`Welcome to SensyCilva Radio — where every frequency tells a story. I'm Sensy, your English host.
+Frequencies from another dimension. Let's get this show started!
+Attack on Titan's finale left the entire fandom speechless — Eren's plan unfolds in ways nobody expected.
+Mikasa finally gets her defining moment. If you haven't watched it, what are you even doing?
 This week's spotlight show is Frieren: Beyond Journey's End.
-It's a fantasy anime about an elf mage named Frieren.
-She outlives all her human companions and looks back wondering if she ever truly knew them.
+It follows an elf mage named Frieren who outlives all her human companions.
+She looks back wondering — did she ever truly know them?
 The animation is breathtaking. The emotions hit harder than they have any right to.
-If you haven't started it, move it to the absolute top of your list.
-Looking for something fun? Try Mashle: Magic and Muscles.
+Move it to the absolute top of your watchlist. Right now. Seriously.
+Looking for something that'll make you laugh until your sides hurt? Try Mashle: Magic and Muscles.
 The hero has zero magic in a world where magic is literally everything.
-His solution? Pure muscle power. And a lot of cream puffs.
-It's completely absurd, utterly hilarious, and so good.
-Quick trivia for you — Sailor Moon was created by Naoko Takeuchi.
-She married Yoshihiro Togashi, the creator of Hunter x Hunter.
-Two legendary mangaka under one roof. Anime royalty.
-Before I go — what anime are you watching right now?
-Talk back to me. I'm always here to chat.
-That's all for today's broadcast on SensyCilva Anime Radio.
-I'm Sensy, signing off — stay curious, keep watching, and I'll see you next time.`,
-hi:`नमस्ते और स्वागत है SensyCilva Anime Radio पर।
-मैं हूँ Sensy, आपकी आज की होस्ट।
-चलिए शुरू करते हैं आज का धमाकेदार show।
+His solution? Pure muscle power. And an absolutely obsessive love for cream puffs.
+It's completely absurd, utterly hilarious, and criminally underrated.
+Quick trivia — Sailor Moon's creator Naoko Takeuchi married Yoshihiro Togashi, creator of Hunter x Hunter.
+Two legendary mangaka under one roof. Anime royalty. I'm not even kidding.
+Before I go — what are YOU watching right now? Talk back to me.
+That's a wrap for today's broadcast on SensyCilva Radio.
+I'm Sensy, signing off. Stay curious, keep watching, and I'll see you next time!`,
+hi:`SensyCilva Radio पर आपका स्वागत है — जहाँ हर beat में anime की जान है। मैं हूँ आपकी Hindi host, Sensy!
+हर धुन एक कहानी — आज का show शुरू करते हैं!
 पहली खबर — Attack on Titan का finale आ गया और पूरी fandom हिल गई।
-Eren ने जो किया वो किसी ने सोचा भी नहीं था।
-Mikasa का moment बहुत emotional था — दिल छू लेने वाला।
+Eren ने जो किया वो किसी ने सोचा भी नहीं था। Mikasa का moment बहुत emotional था।
 अगर अभी तक नहीं देखा तो अभी देखो, देर मत करो।
 इस हफ्ते की spotlight show है Frieren: Beyond Journey's End।
 ये एक elf की कहानी है जो अपने साथियों को outlive कर लेती है।
-वो सोचती है — क्या मैंने उन्हें सच में जाना था?
 Animation बेहतरीन है और story दिल को छू जाती है।
 Comedy चाहिए तो Mashle: Magic and Muscles देखो।
 Hero के पास magic बिल्कुल नहीं है, पर ताकत अपार है।
 और हाँ — cream puffs का भी जबरदस्त collection है।
-बिल्कुल पागल है — और बिल्कुल धमाकेदार भी।
-एक trivia — Sailor Moon की creator Naoko Takeuchi ने Hunter x Hunter के creator Yoshihiro Togashi से शादी की।
-क्या जोड़ी है — anime की असली royalty।
+एक trivia — Sailor Moon की creator ने Hunter x Hunter के creator से शादी की। Anime की असली royalty।
 मुझे बताओ — आप इस वक्त कौन सा anime देख रहे हो?
-बस, आज का show यहीं समाप्त होता है।
-मैं हूँ Sensy, SensyCilva Anime Radio से। Anime देखते रहो। Bye!`,
-te:`నమస్కారం, SensyCilva Anime Radio కి స్వాగతం.
-నేను Sensy, మీ నేటి హోస్ట్.
-ఇవాళ్టి show మొదలు పెడదాం — చాలా exciting విషయాలు ఉన్నాయి.
+SensyCilva Radio से मैं हूँ Sensy। Anime देखते रहो। Bye!`,
+te:`SensyCilva Radio కి స్వాగతం — ప్రతి melody లో ఒక anime కథ దాగి ఉంది! నేను మీ Telugu host Sensy!
+ప్రతి beat లో anime జీవితం — ఇవాళ్టి show మొదలు పెడదాం!
 మొదటి వార్త — Attack on Titan finale వచ్చింది మరియు fandom అంతా shock అయింది.
-Eren చేసింది ఎవ్వరూ expect చెయ్యలేదు — అది నిజంగా mind-blowing.
-Mikasa కి ఆమె defining moment దొరికింది — చాలా emotional గా ఉంది.
+Eren చేసింది ఎవ్వరూ expect చెయ్యలేదు. Mikasa కి ఆమె defining moment దొరికింది.
 ఇంకా చూడకపోతే ఇప్పుడే చూడండి, wait చెయ్యకండి.
 ఈ వారం spotlight show — Frieren: Beyond Journey's End.
 ఒక elf mage తన మానవ companions కంటే ఎక్కువ కాలం జీవిస్తుంది.
-ఆమె వెనక్కి చూసి ఆలోచిస్తుంది — నేను నిజంగా వాళ్ళని తెలుసుకున్నానా?
 Animation అద్భుతంగా ఉంటుంది. కథ మనసుని లోతుగా తాకుతుంది.
 Comedy కావాలంటే Mashle: Magic and Muscles చూడండి.
-Hero దగ్గర magic లేదు, కానీ బలం అపారంగా ఉంది.
-Cream puffs పట్ల అతనికి అమితమైన ప్రేమ ఉంది.
-Crazy గా ఉంది మరియు super fun గా ఉంది — తప్పకుండా చూడండి.
-ఒక trivia — Sailor Moon creator Naoko Takeuchi, Hunter x Hunter creator Yoshihiro Togashi ని వివాహం చేసుకున్నారు.
-Anime royalty అంటే వీళ్ళే.
+Hero దగ్గర magic లేదు, కానీ బలం అపారంగా ఉంది. Cream puffs పట్ల అతనికి అమితమైన ప్రేమ ఉంది.
+ఒక trivia — Sailor Moon creator, Hunter x Hunter creator ని వివాహం చేసుకున్నారు. Anime royalty!
 మీరు ఇప్పుడు ఏ anime చూస్తున్నారు? నాకు చెప్పండి.
-ఇవాళ్టి show అయిపోయింది. నేను Sensy, SensyCilva Anime Radio నుండి.
-Anime చూస్తూ ఉండండి. మళ్ళీ కలుద్దాం. Bye!`
+SensyCilva Radio నుండి నేను Sensy. Anime చూస్తూ ఉండండి. Bye!`
 };
 
 // ════════════════════════════════════════════════════
@@ -1919,10 +1726,8 @@ Anime చూస్తూ ఉండండి. మళ్ళీ కలుద్ద�
 // ════════════════════════════════════════════════════
 function loadScript(rawText){
   const lines=rawText.split(/\n+/).map(l=>l.trim()).filter(l=>l.length>2);
-  sentences=lines;
-  sentIdx=0;
-  progressTrack.style.display='block';
-  updateProgress();
+  sentences=lines; sentIdx=0;
+  progressTrack.style.display='block'; updateProgress();
   scriptPreview.innerHTML=lines.map(l=>`<span>${esc(l)}</span>`).join('<br>');
 }
 
@@ -1939,7 +1744,6 @@ function loadPuter(){
     document.head.appendChild(s);
   });
 }
-
 async function aiChat(prompt){
   if(!puterReady) await loadPuter();
   const r=await puter.ai.chat(prompt,{model:'google/gemini-2.5-flash'});
@@ -1950,90 +1754,77 @@ async function aiChat(prompt){
 //  SCRIPT GENERATION
 // ════════════════════════════════════════════════════
 async function generateScript(){
-  setStatus('Writing…','thinking');
-  setThinking(true);
-  setSubtitle('Sensy is writing a fresh script…',true,true);
-
+  setStatus('Writing…','thinking'); setThinking(true); setSubtitle('Sensy is writing a fresh script…',true,true);
   try{
     await loadPuter();
     const langName=currentLang==='hi'?'Hindi':currentLang==='te'?'Telugu':'English';
-    const prompt=`You are writing a radio script for "SensyCilva Anime Radio" in ${langName}.
-The host is Sensy — energetic, warm, knowledgeable about anime, conversational.
+    const ch=CHANNELS[currentLang];
+    const prompt=`You are writing a radio script for "SensyCilva Radio" in ${langName}.
+The host is Sensy — energetic, warm, knowledgeable about anime, conversational and punchy.
+The show tagline is: "${ch.tagline}"
+The opening MUST start with: "Welcome to SensyCilva Radio — ${ch.punchline} I'm your ${langName} host, Sensy. Let's get this show started!"
 Write exactly 18-24 SHORT lines. Each line = one sentence only. One per line.
 No brackets, no stage directions, no actions in parentheses, no asterisks.
 Topics to cover in order:
-1. Opening greeting
-2. Top 2-3 anime news or recent releases (use your most recent knowledge)
+1. Opening with tagline exactly as above
+2. Top 2-3 anime news or recent releases
 3. A spotlight anime recommendation with why it's great
 4. A surprising fun fact or trivia
-5. A brief call to action (ask listeners to talk back)
+5. A brief call to action — ask listeners where they're calling from, what they're watching
 6. Warm sign-off
 Output ONLY the script lines, one per line, no numbering, no extra text.`;
     const text=await aiChat(prompt);
-    if(text&&text.length>100){
-      loadScript(text);
-      addMsg('system','AI script ready — going on air!');
-      setThinking(false);
-      return true;
-    }
+    if(text&&text.length>100){ loadScript(text); addMsg('system','AI script ready — going on air!'); setThinking(false); return true; }
     throw new Error('Too short');
   } catch(e){
     console.warn('Script gen failed:',e);
     loadScript(FALLBACKS[currentLang]||FALLBACKS.en);
     addMsg('system','Using built-in script (AI not available).');
-    setThinking(false);
-    return true;
+    setThinking(false); return true;
   }
 }
 
 // ════════════════════════════════════════════════════
-//  BROADCAST ENGINE
+//  BROADCAST ENGINE — PAUSE FIX
 // ════════════════════════════════════════════════════
 async function startBroadcast(){
-  if(!voicesLoaded){
-    const vv=synth.getVoices();
-    if(vv.length){voicesLoaded=true; lockVoiceForLang(currentLang);}
-    else {toast('Voices loading — please wait a moment','error');return;}
-  }
+  if(!synth){ toast('Speech synthesis not available in this browser','error'); return; }
+  if(!voicesLoaded){ const vv=synth.getVoices(); if(vv.length){voicesLoaded=true; lockVoiceForLang(currentLang);}else{toast('Voices loading — please wait a moment','error');return;} }
   if(!lockedVoice) lockVoiceForLang(currentLang);
-
-  if(!sentences.length){
-    setStatus('Generating…','thinking');
-    const ok=await generateScript();
-    if(!ok) return;
-  }
+  if(!sentences.length){ setStatus('Generating…','thinking'); const ok=await generateScript(); if(!ok) return; }
   if(sentIdx>=sentences.length) sentIdx=0;
 
   isBroadcasting=true; isPaused=false;
   broadcastStartTime=Date.now(); pausedElapsed=0;
-  setOnAirUI('live');
-  setStatus('ON AIR','live');
-  setAvatarStatus('Broadcasting live…');
-  progressTrack.style.display='block';
-  flashStatic();
+  setOnAirUI('live'); setStatus('ON AIR','live'); setAvatarStatus('Broadcasting live…');
+  progressTrack.style.display='block'; flashStatic();
+
+  // Say opening greeting first
+  const ch=CHANNELS[currentLang];
+  const langName=currentLang==='hi'?'हिन्दी':currentLang==='te'?'తెలుగు':'English';
+  const greetText = ch.greeting(langName);
+  await speakOne(greetText);
 
   elapsedTimer=setInterval(()=>{if(!isPaused&&isBroadcasting)updateProgress();},1000);
   await speakLines();
 }
 
+// KEY FIX: speakLines loops and respects isPaused at the sentence level
 async function speakLines(){
   while(sentIdx<sentences.length){
     if(!isBroadcasting) break;
-    if(isPaused){await new Promise(r=>setTimeout(r,150));continue;}
+    // Pause: wait until unpaused or stopped
+    while(isPaused && isBroadcasting){
+      await new Promise(r=>setTimeout(r,100));
+    }
+    if(!isBroadcasting) break;
 
     const line=sentences[sentIdx].trim();
-    if(line){
-      highlightLine(sentIdx);
-      updateProgress();
-      await speakOne(line);
-      stats.lines++;
-      updateStatsDisplay();
-    }
+    if(line){ highlightLine(sentIdx); updateProgress(); await speakOne(line); stats.lines++; updateStatsDisplay(); }
     if(!isBroadcasting) break;
     sentIdx++;
 
     if(!isPaused&&isBroadcasting){
-      // Breathing pause between lines — longer after longer sentences
       const words=(line.match(/\S+/g)||[]).length;
       await new Promise(r=>setTimeout(r,words<6?900:500));
     }
@@ -2042,36 +1833,24 @@ async function speakLines(){
 }
 
 function finishBroadcast(){
-  isBroadcasting=false; isPaused=false;
-  clearInterval(elapsedTimer);
-  stopTTS();
-  setOnAirUI('off');
-  setStatus('FINISHED');
-  setSpeaking(false);
-  setAvatarStatus('Show complete!');
+  isBroadcasting=false; isPaused=false; clearInterval(elapsedTimer); stopTTS();
+  setOnAirUI('off'); setStatus('FINISHED'); setSpeaking(false); setAvatarStatus('Show complete!');
   setSubtitle('Broadcast complete! Hit GO ON AIR for a new show.',true,true);
-  addMsg('host','That\'s a wrap! Thanks for listening to SensyCilva Anime Radio! ✨');
-  flashStatic();
-  toast('Broadcast finished!','success');
-  setMood('default');
+  addMsg('host','That\'s a wrap! Thanks for tuning in to SensyCilva Radio! ✨');
+  flashStatic(); toast('Broadcast finished!','success'); setMood('default');
 }
 
 function hardStop(){
-  isBroadcasting=false; isPaused=false;
-  clearInterval(elapsedTimer);
-  stopTTS();
-  setOnAirUI('off');
-  setStatus('STOPPED');
-  setSpeaking(false);
-  setAvatarStatus('Stopped.');
-  setSubtitle('Stopped.', true, true);
-  pausedElapsed=0;
-  setMood('default');
+  isBroadcasting=false; isPaused=false; clearInterval(elapsedTimer); stopTTS();
+  setOnAirUI('off'); setStatus('STOPPED'); setSpeaking(false); setAvatarStatus('Stopped.');
+  setSubtitle('Stopped.', true, true); pausedElapsed=0; setMood('default');
 }
 
+// FIXED PAUSE TOGGLE: properly stops/resumes TTS and updates state
 function togglePause(){
   if(!isBroadcasting) return;
   if(isPaused){
+    // RESUME
     isPaused=false;
     broadcastStartTime=Date.now();
     setOnAirUI('live');
@@ -2080,13 +1859,15 @@ function togglePause(){
     setSpeaking(true);
     setSubtitle('Back on air!',false,true);
     addMsg('system','Broadcast resumed.');
+    // speakLines is still looping and will continue naturally
   } else {
+    // PAUSE
     isPaused=true;
     pausedElapsed+=(Date.now()-broadcastStartTime);
-    stopTTS();
+    stopTTS(); // cancel current utterance
     setOnAirUI('paused');
     setStatus('PAUSED');
-    setAvatarStatus('Paused.');
+    setAvatarStatus('Paused — press ▶ to continue.');
     setSpeaking(false);
     setSubtitle('Broadcast paused. Press ▶ to continue.',true,true);
     addMsg('system','Broadcast paused.');
@@ -2095,180 +1876,95 @@ function togglePause(){
 
 onAirBtn.addEventListener('click',async()=>{
   if(isBroadcasting){
-    hardStop();
-    sentences=[]; sentIdx=0;
-    progressTrack.style.display='none';
+    hardStop(); sentences=[]; sentIdx=0; progressTrack.style.display='none';
     scriptPreview.textContent='Script cleared. Click GO ON AIR to start fresh.';
   } else if(isPaused){
     togglePause();
   } else {
-    sentences=[]; sentIdx=0;
-    await startBroadcast();
+    sentences=[]; sentIdx=0; await startBroadcast();
   }
 });
-pauseBtn.addEventListener('click',togglePause);
+pauseBtn.addEventListener('click',()=>togglePause());
 
 // ════════════════════════════════════════════════════
-//  CUSTOM SCRIPT
+//  YOUTUBE MUSIC — collapsible + auto-pause broadcast
 // ════════════════════════════════════════════════════
-customToggleBtn.addEventListener('click',()=>{
-  const open=customArea.style.display==='flex';
-  customArea.style.display=open?'none':'flex';
-  customToggleBtn.textContent=open?'✏ Script':'✖ Close';
-});
-cancelCustomBtn.addEventListener('click',()=>{
-  customArea.style.display='none';
-  customToggleBtn.textContent='✏ Script';
-});
-useCustomBtn.addEventListener('click',()=>{
-  const t=customText.value.trim();
-  if(!t){toast('Paste some text first!','error');return;}
-  if(isBroadcasting) hardStop();
-  loadScript(t);
-  customArea.style.display='none';
-  customToggleBtn.textContent='✏ Script';
-  addMsg('system','Custom script loaded — hit GO ON AIR!');
-  toast('Custom script ready!','success');
+ytToggleBtn.addEventListener('click',()=>{
+  const isOpen = ytVideoPanel.classList.toggle('open');
+  ytToggleBtn.classList.toggle('open', isOpen);
+  ytToggleBtn.querySelector('span:first-child').textContent = isOpen ? '🎬 Hide Video Player' : '🎬 Show Video Player';
 });
 
-// ════════════════════════════════════════════════════
-//  SLIDERS
-// ════════════════════════════════════════════════════
-rateSlider.addEventListener('input',()=>{ rateVal.textContent=parseFloat(rateSlider.value).toFixed(2); store('sensy_rate',rateSlider.value); });
-volSlider.addEventListener('input',()=>{ volVal.textContent=parseFloat(volSlider.value).toFixed(2); store('sensy_vol',volSlider.value); });
-pitchSlider.addEventListener('input',()=>{ pitchVal.textContent=parseFloat(pitchSlider.value).toFixed(2); store('sensy_pitch',pitchSlider.value); });
-rateSlider.value=load('sensy_rate','0.88'); rateVal.textContent=parseFloat(rateSlider.value).toFixed(2);
-volSlider.value=load('sensy_vol','1'); volVal.textContent=parseFloat(volSlider.value).toFixed(2);
-pitchSlider.value=load('sensy_pitch','0.95'); pitchVal.textContent=parseFloat(pitchSlider.value).toFixed(2);
-
-// ════════════════════════════════════════════════════
-//  YOUTUBE MUSIC
-// ════════════════════════════════════════════════════
-// ── YouTube API loader ──────────────────────────────
 function loadYTApi(){
   if(ytApiPromise) return ytApiPromise;
   ytApiPromise=new Promise(res=>{
     if(window.YT&&window.YT.Player){ytApiLoaded=true;res();return;}
     const prev=window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady=()=>{if(typeof prev==='function')prev();ytApiLoaded=true;res();};
-    const s=document.createElement('script');
-    s.src='https://www.youtube.com/iframe_api';
-    document.head.appendChild(s);
+    const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s);
   });
   return ytApiPromise;
 }
 loadYTApi();
 
-// ── Create fresh YT player every time (most reliable approach) ──
 function createYTPlayer(videoId){
-  // Destroy old player cleanly
-  if(ytPlayer){
-    try{ytPlayer.destroy();}catch(e){}
-    ytPlayer=null;ytReady=false;
-  }
-  // Wipe container and insert a fresh div for YT to mount into
+  if(ytPlayer){ try{ytPlayer.destroy();}catch(e){} ytPlayer=null; ytReady=false; }
   ytPlayerContainer.innerHTML='';
-  const mountDiv=document.createElement('div');
-  mountDiv.id='ytPlayerMount';
+  const mountDiv=document.createElement('div'); mountDiv.id='ytPlayerMount';
   ytPlayerContainer.appendChild(mountDiv);
-
-  ytEmbed.style.display='block';
   musicWarn.textContent='';
 
   ytPlayer=new YT.Player('ytPlayerMount',{
-    height:'148',
-    width:'100%',
-    videoId:videoId,
-    playerVars:{
-      autoplay:1,
-      controls:1,
-      modestbranding:1,
-      rel:0,
-      fs:0,
-      iv_load_policy:3,
-    },
+    height:'160',width:'100%',videoId:videoId,
+    playerVars:{autoplay:1,controls:1,modestbranding:1,rel:0,fs:0,iv_load_policy:3},
     events:{
       onReady(e){
-        ytReady=true;
-        e.target.setVolume(70);
-        e.target.playVideo();
-        musicPlaying=true;
-        mPlayPause.textContent='⏸ Pause';
-        vinylDisc.classList.add('spinning');
+        ytReady=true; e.target.setVolume(70); e.target.playVideo();
+        musicPlaying=true; mPlayPause.textContent='⏸ Pause'; vinylDisc.classList.add('spinning');
+        startFunFacts();
+        // PAUSE broadcast when song starts
+        if(isBroadcasting && !isPaused){ isPaused=true; pausedElapsed+=(Date.now()-broadcastStartTime); stopTTS(); setOnAirUI('paused'); setStatus('PAUSED'); setSpeaking(false); addMsg('system','Broadcast paused — music is playing.'); }
       },
       onStateChange(e){
         if(e.data===YT.PlayerState.PLAYING){
-          musicPlaying=true;
-          mPlayPause.textContent='⏸ Pause';
-          vinylDisc.classList.add('spinning');
+          musicPlaying=true; mPlayPause.textContent='⏸ Pause'; vinylDisc.classList.add('spinning');
         } else if(e.data===YT.PlayerState.PAUSED){
-          musicPlaying=false;
-          mPlayPause.textContent='▶ Play';
-          vinylDisc.classList.remove('spinning');
+          musicPlaying=false; mPlayPause.textContent='▶ Play'; vinylDisc.classList.remove('spinning');
+          // Resume broadcast if it was paused by music
+          if(isBroadcasting && isPaused){ isPaused=false; broadcastStartTime=Date.now(); setOnAirUI('live'); setStatus('ON AIR','live'); setSpeaking(true); setAvatarStatus('Broadcasting live…'); addMsg('system','Music paused — broadcast resumed.'); }
         } else if(e.data===YT.PlayerState.ENDED){
-          musicPlaying=false;
-          mPlayPause.textContent='▶ Play';
-          vinylDisc.classList.remove('spinning');
-          // Auto-advance queue
-          if(queueIdx<songQueue.length-1){
-            queueIdx++;
-            playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);
+          musicPlaying=false; mPlayPause.textContent='▶ Play'; vinylDisc.classList.remove('spinning'); stopFunFacts();
+          if(queueIdx<songQueue.length-1){ queueIdx++; playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel); }
+          else {
+            // Song ended — resume broadcast
+            if(isBroadcasting && isPaused){ isPaused=false; broadcastStartTime=Date.now(); setOnAirUI('live'); setStatus('ON AIR','live'); setSpeaking(true); setAvatarStatus('Broadcasting live…'); addMsg('system','Song ended — broadcast resumed.'); }
           }
-        } else if(e.data===YT.PlayerState.BUFFERING){
-          musicWarn.textContent='';
         }
       },
       onError(e){
-        const msgs={2:'Invalid video ID',5:'HTML5 player error',100:'Video not found / private',101:'Embedding disabled by owner',150:'Embedding disabled by owner'};
-        const msg=msgs[e.data]||'Playback error (code '+e.data+')';
-        musicWarn.textContent=msg;
-        // Try next song automatically on error
+        const msgs={2:'Invalid video ID',5:'HTML5 player error',100:'Video not found',101:'Embedding disabled',150:'Embedding disabled'};
+        musicWarn.textContent=msgs[e.data]||'Playback error ('+e.data+')';
         toast('Skipping unplayable video…','info',2000);
         setTimeout(()=>nextSong(),1500);
       }
     }
   });
-
-  // Progress ticker
   if(progressTick) clearInterval(progressTick);
-  progressTick=setInterval(()=>{
-    try{
-      if(ytPlayer&&ytReady&&typeof ytPlayer.getCurrentTime==='function'){
-        const t=Math.floor(ytPlayer.getCurrentTime());
-        trackTime.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60;
-      }
-    }catch(e){}
-  },1000);
+  progressTick=setInterval(()=>{ try{ if(ytPlayer&&ytReady&&typeof ytPlayer.getCurrentTime==='function'){ const t=Math.floor(ytPlayer.getCurrentTime()); trackTime.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60; } }catch(e){} },1000);
 }
 
-// ── Play by video ID — always creates a fresh player ──
 function playById(id,title,channel){
-  trackName.textContent=title||'Loading…';
-  trackChannel.textContent=channel||'—';
-  musicWarn.textContent='';
-  // Always go through createYTPlayer — most reliable
-  loadYTApi().then(()=>{
-    // Small delay ensures DOM is settled after any prior destroy
-    setTimeout(()=>createYTPlayer(id),80);
-  }).catch(err=>{
-    musicWarn.textContent='YouTube API failed to load.';
-    toast('YouTube API unavailable','error');
-  });
+  trackName.textContent=title||'Loading…'; trackChannel.textContent=channel||'—'; musicWarn.textContent='';
+  loadYTApi().then(()=>{ setTimeout(()=>createYTPlayer(id),80); }).catch(()=>{ musicWarn.textContent='YouTube API failed.'; toast('YouTube API unavailable','error'); });
 }
 
 async function searchYT(query,max=5){
   const k=apiKey||load('yt_api_key','');
   if(!k) throw new Error('No YouTube API key. Add one in the Music Player section.');
   const url=`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=${max}&q=${encodeURIComponent(query)}&key=${k}`;
-  const r=await fetch(url);
-  const d=await r.json();
+  const r=await fetch(url); const d=await r.json();
   if(d.error) throw new Error(d.error.message||'YouTube API error');
-  return (d.items||[]).filter(i=>i.id?.videoId).map(i=>({
-    id:i.id.videoId,
-    title:i.snippet.title,
-    channel:i.snippet.channelTitle,
-    thumb:i.snippet.thumbnails?.default?.url
-  }));
+  return (d.items||[]).filter(i=>i.id?.videoId).map(i=>({id:i.id.videoId,title:i.snippet.title,channel:i.snippet.channelTitle,thumb:i.snippet.thumbnails?.default?.url}));
 }
 
 async function playSong(query){
@@ -2278,173 +1974,143 @@ async function playSong(query){
   results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);});
   queueIdx=songQueue.findIndex(s=>s.id===results[0].id);
   playById(results[0].id,results[0].title,results[0].channel);
-  showSearchResults(results);
-  stats.songs++;
-  updateStatsDisplay();
+  showSearchResults(results); stats.songs++; updateStatsDisplay();
   return{success:true,title:results[0].title,channel:results[0].channel};
 }
 
 function showSearchResults(results){
   searchResults.innerHTML='';
   results.forEach(r=>{
-    const div=document.createElement('div');
-    div.className='sr-item';
+    const div=document.createElement('div'); div.className='sr-item';
     div.innerHTML=`${r.thumb?`<img class="sr-thumb" src="${esc(r.thumb)}" alt="" loading="lazy">`:''}
       <div class="sr-meta"><div class="t">${esc(r.title)}</div><div class="c">${esc(r.channel)}</div></div>
       <div class="sr-play-btn">▶</div>`;
-    div.addEventListener('click',()=>{
-      queueIdx=songQueue.findIndex(s=>s.id===r.id);
-      if(queueIdx<0){songQueue.push(r);queueIdx=songQueue.length-1;}
-      playById(r.id,r.title,r.channel);
-      addMsg('song',r.title+' — '+r.channel);
-      toast('Now playing: '+r.title,'success');
-    });
+    div.addEventListener('click',()=>{ queueIdx=songQueue.findIndex(s=>s.id===r.id); if(queueIdx<0){songQueue.push(r);queueIdx=songQueue.length-1;} playById(r.id,r.title,r.channel); addMsg('song',r.title+' — '+r.channel); toast('Now playing: '+r.title,'success'); });
     searchResults.appendChild(div);
   });
 }
 
 async function nextSong(){
-  if(queueIdx<songQueue.length-1){
-    queueIdx++;
-    playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);
-    stats.songs++;updateStatsDisplay();
-    return{success:true,title:songQueue[queueIdx].title};
-  }
+  if(queueIdx<songQueue.length-1){ queueIdx++; playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel); stats.songs++;updateStatsDisplay(); return{success:true,title:songQueue[queueIdx].title}; }
   try{
     const results=await searchYT('popular anime OST',3);
-    if(results.length){
-      results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);});
-      queueIdx=songQueue.length-results.length;
-      playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);
-      stats.songs++;updateStatsDisplay();
-      return{success:true,title:songQueue[queueIdx].title};
-    }
+    if(results.length){ results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);}); queueIdx=songQueue.length-results.length; playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel); stats.songs++;updateStatsDisplay(); return{success:true,title:songQueue[queueIdx].title}; }
   }catch(e){}
   return{success:false,msg:'Queue empty.'};
 }
 
 apiKey=load('yt_api_key','');
-ytKey.value=apiKey;
-keyStatus.textContent=apiKey?'● saved':'○ no key';
-saveKeyBtn.addEventListener('click',()=>{
-  const k=ytKey.value.trim();
-  store('yt_api_key',k||null);
-  apiKey=k;
-  keyStatus.textContent=k?'● saved':'○ cleared';
-  musicWarn.textContent='';
-  toast(k?'API key saved!':'API key cleared','success');
-});
+ytKey.value=apiKey; keyStatus.textContent=apiKey?'● saved':'○ no key';
+saveKeyBtn.addEventListener('click',()=>{ const k=ytKey.value.trim(); store('yt_api_key',k||null); apiKey=k; keyStatus.textContent=k?'● saved':'○ cleared'; musicWarn.textContent=''; toast(k?'API key saved!':'API key cleared','success'); });
 mPlayPause.addEventListener('click',()=>{
   if(!ytPlayer||!ytReady){musicWarn.textContent='No track loaded.';return;}
-  musicPlaying?ytPlayer.pauseVideo():ytPlayer.playVideo();
+  if(musicPlaying){
+    ytPlayer.pauseVideo();
+    // Resuming broadcast happens via onStateChange PAUSED event
+  } else {
+    ytPlayer.playVideo();
+    // Pausing broadcast happens via onReady/PLAYING
+  }
 });
 mStop.addEventListener('click',()=>{
+  stopFunFacts();
   if(ytPlayer&&ytReady){try{ytPlayer.stopVideo();}catch(e){}}
-  musicPlaying=false;mPlayPause.textContent='▶ Play';vinylDisc.classList.remove('spinning');
-  trackName.textContent='Nothing playing';trackTime.textContent='0:00';trackChannel.textContent='—';
+  musicPlaying=false; mPlayPause.textContent='▶ Play'; vinylDisc.classList.remove('spinning');
+  trackName.textContent='Nothing playing'; trackTime.textContent='0:00'; trackChannel.textContent='—';
   if(progressTick){clearInterval(progressTick);progressTick=null;}
-  ytEmbed.style.display='none';
+  ytVideoPanel.classList.remove('open'); ytToggleBtn.classList.remove('open');
+  ytToggleBtn.querySelector('span:first-child').textContent='🎬 Show Video Player';
   ytPlayerContainer.innerHTML='';
   if(ytPlayer){try{ytPlayer.destroy();}catch(e){}ytPlayer=null;ytReady=false;}
+  // Resume broadcast if stopped
+  if(isBroadcasting && isPaused){ isPaused=false; broadcastStartTime=Date.now(); setOnAirUI('live'); setStatus('ON AIR','live'); setSpeaking(true); setAvatarStatus('Broadcasting live…'); addMsg('system','Music stopped — broadcast resumed.'); }
 });
 mNext.addEventListener('click',async()=>{
   const r=await nextSong();
-  if(r.success){addMsg('song',r.title);if(isBroadcasting&&!isPaused)await speakOneOff('Now playing: '+r.title);}
-  else{musicWarn.textContent=r.msg;toast(r.msg,'error');}
+  if(r.success){addMsg('song',r.title);} else{musicWarn.textContent=r.msg;toast(r.msg,'error');}
 });
 
 // ════════════════════════════════════════════════════
-//  ONE-OFF SPEAK (interrupts broadcast then resumes)
+//  ONE-OFF SPEAK
 // ════════════════════════════════════════════════════
 async function speakOneOff(text){
   const wasOnAir=isBroadcasting&&!isPaused;
   if(wasOnAir){isPaused=true;stopTTS();}
-  addMsg('host',text);
-  await speakOne(text);
-  if(wasOnAir){
-    isPaused=false;
-    setStatus('ON AIR','live');
-    setSpeaking(true);
-    setAvatarStatus('Broadcasting live…');
-  }
+  addMsg('host',text); await speakOne(text);
+  if(wasOnAir){ isPaused=false; setStatus('ON AIR','live'); setSpeaking(true); setAvatarStatus('Broadcasting live…'); }
 }
 
 // ════════════════════════════════════════════════════
-//  AI CHAT HANDLER
+//  AI CHAT — with "where are you calling from?" engagement
 // ════════════════════════════════════════════════════
+let userLocation = ''; // remembered from conversation
+let userChatCount = 0;
+
 async function handleUserInput(msg){
-  msg=msg.trim();
-  if(!msg) return;
-  userInput.value='';
-  addMsg('user',msg);
-  stats.msgs++;
-  updateStatsDisplay();
+  msg=msg.trim(); if(!msg) return;
+  userInput.value=''; addMsg('user',msg); stats.msgs++; updateStatsDisplay();
 
   const wasBroadcasting=isBroadcasting&&!isPaused;
-  if(wasBroadcasting){
-    isPaused=true; stopTTS();
-    setStatus('PAUSED','');
-    setSpeaking(false);
-    setAvatarStatus('Listening to you…');
-  }
+  if(wasBroadcasting){ isPaused=true; stopTTS(); setStatus('PAUSED',''); setSpeaking(false); setAvatarStatus('Listening to you…'); }
 
-  setStatus('Thinking…','thinking');
-  setThinking(true);
-  setSubtitle('Sensy is thinking…',true,true);
-
+  setStatus('Thinking…','thinking'); setThinking(true); setSubtitle('Sensy is thinking…',true,true);
   const typingEl=addTypingIndicator();
   let reply='';
-  let musicResult=null;
+  userChatCount++;
 
   try{
     await loadPuter();
     const langName=currentLang==='hi'?'Hindi':currentLang==='te'?'Telugu':'English';
     const currentSong=trackName.textContent!=='Nothing playing'?trackName.textContent:'none';
+    const isFirstChat = userChatCount===1;
+    const locationContext = userLocation ? `User's location: ${userLocation}.` : '';
 
     const intent=await aiChat(`You are Sensy, an enthusiastic anime radio host AI.
 User says: "${msg}"
 Currently playing: "${currentSong}"
+${locationContext}
+User message count: ${userChatCount}
+${isFirstChat ? 'This is the FIRST time this listener has spoken. You MUST ask where they are calling from and if they like anime. Be super welcoming!' : ''}
 
 Classify intent and respond:
 - Play/search a song → respond ONLY: PLAY: <search query>
 - Next/skip song → respond ONLY: NEXT
 - Pause music → respond ONLY: PAUSE_MUSIC
 - Stop music → respond ONLY: STOP_MUSIC
-- Current song/artist info → respond ONLY: INFO: <question>
 - Anime question / news / recommend → respond ONLY: ANIME: <topic or question>
-- General chat → respond naturally as Sensy in ${langName}, 1-3 sentences, warm & fun.
+- General chat / intro / hello → respond naturally as Sensy in ${langName}, 2-3 sentences, warm & fun. Ask follow-up questions about anime preferences or what they're watching.
+${isFirstChat ? '- If this is first message: ALWAYS ask where they are calling from and whether they like anime, after greeting them!' : ''}
 No asterisks, no actions, no stage directions in your response.`);
 
     removeTypingIndicator();
+
+    // Detect location info from user messages
+    const locationWords = ['from','calling','india','japan','usa','uk','hyderabad','mumbai','delhi','tokyo','london','new york','bangalore','chennai','kolkata','pune','city','country','state'];
+    if(locationWords.some(w=>msg.toLowerCase().includes(w))&&msg.toLowerCase().includes('from')){
+      userLocation = msg; // store for context
+    }
 
     if(intent.startsWith('PLAY:')){
       const q=intent.replace(/^PLAY:\s*/,'').trim();
       setSubtitle('Searching: '+q,true,true);
       try{
         const r=await playSong(q);
-        reply=r.success?`Playing "${r.title}" for you! Great taste!`:`Couldn't find "${q}" — try a different title.`;
-        if(r.success)addMsg('song',r.title+' — '+r.channel);
-      }catch(e){
-        reply=e.message||'Couldn\'t play that. Is your YouTube API key saved?';
-      }
+        if(r.success){ reply=`Playing "${r.title}" for you! Great taste!`; addMsg('song',r.title+' — '+r.channel); }
+        else reply=`Couldn't find "${q}" — try a different title.`;
+      }catch(e){ reply=e.message||'Need YouTube API key to play music!'; }
     } else if(intent==='NEXT'){
-      const r=await nextSong();
-      reply=r.success?`Skipping ahead — now playing: ${r.title}!`:'Nothing else in the queue!';
-      if(r.success)addMsg('song',r.title);
+      const r=await nextSong(); reply=r.success?`Skipping ahead — now playing: ${r.title}!`:'Nothing else in the queue!';
+      if(r.success) addMsg('song',r.title);
     } else if(intent==='PAUSE_MUSIC'){
-      if(ytPlayer&&ytReady&&musicPlaying){ytPlayer.pauseVideo();reply='Music paused!';}
-      else reply='Music is already paused.';
+      if(ytPlayer&&ytReady&&musicPlaying){ytPlayer.pauseVideo();reply='Music paused!';} else reply='Music is already paused.';
     } else if(intent==='STOP_MUSIC'){
       mStop.click(); reply='Music stopped!';
-    } else if(intent.startsWith('INFO:')){
-      const q=intent.replace(/^INFO:\s*/,'').trim();
-      const infoTxt=await aiChat(`You're a friendly radio host. About "${currentSong!=='none'?currentSong:'this topic'}", answer: ${q}. 2-3 sentences, conversational, no asterisks.`);
-      reply=infoTxt||"I couldn't find info on that!";
     } else if(intent.startsWith('ANIME:')){
       const q=intent.replace(/^ANIME:\s*/,'').trim();
       setSubtitle('Looking up: '+q+'…',true,true);
-      const animeReply=await aiChat(`You are Sensy, an anime radio host. Answer this about anime: "${q}"
-Give an interesting, accurate answer in 2-4 sentences. Conversational radio tone. No asterisks or stage directions.
+      const animeReply=await aiChat(`You are Sensy, an anime radio host. Answer about anime: "${q}"
+Give an interesting, accurate answer in 2-4 sentences. Conversational radio tone. No asterisks.
+${userChatCount<=2 ? 'Also ask if they want you to recommend or play something related.' : ''}
 Language: ${langName}.`);
       reply=animeReply||`I'd love to tell you about "${q}" but I'm drawing a blank — ask me something else!`;
     } else {
@@ -2452,59 +2118,29 @@ Language: ${langName}.`);
     }
   }catch(e){
     removeTypingIndicator();
-    console.warn('AI error, using fallback:',e);
-    // Smart keyword fallback
     const low=msg.toLowerCase();
     if((/\b(play|queue|put on)\b/.test(low))&&!(/\b(pause|stop)\b/.test(low))){
       const match=msg.match(/(?:play|queue|put on)\s+(.+)/i);
-      if(match){
-        try{
-          const r=await playSong(match[1]);
-          if(r.success){reply=`Playing "${r.title}"!`;addMsg('song',r.title+' — '+r.channel);}
-          else reply=`Couldn't find "${match[1]}".`;
-        }catch(err){reply=err.message||'Need YouTube API key.';}
-      } else reply='What song would you like to play?';
+      if(match){ try{ const r=await playSong(match[1]); if(r.success){reply=`Playing "${r.title}"!`;addMsg('song',r.title+' — '+r.channel);}else reply=`Couldn't find "${match[1]}".`; }catch(err){reply=err.message||'Need YouTube API key.';} }
+      else reply='What song would you like to play?';
     } else if(/\b(next|skip)\b/.test(low)){
-      const r=await nextSong();
-      reply=r.success?`Now playing: ${r.title}`:'Queue is empty!';
-      if(r.success)addMsg('song',r.title);
-    } else if(/\bpause\b/.test(low)){
-      if(ytPlayer&&ytReady&&musicPlaying){ytPlayer.pauseVideo();reply='Paused!';}
-      else reply='Nothing is playing.';
-    } else if(/\bstop\b/.test(low)){
-      mStop.click();reply='Stopped!';
-    } else {
-      const animeKw=['anime','manga','naruto','attack','titan','demon','slayer','jujutsu','one piece','dragon','frieren','genshin','bleach','fairy','hero','academia'];
-      if(animeKw.some(k=>low.includes(k))){
-        reply='That\'s a great anime topic! AI is offline right now but I\'d love to chat about it — try again in a moment!';
-      } else {
-        reply="I'm here! Ask me about anime, request a song, or hit GO ON AIR to start the show!";
-      }
-    }
+      const r=await nextSong(); reply=r.success?`Now playing: ${r.title}`:'Queue is empty!';
+      if(r.success) addMsg('song',r.title);
+    } else if(/\bpause\b/.test(low)){ if(ytPlayer&&ytReady&&musicPlaying){ytPlayer.pauseVideo();reply='Paused!';}else reply='Nothing is playing.';
+    } else if(/\bstop\b/.test(low)){ mStop.click();reply='Stopped!';
+    } else if(userChatCount===1){
+      reply="Heyyy, welcome to SensyCilva Radio! So great to hear from you! Where are you calling from? And do you love anime as much as I do?";
+    } else { reply="I'm here! Ask me about anime, request a song, or hit GO ON AIR to start the show!"; }
   }
 
   reply=(reply||'').replace(/<[^>]*>/g,'').replace(/\*[^*]*\*/g,'').trim();
   if(!reply) reply="What else can I help with?";
 
-  addMsg('host',reply);
-  setStatus('Speaking…','live');
-  setThinking(false);
-  setAvatarStatus('Responding…');
+  addMsg('host',reply); setStatus('Speaking…','live'); setThinking(false); setAvatarStatus('Responding…');
   await speakOne(reply);
 
-  if(wasBroadcasting&&isBroadcasting){
-    isPaused=false;
-    setStatus('ON AIR','live');
-    setSpeaking(true);
-    setAvatarStatus('Broadcasting live…');
-    setSubtitle('Resuming broadcast…',false,true);
-    addMsg('system','Resuming broadcast…');
-  } else {
-    setStatus('READY');
-    setSpeaking(false);
-    setAvatarStatus('Ready to broadcast');
-    setSubtitle('Ask me anything, or hit GO ON AIR.',true,true);
-  }
+  if(wasBroadcasting&&isBroadcasting){ isPaused=false; setStatus('ON AIR','live'); setSpeaking(true); setAvatarStatus('Broadcasting live…'); setSubtitle('Resuming broadcast…',false,true); addMsg('system','Resuming broadcast…'); }
+  else { setStatus('READY'); setSpeaking(false); setAvatarStatus('Ready to broadcast'); setSubtitle('Ask me anything, or hit GO ON AIR.',true,true); }
 }
 
 sendBtn.addEventListener('click',()=>handleUserInput(userInput.value));
@@ -2514,106 +2150,56 @@ userInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendBtn.click();});
 //  SPEECH RECOGNITION
 // ════════════════════════════════════════════════════
 if(SR){
-  recognition=new SR();
-  recognition.continuous=false;
-  recognition.interimResults=true;
-
-  recognition.onstart=()=>{
-    isListening=true;
-    micBtn.classList.add('live');micBtn.textContent='🔴';
-    transcriptRow.className='transcript-row listening';
-    transcriptRow.textContent='Listening…';
-    if(isBroadcasting&&!isPaused){isPaused=true;stopTTS();setSpeaking(false);}
-    window._oscSetAmp&&window._oscSetAmp(0.4,'#b06fff');
-  };
-  recognition.onresult=(e)=>{
-    let interim='',final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t=e.results[i][0].transcript;
-      if(e.results[i].isFinal)final+=t; else interim+=t;
-    }
-    if(final){
-      transcriptRow.className='transcript-row final';
-      transcriptRow.textContent='✓ '+final;
-      userInput.value=final;
-      setTimeout(()=>sendBtn.click(),300);
-    } else if(interim){
-      transcriptRow.textContent='🎤 '+interim;
-    }
-  };
-  recognition.onerror=(e)=>{
-    const msgs={'not-allowed':'Mic access denied.','no-speech':'Nothing heard.','network':'Network issue.','audio-capture':'No mic found.'};
-    transcriptRow.className='transcript-row';
-    transcriptRow.textContent=msgs[e.error]||'Error: '+e.error;
-    micBtn.classList.remove('live');micBtn.textContent='🎤';
-    isListening=false;
-    window._oscSetAmp&&window._oscSetAmp(isBroadcasting&&!isPaused?0.85:0);
-  };
-  recognition.onend=()=>{
-    micBtn.classList.remove('live');micBtn.textContent='🎤';
-    isListening=false;
-    if(!transcriptRow.textContent.startsWith('✓')&&!transcriptRow.textContent.includes('denied')){
-      transcriptRow.className='transcript-row';
-      transcriptRow.textContent='Mic off — type or click 🎤';
-    }
-  };
-
-  micBtn.addEventListener('click',()=>{
-    if(isListening){recognition.stop();return;}
-    recognition.lang=currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US';
-    try{recognition.start();}catch(e){transcriptRow.textContent='Could not start mic.';}
-  });
+  recognition=new SR(); recognition.continuous=false; recognition.interimResults=true;
+  recognition.onstart=()=>{ isListening=true; micBtn.classList.add('live'); micBtn.textContent='🔴'; transcriptRow.className='transcript-row listening'; transcriptRow.textContent='Listening…'; if(isBroadcasting&&!isPaused){isPaused=true;stopTTS();setSpeaking(false);} window._oscSetAmp&&window._oscSetAmp(0.4,'var(--accent3)'); };
+  recognition.onresult=(e)=>{ let interim='',final=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal)final+=t;else interim+=t; } if(final){transcriptRow.className='transcript-row final';transcriptRow.textContent='✓ '+final;userInput.value=final;setTimeout(()=>sendBtn.click(),300);}else if(interim){transcriptRow.textContent='🎤 '+interim;} };
+  recognition.onerror=(e)=>{ const msgs={'not-allowed':'Mic access denied.','no-speech':'Nothing heard.','network':'Network issue.','audio-capture':'No mic found.'}; transcriptRow.className='transcript-row'; transcriptRow.textContent=msgs[e.error]||'Error: '+e.error; micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; };
+  recognition.onend=()=>{ micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; if(!transcriptRow.textContent.startsWith('✓')&&!transcriptRow.textContent.includes('denied')){transcriptRow.className='transcript-row';transcriptRow.textContent='Mic off — type or click 🎤';} };
+  micBtn.addEventListener('click',()=>{ if(isListening){recognition.stop();return;} recognition.lang=currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US'; try{recognition.start();}catch(e){transcriptRow.textContent='Could not start mic.';} });
 } else {
-  micBtn.disabled=true;
-  transcriptRow.textContent='Speech recognition not available — please type.';
+  micBtn.disabled=true; transcriptRow.textContent='Speech recognition not available — please type.';
 }
 
 // ════════════════════════════════════════════════════
 //  ABOUT MODAL
 // ════════════════════════════════════════════════════
-const aboutModal=$('aboutModal');
-const aboutClose=$('aboutClose');
+const aboutModal=$('aboutModal'), aboutClose=$('aboutClose');
 function openAbout(){ aboutModal.classList.add('open'); document.body.style.overflow='hidden'; }
 function closeAbout(){ aboutModal.classList.remove('open'); document.body.style.overflow=''; }
 $('aboutBtn').addEventListener('click',openAbout);
-$('aboutBtnFooter').addEventListener('click',openAbout);
 aboutClose.addEventListener('click',closeAbout);
 aboutModal.addEventListener('click',(e)=>{ if(e.target===aboutModal) closeAbout(); });
 document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeAbout(); });
 
 // ════════════════════════════════════════════════════
-//  SESSION TIMER (mini stats bar)
+//  SESSION TIMER
 // ════════════════════════════════════════════════════
-setInterval(()=>{
-  const sec=Math.floor((Date.now()-stats.sessionStart)/1000);
-  const m=Math.floor(sec/60),s=sec%60;
-  statsTime.textContent=m+':'+(s<10?'0':'')+s;
-},1000);
+setInterval(()=>{ const sec=Math.floor((Date.now()-stats.sessionStart)/1000); const m=Math.floor(sec/60),s=sec%60; statsTime.textContent=m+':'+(s<10?'0':'')+s; },1000);
 
 // ════════════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════════════
 const savedLang=load('sensy_lang','en');
-setChannel(savedLang);
+currentLang=savedLang;
+document.body.classList.remove('lang-en','lang-hi','lang-te');
+document.body.classList.add(CHANNELS[savedLang].bodyClass);
+chBtns.forEach(b=>b.classList.toggle('active',b.dataset.lang===savedLang));
+freqReadout.textContent=CHANNELS[savedLang].label;
+channelTagline.textContent=CHANNELS[savedLang].tagline;
+oscColor=CHANNELS[savedLang].oscColor;
+if(window._oscSetAmp) window._oscSetAmp(0, oscColor);
 setMood('default');
+
+// Init volume knob
+const savedVol=parseFloat(load('sensy_vol','1'));
+setVolume(savedVol);
+
 loadPuter().catch(()=>{});
 
-// Restore slider values
-[
-  [rateSlider,rateVal,'sensy_rate','0.88'],
-  [volSlider,volVal,'sensy_vol','1'],
-  [pitchSlider,pitchVal,'sensy_pitch','0.95'],
-].forEach(([slider,display,key,def])=>{
-  slider.value=load(key,def);
-  display.textContent=parseFloat(slider.value).toFixed(2);
-});
-
-console.log('%cSensyCilva Radio 📻','color:#00ffe7;font-size:20px;font-weight:bold;');
-console.log('%cAI anime radio host system loaded!','color:#b06fff;');
+console.log('%cSensyCilva Radio 📻','color:#ff2d78;font-size:22px;font-weight:bold;');
+console.log('%cMulti-channel AI radio host loaded!','color:#00ffe7;');
 
 })();
 </script>
-
-
 </body>
 </html>

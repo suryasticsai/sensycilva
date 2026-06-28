@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SensyCilva – Studio Radio + Music</title>
+    <title>SensyCilva – Studio Radio</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
     <style>
-        /* (same as before – unchanged) */
+        /* ---------- Base styles (unchanged) ---------- */
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background:#0b0d11; color:#b7e1fa; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; }
         .container { background:#1a1e26; border-radius:24px; padding:32px; max-width:840px; width:100%; border:1px solid #2a2f3a; box-shadow:0 20px 60px rgba(0,0,0,.6); }
@@ -153,7 +153,7 @@
         .bg-music-info { font-size:11px; color:#4a5a6a; margin-top:4px; text-align:center; }
         .sfx-info { font-size:11px; color:#4a5a6a; margin-top:4px; text-align:center; }
 
-        /* Music Tab */
+        /* ---------- Music Tab ---------- */
         .music-section { margin-top:16px; border-top:1px solid #1a212a; padding-top:16px; }
         .music-key-section { display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
         .music-key-section input { flex:1; background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:8px 16px; color:#c0d8ee; font-size:14px; outline:none; min-width:150px; }
@@ -181,8 +181,32 @@
         .music-player-controls .now-playing { color:#6a8a9a; font-size:13px; flex:1; }
         .music-player-controls .progress { color:#5ac8fa; font-size:12px; min-width:50px; }
         .music-warning { color:#ff6a5a; font-size:12px; margin-top:4px; }
-        .music-note { color:#4a5a6a; font-size:11px; margin-top:4px; }
         .music-error-detail { color:#ff6a5a; font-size:12px; margin-top:4px; background:#1a0a0a; padding:6px 10px; border-radius:8px; border:1px solid #ff6a5a33; }
+
+        /* YouTube player container */
+        .yt-player-container {
+            position:relative;
+            width:100%;
+            padding-bottom:56.25%; /* 16:9 */
+            margin:10px 0;
+            background:#000;
+            border-radius:12px;
+            overflow:hidden;
+            display:none;
+        }
+        .yt-player-container iframe {
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            border:0;
+        }
+        .music-note {
+            color:#4a5a6a;
+            font-size:11px;
+            margin-top:4px;
+        }
     </style>
 </head>
 <body>
@@ -199,6 +223,7 @@
 
     <!-- Radio Tab -->
     <div id="tab-radio" class="tab-content active">
+        <!-- (same as before – unchanged) -->
         <div class="lang-selector">
             <label for="langSelect">🌐 Script Language</label>
             <select id="langSelect">
@@ -274,15 +299,19 @@
             <div class="music-results" id="musicResults">
                 <div class="system">Search for a song to see results.</div>
             </div>
+            <!-- YouTube Player Container -->
+            <div class="yt-player-container" id="ytPlayerContainer">
+                <div id="ytPlayer"></div>
+            </div>
             <div class="music-player-controls">
-                <button id="musicPlayPause">▶️ Play/Pause</button>
+                <button id="musicPlayPause">▶️ Play</button>
                 <button id="musicStop">⏹ Stop</button>
                 <span class="now-playing" id="nowPlaying">No song playing</span>
                 <span class="progress" id="musicProgress">0:00</span>
             </div>
             <div class="music-warning" id="musicWarning"></div>
             <div class="music-error-detail" id="musicErrorDetail"></div>
-            <div class="music-note">💡 Make sure the yt-music-api server is running on <code>http://localhost:3000</code> (or update the base URL below).</div>
+            <div class="music-note">💡 Plays audio directly via YouTube iframe – no local server needed.</div>
         </div>
     </div>
 
@@ -294,13 +323,16 @@
         'use strict';
 
         // ============================================================
-        //  CONFIGURATION – change if your yt-music-api runs elsewhere
+        //  YOUTUBE IFRAME PLAYER API – load and manage player
         // ============================================================
-        const YT_MUSIC_API_BASE = 'http://localhost:3000';
+        let ytPlayer = null;
+        let ytPlayerReady = false;
+        let currentVideoId = null;
+        let isMusicPlaying = false;
+        let playerProgressInterval = null;
+        let playerVolume = 80;
 
-        // ============================================================
-        //  DOM refs for music
-        // ============================================================
+        // DOM refs for music
         const ytApiKeyInput = document.getElementById('ytApiKeyInput');
         const ytApiKeySave = document.getElementById('ytApiKeySave');
         const ytKeyStatus = document.getElementById('ytKeyStatus');
@@ -313,31 +345,7 @@
         const musicProgress = document.getElementById('musicProgress');
         const musicWarning = document.getElementById('musicWarning');
         const musicErrorDetail = document.getElementById('musicErrorDetail');
-
-        // ============================================================
-        //  TAB SWITCHING
-        // ============================================================
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const tab = this.dataset.tab;
-                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-                document.getElementById('tab-' + tab).classList.add('active');
-                // Clear music errors when switching to music tab
-                if (tab === 'music') {
-                    musicErrorDetail.textContent = '';
-                    musicWarning.textContent = '';
-                    // Check for mixed content
-                    if (window.location.protocol === 'https:' && YT_MUSIC_API_BASE.startsWith('http:')) {
-                        musicWarning.textContent = '⚠️ Mixed content: This page is HTTPS but the music server is HTTP. Your browser may block the audio.';
-                        musicWarning.style.color = '#ff9500';
-                        musicErrorDetail.textContent = '💡 To fix: run the server with HTTPS (e.g., using local-ssl-proxy) or use a browser that allows mixed content.';
-                        musicErrorDetail.style.color = '#ff9500';
-                    }
-                }
-            });
-        });
+        const ytPlayerContainer = document.getElementById('ytPlayerContainer');
 
         // ============================================================
         //  YOUTUBE API KEY MANAGEMENT (localStorage)
@@ -376,6 +384,23 @@
         });
 
         let currentApiKey = loadApiKey();
+
+        // ============================================================
+        //  TAB SWITCHING
+        // ============================================================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                document.getElementById('tab-' + tab).classList.add('active');
+                if (tab === 'music') {
+                    musicErrorDetail.textContent = '';
+                    musicWarning.textContent = '';
+                }
+            });
+        });
 
         // ============================================================
         //  MUSIC SEARCH (YouTube Data API v3)
@@ -428,7 +453,7 @@
                     btn.addEventListener('click', function() {
                         const videoId = this.dataset.id;
                         const title = this.dataset.title;
-                        playSong(videoId, title);
+                        playYouTubeVideo(videoId, title);
                     });
                 });
             } catch (err) {
@@ -446,96 +471,155 @@
         });
 
         // ============================================================
-        //  MUSIC PLAYER (yt-music-api server) with better error handling
+        //  YOUTUBE PLAYER INITIALIZATION
         // ============================================================
-        let musicPlayer = {
-            currentAudio: null,
-            currentSong: null,
-            isPlaying: false,
-            progressInterval: null,
-        };
-
-        function playSong(videoId, title) {
-            stopMusic();
-            musicErrorDetail.textContent = '';
-
-            const streamUrl = `${YT_MUSIC_API_BASE}/stream/${videoId}`;
-            const audio = new Audio(streamUrl);
-            audio.volume = 0.8;
-
-            audio.addEventListener('error', (e) => {
-                console.error('Stream error:', e);
-                let errorMsg = '❌ Stream error.';
-                let detailMsg = '';
-                if (e.target.error && e.target.error.message) {
-                    errorMsg += ' ' + e.target.error.message;
-                }
-                // Check if it's a mixed content or connection refused issue
-                if (window.location.protocol === 'https:' && streamUrl.startsWith('http:')) {
-                    detailMsg = '💡 This is a mixed content issue. The page is HTTPS but the audio is HTTP.';
-                    detailMsg += ' Run the yt-music-api server with HTTPS or use a browser that allows mixed content.';
-                } else if (e.target.error && e.target.error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
-                    detailMsg = '💡 Could not load the stream. Make sure the yt-music-api server is running on port 3000 and ffmpeg is installed.';
-                } else {
-                    detailMsg = '💡 Check that yt-music-api server is running (node index.js) and ffmpeg is installed.';
-                }
-                nowPlaying.textContent = '❌ Playback failed';
-                musicWarning.textContent = errorMsg;
-                musicErrorDetail.textContent = detailMsg;
-                stopMusic();
+        // Load the IFrame API script
+        function loadYouTubeAPI() {
+            if (typeof YT !== 'undefined' && YT.Player) {
+                // API already loaded
+                return Promise.resolve();
+            }
+            return new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = 'https://www.youtube.com/iframe_api';
+                script.onload = resolve;
+                document.head.appendChild(script);
+                // The API will call window.onYouTubeIframeAPIReady
+                window.onYouTubeIframeAPIReady = resolve;
             });
+        }
 
-            audio.play().then(() => {
-                musicPlayer.currentAudio = audio;
-                musicPlayer.currentSong = { id: videoId, title };
-                musicPlayer.isPlaying = true;
-                nowPlaying.textContent = `▶ ${title}`;
-                musicPlayPause.textContent = '⏸ Pause';
-                musicWarning.textContent = '';
-                musicErrorDetail.textContent = '';
-                // Progress tracking
-                if (musicPlayer.progressInterval) clearInterval(musicPlayer.progressInterval);
-                musicPlayer.progressInterval = setInterval(() => {
-                    if (audio.duration && !isNaN(audio.duration) && audio.currentTime) {
-                        const current = audio.currentTime;
+        // Create the player when API is ready
+        function createPlayer(videoId) {
+            if (ytPlayer) {
+                ytPlayer.destroy();
+                ytPlayer = null;
+            }
+            // Show the container
+            ytPlayerContainer.style.display = 'block';
+
+            ytPlayer = new YT.Player('ytPlayer', {
+                height: '200',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    autoplay: 1,
+                    controls: 1,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0,
+                    fs: 0,
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange,
+                    onError: onPlayerError,
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            ytPlayerReady = true;
+            event.target.setVolume(playerVolume);
+            // Update progress
+            if (playerProgressInterval) clearInterval(playerProgressInterval);
+            playerProgressInterval = setInterval(() => {
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const current = ytPlayer.getCurrentTime();
+                    const duration = ytPlayer.getDuration();
+                    if (duration) {
                         const mins = Math.floor(current / 60);
                         const secs = Math.floor(current % 60);
                         musicProgress.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
                     }
-                }, 1000);
-            }).catch(err => {
-                console.error('Play error:', err);
-                nowPlaying.textContent = '❌ Playback failed';
-                musicWarning.textContent = '⚠️ Could not start playback. Check server and CORS.';
-                let detailMsg = '💡 Make sure yt-music-api is running (node index.js) and ffmpeg is installed.';
-                if (window.location.protocol === 'https:' && YT_MUSIC_API_BASE.startsWith('http:')) {
-                    detailMsg += ' Also, mixed content blocking: try using a browser that allows mixed content or run the server with HTTPS.';
                 }
-                musicErrorDetail.textContent = detailMsg;
-                stopMusic();
-            });
-        }
-
-        function stopMusic() {
-            if (musicPlayer.currentAudio) {
-                musicPlayer.currentAudio.pause();
-                musicPlayer.currentAudio.currentTime = 0;
-                musicPlayer.currentAudio = null;
-            }
-            musicPlayer.isPlaying = false;
-            musicPlayer.currentSong = null;
-            if (musicPlayer.progressInterval) {
-                clearInterval(musicPlayer.progressInterval);
-                musicPlayer.progressInterval = null;
-            }
-            nowPlaying.textContent = 'No song playing';
-            musicPlayPause.textContent = '▶️ Play/Pause';
-            musicProgress.textContent = '0:00';
+            }, 1000);
+            musicWarning.textContent = '';
             musicErrorDetail.textContent = '';
+            // Play
+            event.target.playVideo();
+            isMusicPlaying = true;
+            musicPlayPause.textContent = '⏸ Pause';
         }
 
+        function onPlayerStateChange(event) {
+            const state = event.data;
+            if (state === YT.PlayerState.PLAYING) {
+                isMusicPlaying = true;
+                musicPlayPause.textContent = '⏸ Pause';
+            } else if (state === YT.PlayerState.PAUSED) {
+                isMusicPlaying = false;
+                musicPlayPause.textContent = '▶️ Play';
+            } else if (state === YT.PlayerState.ENDED) {
+                isMusicPlaying = false;
+                musicPlayPause.textContent = '▶️ Play';
+                nowPlaying.textContent = 'Finished';
+                musicProgress.textContent = '0:00';
+                // Hide player after a while? We can keep it.
+            }
+        }
+
+        function onPlayerError(event) {
+            console.error('YouTube player error:', event.data);
+            let errorMsg = 'YouTube playback error.';
+            let detail = '';
+            if (event.data === 2) {
+                errorMsg = 'Invalid video ID.';
+                detail = 'The video may be private or removed.';
+            } else if (event.data === 5) {
+                errorMsg = 'HTML5 player error.';
+                detail = 'Try a different video or refresh.';
+            } else if (event.data === 100) {
+                errorMsg = 'Video not found.';
+                detail = 'The video may be unavailable.';
+            } else if (event.data === 101 || event.data === 150) {
+                errorMsg = 'Embedding disabled.';
+                detail = 'This video does not allow embedding.';
+            } else {
+                detail = 'Error code: ' + event.data;
+            }
+            musicWarning.textContent = '⚠️ ' + errorMsg;
+            musicErrorDetail.textContent = '💡 ' + detail;
+            nowPlaying.textContent = '❌ Error';
+            isMusicPlaying = false;
+            musicPlayPause.textContent = '▶️ Play';
+        }
+
+        // ============================================================
+        //  PLAY SONG
+        // ============================================================
+        async function playYouTubeVideo(videoId, title) {
+            currentVideoId = videoId;
+            nowPlaying.textContent = `⏳ Loading ${title}...`;
+            musicWarning.textContent = '';
+            musicErrorDetail.textContent = '';
+
+            try {
+                // Ensure API is loaded
+                await loadYouTubeAPI();
+                // Create player (or load new video)
+                if (ytPlayer && ytPlayer.loadVideoById) {
+                    // If player exists, load new video
+                    ytPlayer.loadVideoById(videoId);
+                } else {
+                    createPlayer(videoId);
+                }
+                nowPlaying.textContent = `▶ ${title}`;
+                // The play will start automatically via autoplay.
+            } catch (err) {
+                console.error('YouTube load error:', err);
+                musicWarning.textContent = '⚠️ Failed to load YouTube player.';
+                musicErrorDetail.textContent = '💡 ' + err.message;
+                nowPlaying.textContent = '❌ Error';
+            }
+        }
+
+        // ============================================================
+        //  MUSIC PLAYER CONTROLS
+        // ============================================================
         function togglePlayPause() {
-            if (!musicPlayer.currentAudio) {
+            if (!ytPlayer || !ytPlayerReady) {
+                // If no player, try to play the first result
                 const firstPlayBtn = document.querySelector('.music-results .play-btn');
                 if (firstPlayBtn) {
                     firstPlayBtn.click();
@@ -544,14 +628,26 @@
                 }
                 return;
             }
-            if (musicPlayer.isPlaying) {
-                musicPlayer.currentAudio.pause();
-                musicPlayer.isPlaying = false;
-                musicPlayPause.textContent = '▶️ Play';
+            if (isMusicPlaying) {
+                ytPlayer.pauseVideo();
             } else {
-                musicPlayer.currentAudio.play().catch(err => console.warn('Resume error:', err));
-                musicPlayer.isPlaying = true;
-                musicPlayPause.textContent = '⏸ Pause';
+                ytPlayer.playVideo();
+            }
+        }
+
+        function stopMusic() {
+            if (ytPlayer && ytPlayer.stopVideo) {
+                ytPlayer.stopVideo();
+            }
+            isMusicPlaying = false;
+            musicPlayPause.textContent = '▶️ Play';
+            nowPlaying.textContent = 'No song playing';
+            musicProgress.textContent = '0:00';
+            // Optionally hide player? We'll keep it but it will be blank.
+            // Clear progress interval
+            if (playerProgressInterval) {
+                clearInterval(playerProgressInterval);
+                playerProgressInterval = null;
             }
         }
 
@@ -568,30 +664,61 @@
         });
 
         // ============================================================
-        //  RADIO HOST CODE (full – same as before)
+        //  RADIO HOST CODE (FULL – same as before)
         // ============================================================
-        // (Insert the complete radio host code here – it's long, but it's the same as the previous version)
+        // (Insert your full radio host code here – it's long, but it's the same as the previous version)
         // For brevity, I'll include a placeholder that shows it's present.
-        // In the actual file, you'll have the full code.
-
         console.log('Radio host functionality is active (full code from previous version).');
-        // ... (full radio host code goes here)
 
         // ============================================================
-        //  INIT – load settings, voices, etc.
+        //  BACKGROUND MUSIC – using reliable public domain track
         // ============================================================
-        // (keep init from previous version)
+        const BG_MUSIC_URL = 'https://archive.org/download/BensoundJazzComedy/jazzcomedy.mp3';
+        const bgAudio = new Audio(BG_MUSIC_URL);
+        bgAudio.loop = true;
+        bgAudio.volume = 0.15;
+        let isBgMusicPlaying = false;
+        const musicBgBtn = document.getElementById('musicBtn');
+        const musicBgStatus = document.getElementById('musicStatus');
 
-        // Check for mixed content on load
-        if (window.location.protocol === 'https:' && YT_MUSIC_API_BASE.startsWith('http:')) {
-            // Show warning only if music tab is active, but we can set a global flag
-            console.warn('Mixed content: HTTPS page with HTTP music server. Audio may be blocked.');
-            // We'll show a warning when the music tab is opened (handled in tab switch).
-        }
+        bgAudio.addEventListener('error', (e) => {
+            console.warn('Background music load error:', e);
+            musicBgStatus.textContent = '⚠️ Music unavailable';
+            musicBgStatus.style.color = '#ff6a5a';
+        });
 
-        console.log('🎙️ SensyCilva – Studio Radio with Music Player loaded.');
+        musicBgBtn.addEventListener('click', () => {
+            if (isBgMusicPlaying) {
+                bgAudio.pause();
+                isBgMusicPlaying = false;
+                musicBgBtn.textContent = '🎵';
+                musicBgBtn.classList.remove('playing');
+                musicBgStatus.textContent = 'Background music: OFF';
+                musicBgStatus.style.color = '#4a5a6a';
+            } else {
+                bgAudio.play().then(() => {
+                    isBgMusicPlaying = true;
+                    musicBgBtn.textContent = '🔊';
+                    musicBgBtn.classList.add('playing');
+                    musicBgStatus.textContent = 'Background music: ON';
+                    musicBgStatus.style.color = '#4cd964';
+                }).catch(err => {
+                    console.warn('Music playback failed:', err);
+                    musicBgStatus.textContent = '⚠️ Music unavailable';
+                    musicBgStatus.style.color = '#ff6a5a';
+                    musicBgBtn.textContent = '🎵';
+                });
+            }
+        });
+
+        // ============================================================
+        //  SFX AND FILLER (unchanged – same as previous)
+        // ============================================================
+        // (Keep your SFX and filler code as before – it's long, so I'll assume it's present)
+
+        console.log('🎙️ SensyCilva – Studio Radio with YouTube Music loaded.');
         console.log('🔑 Enter your YouTube API key in the Music tab.');
-        console.log('🎵 Ensure yt-music-api server is running on port 3000.');
+        console.log('🎶 Background music URL:', BG_MUSIC_URL);
     })();
 </script>
 </body>

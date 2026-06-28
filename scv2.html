@@ -745,9 +745,130 @@ select:focus{border-color:var(--cyan);}
 ───────────────────────────────────────── */
 :focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
 
+
 /* ─────────────────────────────────────────
-   REDUCED MOTION
+   FOOTER
 ───────────────────────────────────────── */
+.site-footer{
+  border-top:1px solid var(--line2);
+  background:var(--panel);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  padding:16px 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;
+  position:relative;z-index:1;
+}
+.footer-brand{
+  display:flex;align-items:center;gap:10px;
+}
+.footer-brand img{
+  width:28px;height:28px;border-radius:6px;object-fit:contain;
+  opacity:.85;
+}
+.footer-credit{
+  font-size:12px;color:var(--paper-dimmer);
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.footer-credit .heart{color:var(--signal);animation:heartbeat 1.4s infinite;}
+@keyframes heartbeat{0%,100%{transform:scale(1);}14%{transform:scale(1.3);}28%{transform:scale(1);}42%{transform:scale(1.2);}70%{transform:scale(1);}}
+.footer-credit a{
+  color:var(--cyan);text-decoration:none;font-weight:700;
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;
+  transition:.2s;
+}
+.footer-credit a:hover{color:var(--violet);text-shadow:0 0 12px var(--violet-glow);}
+.footer-right{display:flex;align-items:center;gap:8px;}
+
+/* ─────────────────────────────────────────
+   ABOUT MODAL
+───────────────────────────────────────── */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(8,6,18,.85);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-backdrop.open{display:flex;}
+.modal{
+  background:var(--panel2);
+  border:1px solid var(--line2);
+  border-radius:20px;
+  width:100%;max-width:540px;
+  max-height:85vh;overflow-y:auto;
+  position:relative;
+  box-shadow:0 0 80px rgba(176,111,255,.15),0 0 0 1px rgba(176,111,255,.08);
+  animation:modal-in .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modal-in{from{opacity:0;transform:scale(.92) translateY(20px);}to{opacity:1;transform:none;}}
+.modal-header{
+  padding:22px 24px 16px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:linear-gradient(135deg,rgba(176,111,255,.08),rgba(0,255,231,.04));
+}
+.modal-title{
+  display:flex;align-items:center;gap:12px;
+}
+.modal-title img{
+  width:40px;height:40px;border-radius:10px;object-fit:contain;
+  box-shadow:0 0 20px var(--violet-glow);
+}
+.modal-title h2{
+  font-size:20px;font-weight:900;letter-spacing:-.02em;
+}
+.modal-title h2 span{color:var(--signal);}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--panel3);border:1px solid var(--line2);
+  color:var(--paper-dimmer);font-size:16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-close:hover{border-color:var(--signal);color:var(--signal);}
+.modal-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:20px;}
+.about-section h3{
+  font-size:10px;text-transform:uppercase;letter-spacing:.18em;
+  color:var(--paper-dimmer);font-weight:700;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.about-section h3::after{content:'';flex:1;height:1px;background:var(--line2);}
+.about-steps{display:flex;flex-direction:column;gap:8px;}
+.about-step{
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--panel3);border:1px solid var(--line);
+  border-radius:10px;padding:12px 14px;
+}
+.about-step .step-num{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--signal),var(--violet));
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:900;color:#fff;
+}
+.about-step .step-body .st{font-size:13px;font-weight:700;color:var(--paper);margin-bottom:2px;}
+.about-step .step-body .sd{font-size:11px;color:var(--paper-dimmer);line-height:1.5;}
+.about-features{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.about-feature{
+  background:var(--panel3);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;
+  display:flex;align-items:flex-start;gap:8px;
+}
+.about-feature .fi{font-size:18px;flex-shrink:0;}
+.about-feature .ft{font-size:11px;font-weight:700;color:var(--violet);margin-bottom:2px;}
+.about-feature .fd{font-size:10px;color:var(--paper-dimmer);line-height:1.4;}
+.about-tip{
+  background:rgba(0,255,231,.05);border:1px solid rgba(0,255,231,.15);
+  border-radius:10px;padding:12px 14px;
+  font-size:11px;color:var(--cyan);line-height:1.6;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.about-tip span{font-size:16px;flex-shrink:0;}
+@media(max-width:480px){
+  .about-features{grid-template-columns:1fr;}
+  .modal-body{padding:16px;}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
 }
@@ -805,7 +926,7 @@ select:focus{border-color:var(--cyan);}
     <div class="hero-inner">
       <div class="hero-top">
         <div class="brand-row">
-          <div class="brand-logo">📻</div>
+          <div class="brand-logo"><img src="logo.png" alt="SensyCilva" style="width:38px;height:38px;object-fit:contain;border-radius:8px;"></div>
           <div class="brand-text">
             <div class="eyebrow">
               <div class="eyebrow-dot"></div>
@@ -825,6 +946,7 @@ select:focus{border-color:var(--cyan);}
           <button class="ch-btn active" data-lang="en">🇬🇧 English</button>
           <button class="ch-btn" data-lang="hi">🇮🇳 हिन्दी</button>
           <button class="ch-btn" data-lang="te">🇮🇳 తెలుగు</button>
+          <button class="btn sm violet" id="aboutBtn" style="padding:6px 16px;font-size:11px;">ℹ About</button>
         </div>
         <div class="mini-stats" id="miniStats">
           <div class="stat-item">WORDS <span class="sv" id="statsWords">0</span></div>
@@ -863,7 +985,7 @@ select:focus{border-color:var(--cyan);}
 
         <!-- Avatar -->
         <div class="sensy-avatar-wrap">
-          <div class="avatar-orb" id="avatarOrb">🎙</div>
+          <div class="avatar-orb" id="avatarOrb"><img src="logo.png" alt="Sensy" style="width:38px;height:38px;object-fit:contain;border-radius:50%;position:relative;z-index:1;"></div>
           <div class="avatar-info">
             <div class="avatar-name">Sensy<span>Cilva</span></div>
             <div class="avatar-status" id="avatarStatus">Ready to broadcast</div>
@@ -955,7 +1077,7 @@ select:focus{border-color:var(--cyan);}
               </div>
               <p class="hint">Say "play Naruto OST", "next song", "pause music", "stop music"</p>
             </div>
-            <div class="yt-embed" id="ytEmbed"><iframe id="ytFrame" allowfullscreen allow="autoplay;encrypted-media"></iframe></div>
+            <div class="yt-embed" id="ytEmbed"><div id="ytPlayerContainer"></div></div>
           </div>
           <div class="warn" id="musicWarn"></div>
         </div>
@@ -1037,7 +1159,117 @@ select:focus{border-color:var(--cyan);}
     </div>
 
   </div><!-- /main -->
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <img src="logo.png" alt="SensyCilva Logo">
+      <div class="footer-credit">
+        Made with <span class="heart">❤️</span> and Passion by
+        <a href="https://twitter.com/suryasticsai" target="_blank" rel="noopener">@suryasticsai</a>
+      </div>
+    </div>
+    <div class="footer-right">
+      <button class="btn sm violet" id="aboutBtnFooter">ℹ How to Use</button>
+    </div>
+  </footer>
+
 </div><!-- /app -->
+
+<!-- ═══════════════ ABOUT MODAL ═══════════════ -->
+<div class="modal-backdrop" id="aboutModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <img src="logo.png" alt="SensyCilva">
+        <h2>Sensy<span>Cilva</span> Radio</h2>
+      </div>
+      <button class="modal-close" id="aboutClose">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="about-section">
+        <h3>What is SensyCilva?</h3>
+        <p style="font-size:12.5px;color:var(--paper-dim);line-height:1.7;">
+          SensyCilva is an <strong style="color:var(--cyan)">AI-powered anime pirate radio</strong> with a live host named <strong style="color:var(--signal)">Sensy</strong>. 
+          She broadcasts anime news, recommendations, and trivia — and you can talk back to her in real time in English, Hindi, or Telugu.
+        </p>
+      </div>
+
+      <div class="about-section">
+        <h3>Getting Started</h3>
+        <div class="about-steps">
+          <div class="about-step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <div class="st">Choose Your Language</div>
+              <div class="sd">Pick English 🇬🇧, Hindi 🇮🇳, or Telugu 🇮🇳 from the top bar. Sensy will speak and understand in that language.</div>
+            </div>
+          </div>
+          <div class="about-step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <div class="st">Hit GO ON AIR</div>
+              <div class="sd">Sensy auto-generates a fresh anime broadcast script using AI, then reads it aloud with animated lip-sync and oscilloscope.</div>
+            </div>
+          </div>
+          <div class="about-step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <div class="st">Talk Back to Sensy</div>
+              <div class="sd">Type or use 🎤 mic. Ask about anime, request a song, ask trivia, or just chat. Sensy pauses the broadcast, responds, then resumes automatically.</div>
+            </div>
+          </div>
+          <div class="about-step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <div class="st">Play Music (optional)</div>
+              <div class="sd">Add a free <strong style="color:var(--amber)">YouTube Data API v3 key</strong> in the Music Player section. Then say "play Naruto OST" or any anime song. Get a key at <span style="color:var(--cyan);font-family:var(--mono);font-size:10px;">console.cloud.google.com</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>Key Features</h3>
+        <div class="about-features">
+          <div class="about-feature"><div class="fi">📻</div><div><div class="ft">AI Broadcast</div><div class="fd">Auto-generated anime script read aloud with TTS</div></div></div>
+          <div class="about-feature"><div class="fi">🎵</div><div><div class="ft">Music Player</div><div class="fd">Search & play any song via YouTube (needs API key)</div></div></div>
+          <div class="about-feature"><div class="fi">🎤</div><div><div class="ft">Voice Chat</div><div class="fd">Speak to Sensy using your microphone</div></div></div>
+          <div class="about-feature"><div class="fi">🌊</div><div><div class="ft">Live Oscilloscope</div><div class="fd">Waveform animates in real-time as Sensy speaks</div></div></div>
+          <div class="about-feature"><div class="fi">🔖</div><div><div class="ft">Clip Saver</div><div class="fd">Save your favorite lines Sensy says</div></div></div>
+          <div class="about-feature"><div class="fi">🌐</div><div><div class="ft">3 Languages</div><div class="fd">English, Hindi, and Telugu broadcasts</div></div></div>
+          <div class="about-feature"><div class="fi">✏️</div><div><div class="ft">Custom Script</div><div class="fd">Write your own script and have Sensy read it</div></div></div>
+          <div class="about-feature"><div class="fi">🎨</div><div><div class="ft">Mood Colors</div><div class="fd">Theme shifts color based on what Sensy is discussing</div></div></div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>Voice Commands You Can Say</h3>
+        <div class="about-tip">
+          <span>💡</span>
+          <div>
+            <strong>Music:</strong> "play Attack on Titan OST" · "next song" · "pause music" · "stop music"<br>
+            <strong>Anime:</strong> "recommend me a romance anime" · "what is One Piece about?" · "latest anime news"<br>
+            <strong>Chat:</strong> "who is your favourite character?" · "tell me a fun fact" · any question!
+          </div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>About the Creator</h3>
+        <div class="about-step">
+          <div class="step-num" style="background:linear-gradient(135deg,var(--cyan),var(--violet));font-size:16px;">🚀</div>
+          <div class="step-body">
+            <div class="st">Built by <a href="https://twitter.com/suryasticsai" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;">@suryasticsai</a></div>
+            <div class="sd">Made with ❤️ and Passion. SensyCilva is a passion project combining AI, anime culture, and radio nostalgia into one living, talking experience. Follow for more projects like this!</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -1059,7 +1291,8 @@ const rateSlider=$('rateSlider'), rateVal=$('rateVal');
 const volSlider=$('volSlider'), volVal=$('volVal');
 const pitchSlider=$('pitchSlider'), pitchVal=$('pitchVal');
 const ytKey=$('ytKey'), saveKeyBtn=$('saveKeyBtn'), keyStatus=$('keyStatus');
-const ytEmbed=$('ytEmbed'), ytFrame=$('ytFrame');
+const ytEmbed=$('ytEmbed');
+const ytPlayerContainer=$('ytPlayerContainer');
 const trackName=$('trackName'), trackTime=$('trackTime'), trackChannel=$('trackChannel');
 const mPlayPause=$('mPlayPause'), mStop=$('mStop'), mNext=$('mNext');
 const musicWarn=$('musicWarn'), vinylDisc=$('vinylDisc');
@@ -1911,6 +2144,7 @@ pitchSlider.value=load('sensy_pitch','0.95'); pitchVal.textContent=parseFloat(pi
 // ════════════════════════════════════════════════════
 //  YOUTUBE MUSIC
 // ════════════════════════════════════════════════════
+// ── YouTube API loader ──────────────────────────────
 function loadYTApi(){
   if(ytApiPromise) return ytApiPromise;
   ytApiPromise=new Promise(res=>{
@@ -1925,48 +2159,101 @@ function loadYTApi(){
 }
 loadYTApi();
 
+// ── Create fresh YT player every time (most reliable approach) ──
 function createYTPlayer(videoId){
-  if(ytPlayer){try{ytPlayer.destroy();}catch(e){}ytPlayer=null;ytReady=false;}
+  // Destroy old player cleanly
+  if(ytPlayer){
+    try{ytPlayer.destroy();}catch(e){}
+    ytPlayer=null;ytReady=false;
+  }
+  // Wipe container and insert a fresh div for YT to mount into
+  ytPlayerContainer.innerHTML='';
+  const mountDiv=document.createElement('div');
+  mountDiv.id='ytPlayerMount';
+  ytPlayerContainer.appendChild(mountDiv);
+
   ytEmbed.style.display='block';
-  ytFrame.src='';
-  ytPlayer=new YT.Player('ytFrame',{
-    videoId,
-    playerVars:{autoplay:1,controls:1,modestbranding:1,rel:0},
+  musicWarn.textContent='';
+
+  ytPlayer=new YT.Player('ytPlayerMount',{
+    height:'148',
+    width:'100%',
+    videoId:videoId,
+    playerVars:{
+      autoplay:1,
+      controls:1,
+      modestbranding:1,
+      rel:0,
+      fs:0,
+      iv_load_policy:3,
+    },
     events:{
-      onReady(e){ytReady=true;e.target.setVolume(70);e.target.playVideo();musicPlaying=true;mPlayPause.textContent='⏸ Pause';vinylDisc.classList.add('spinning');},
+      onReady(e){
+        ytReady=true;
+        e.target.setVolume(70);
+        e.target.playVideo();
+        musicPlaying=true;
+        mPlayPause.textContent='⏸ Pause';
+        vinylDisc.classList.add('spinning');
+      },
       onStateChange(e){
-        if(e.data===YT.PlayerState.PLAYING){musicPlaying=true;mPlayPause.textContent='⏸ Pause';vinylDisc.classList.add('spinning');}
-        else if(e.data===YT.PlayerState.PAUSED){musicPlaying=false;mPlayPause.textContent='▶ Play';vinylDisc.classList.remove('spinning');}
-        else if(e.data===YT.PlayerState.ENDED){
-          musicPlaying=false;mPlayPause.textContent='▶ Play';vinylDisc.classList.remove('spinning');
-          if(queueIdx<songQueue.length-1){queueIdx++;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);}
+        if(e.data===YT.PlayerState.PLAYING){
+          musicPlaying=true;
+          mPlayPause.textContent='⏸ Pause';
+          vinylDisc.classList.add('spinning');
+        } else if(e.data===YT.PlayerState.PAUSED){
+          musicPlaying=false;
+          mPlayPause.textContent='▶ Play';
+          vinylDisc.classList.remove('spinning');
+        } else if(e.data===YT.PlayerState.ENDED){
+          musicPlaying=false;
+          mPlayPause.textContent='▶ Play';
+          vinylDisc.classList.remove('spinning');
+          // Auto-advance queue
+          if(queueIdx<songQueue.length-1){
+            queueIdx++;
+            playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);
+          }
+        } else if(e.data===YT.PlayerState.BUFFERING){
+          musicWarn.textContent='';
         }
       },
       onError(e){
-        const msgs={2:'Invalid video ID',5:'HTML5 error',100:'Not found',101:'Embedding disabled',150:'Embedding disabled'};
-        musicWarn.textContent=msgs[e.data]||'Playback error';
+        const msgs={2:'Invalid video ID',5:'HTML5 player error',100:'Video not found / private',101:'Embedding disabled by owner',150:'Embedding disabled by owner'};
+        const msg=msgs[e.data]||'Playback error (code '+e.data+')';
+        musicWarn.textContent=msg;
+        // Try next song automatically on error
+        toast('Skipping unplayable video…','info',2000);
+        setTimeout(()=>nextSong(),1500);
       }
     }
   });
+
+  // Progress ticker
   if(progressTick) clearInterval(progressTick);
   progressTick=setInterval(()=>{
-    if(ytPlayer&&ytReady&&ytPlayer.getCurrentTime){
-      const t=Math.floor(ytPlayer.getCurrentTime());
-      trackTime.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60;
-    }
+    try{
+      if(ytPlayer&&ytReady&&typeof ytPlayer.getCurrentTime==='function'){
+        const t=Math.floor(ytPlayer.getCurrentTime());
+        trackTime.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60;
+      }
+    }catch(e){}
   },1000);
 }
 
+// ── Play by video ID — always creates a fresh player ──
 function playById(id,title,channel){
   trackName.textContent=title||'Loading…';
-  trackChannel.textContent=channel||'';
-  if(ytReady&&ytPlayer&&ytPlayer.loadVideoById){
-    ytPlayer.loadVideoById(id);
-    ytEmbed.style.display='block';
-    vinylDisc.classList.add('spinning');
-  } else {
-    loadYTApi().then(()=>createYTPlayer(id));
-  }
+  trackChannel.textContent=channel||'—';
+  musicWarn.textContent='';
+  // Always go through createYTPlayer — most reliable
+  loadYTApi().then(()=>{
+    // Small delay ensures DOM is settled after any prior destroy
+    setTimeout(()=>createYTPlayer(id),80);
+  }).catch(err=>{
+    musicWarn.textContent='YouTube API failed to load.';
+    toast('YouTube API unavailable','error');
+  });
 }
 
 async function searchYT(query,max=5){
@@ -2052,11 +2339,13 @@ mPlayPause.addEventListener('click',()=>{
   musicPlaying?ytPlayer.pauseVideo():ytPlayer.playVideo();
 });
 mStop.addEventListener('click',()=>{
-  if(ytPlayer&&ytReady) ytPlayer.stopVideo();
+  if(ytPlayer&&ytReady){try{ytPlayer.stopVideo();}catch(e){}}
   musicPlaying=false;mPlayPause.textContent='▶ Play';vinylDisc.classList.remove('spinning');
-  trackName.textContent='Nothing playing';trackTime.textContent='0:00';
+  trackName.textContent='Nothing playing';trackTime.textContent='0:00';trackChannel.textContent='—';
   if(progressTick){clearInterval(progressTick);progressTick=null;}
   ytEmbed.style.display='none';
+  ytPlayerContainer.innerHTML='';
+  if(ytPlayer){try{ytPlayer.destroy();}catch(e){}ytPlayer=null;ytReady=false;}
 });
 mNext.addEventListener('click',async()=>{
   const r=await nextSong();
@@ -2278,6 +2567,19 @@ if(SR){
   micBtn.disabled=true;
   transcriptRow.textContent='Speech recognition not available — please type.';
 }
+
+// ════════════════════════════════════════════════════
+//  ABOUT MODAL
+// ════════════════════════════════════════════════════
+const aboutModal=$('aboutModal');
+const aboutClose=$('aboutClose');
+function openAbout(){ aboutModal.classList.add('open'); document.body.style.overflow='hidden'; }
+function closeAbout(){ aboutModal.classList.remove('open'); document.body.style.overflow=''; }
+$('aboutBtn').addEventListener('click',openAbout);
+$('aboutBtnFooter').addEventListener('click',openAbout);
+aboutClose.addEventListener('click',closeAbout);
+aboutModal.addEventListener('click',(e)=>{ if(e.target===aboutModal) closeAbout(); });
+document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeAbout(); });
 
 // ════════════════════════════════════════════════════
 //  SESSION TIMER (mini stats bar)

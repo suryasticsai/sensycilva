@@ -3,251 +3,370 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SensyCilva — Auto‑Pilot Radio</title>
+<title>SensyCilva — International Radio</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📻</text></svg>" />
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: #0d0b14;
-    color: #f5ede0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0a0815;
+    color: #f0ece4;
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 16px;
+    padding: 20px;
+    background-image: radial-gradient(ellipse at 20% -20%, #1e1535 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 120%, #1a1a2e 0%, transparent 50%);
   }
-  .wrap { width:100%; max-width:900px; }
+  .wrap { width:100%; max-width:960px; }
 
-  :root {
-    --accent: #ff4d6d;
-    --accent-dim: #7a2a3a;
-    --accent-bg: rgba(255,77,109,0.15);
-    --panel: #161320;
-    --panel-2: #1d1929;
-    --line: #332b47;
-    --dim: #9a8fb0;
-    --dimmer: #6a6080;
-    --teal: #5ee6c8;
+  /* ===== GLASS HEADER ===== */
+  .station-head {
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    background: rgba(22,19,32,0.6);
+    backdrop-filter: blur(16px);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:24px;
+    padding:16px 24px;
+    margin-bottom:14px;
   }
-  .channel-en { --accent: #ff4d6d; --accent-dim: #7a2a3a; --accent-bg: rgba(255,77,109,0.15); }
-  .channel-te { --accent: #5ee6c8; --accent-dim: #2a7a6a; --accent-bg: rgba(94,230,200,0.15); }
-  .channel-hi { --accent: #ffb84d; --accent-dim: #7a5a2a; --accent-bg: rgba(255,184,77,0.15); }
+  .station-id .freq {
+    font-size:12px; font-family:monospace; letter-spacing:0.2em;
+    color: #6a6a8a; text-transform:uppercase;
+  }
+  .logo {
+    font-family: 'Dancing Script', cursive;
+    font-size:38px;
+    font-weight:700;
+    background: linear-gradient(135deg, #f6d5b3, #f5a97f, #e8896a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px rgba(245,169,127,0.2));
+    animation: logoGlow 3s ease-in-out infinite alternate;
+    letter-spacing:1px;
+    line-height:1.1;
+  }
+  @keyframes logoGlow {
+    0% { filter: drop-shadow(0 0 20px rgba(245,169,127,0.15)); }
+    100% { filter: drop-shadow(0 0 50px rgba(245,169,127,0.4)); }
+  }
+  .logo .accent { background: linear-gradient(135deg, #f5a97f, #e8896a, #f6d5b3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .tagline { color:#6a6a8a; font-size:13px; margin-top:2px; font-weight:400; letter-spacing:0.04em; }
 
-  .station-head { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
-  .station-id .freq { font-size:13px; font-family: monospace; letter-spacing:0.15em; color: var(--teal); }
-  h1 { font-size:32px; font-weight:800; letter-spacing:-0.01em; text-transform:uppercase; }
-  h1 .accent { color: var(--accent); }
-  .tagline { color:var(--dim); font-size:13px; margin-top:2px; }
-  .on-air { display:flex; align-items:center; gap:8px; font-size:12px; text-transform:uppercase; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px 14px; }
-  .on-air .lamp { width:8px; height:8px; border-radius:50%; background:var(--dimmer); }
-  .on-air.live { color:var(--accent); border-color:var(--accent-dim); }
-  .on-air.live .lamp { background:var(--accent); box-shadow:0 0 10px 2px var(--accent); animation:lamp-pulse 1s infinite; }
-  @keyframes lamp-pulse { 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+  .on-air-badge {
+    display:flex; align-items:center; gap:10px;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.12em;
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:999px;
+    padding:6px 18px 6px 14px; color:#6a6a8a;
+  }
+  .on-air-badge .lamp { width:8px; height:8px; border-radius:50%; background:#3a3a5a; transition:.3s; }
+  .on-air-badge.live { color:#f5a97f; border-color:rgba(245,169,127,0.25); }
+  .on-air-badge.live .lamp { background:#f5a97f; box-shadow:0 0 16px rgba(245,169,127,0.6); animation:lampPulse 1.2s infinite; }
+  @keyframes lampPulse { 0%,100%{ opacity:1; } 50%{ opacity:.25; } }
 
-  .presets { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  /* ===== CHANNEL PRESETS ===== */
+  .presets {
+    display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;
+  }
   .preset-btn {
-    background:var(--panel-2); border:1px solid var(--line); color:var(--dim);
-    border-radius:999px; padding:5px 16px; font-size:13px; font-weight:600; cursor:pointer; transition:.15s;
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);
+    color:#6a6a8a; border-radius:999px; padding:6px 20px;
+    font-size:13px; font-weight:600; cursor:pointer; transition:.25s;
+    font-family:inherit;
   }
-  .preset-btn:hover:not(.active) { border-color:var(--teal); color:#fff; }
-  .preset-btn.active { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
+  .preset-btn:hover:not(.active) { border-color:rgba(255,255,255,0.15); color:#c0c0d0; }
+  .preset-btn.active {
+    border-color:rgba(245,169,127,0.4);
+    color:#f5a97f;
+    background:rgba(245,169,127,0.08);
+    box-shadow:0 0 30px rgba(245,169,127,0.04);
+  }
+  .preset-btn .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
+  .preset-btn[data-channel="en"] .dot { background:#f5a97f; }
+  .preset-btn[data-channel="te"] .dot { background:#7fdbc8; }
+  .preset-btn[data-channel="hi"] .dot { background:#f5c97f; }
 
+  /* ===== DIAL ===== */
   .dial {
-    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 16px; margin-bottom:14px;
-    position:relative; overflow:hidden;
+    background:rgba(22,19,32,0.5); backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,0.04); border-radius:16px;
+    padding:12px 18px; margin-bottom:14px; overflow:hidden;
   }
-  .dial-track { position:relative; height:28px; display:flex; align-items:center; }
-  .dial-ticks { position:absolute; inset:0; display:flex; justify-content:space-between; opacity:.5; }
-  .dial-ticks span { width:1px; height:12px; background:var(--dimmer); }
-  .dial-ticks span:nth-child(5n+1) { height:18px; background:var(--dim); }
-  .dial-needle { position:absolute; top:0; bottom:0; width:2px; background:var(--accent); box-shadow:0 0 6px var(--accent); left:10%; transition:left .6s cubic-bezier(.4,0,.2,1); }
-  .dial-readout { display:flex; justify-content:space-between; margin-top:6px; font-size:11px; font-family:monospace; color:var(--dimmer); }
+  .dial-track { position:relative; height:26px; display:flex; align-items:center; }
+  .dial-ticks { position:absolute; inset:0; display:flex; justify-content:space-between; opacity:.35; }
+  .dial-ticks span { width:1px; height:10px; background:#6a6a8a; }
+  .dial-ticks span:nth-child(5n+1) { height:16px; background:#8a8aaa; }
+  .dial-needle {
+    position:absolute; top:0; bottom:0; width:2px;
+    background:linear-gradient(180deg, #f5a97f, #e8896a);
+    box-shadow:0 0 12px rgba(245,169,127,0.5);
+    left:10%; transition:left .7s cubic-bezier(.4,0,.2,1);
+  }
+  .dial-readout {
+    display:flex; justify-content:space-between; margin-top:6px;
+    font-size:10px; font-family:monospace; color:#4a4a6a; letter-spacing:0.06em;
+  }
 
+  /* ===== MAIN PANEL ===== */
   .main-panel {
-    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px;
-    display:flex; flex-direction:column; gap:12px;
+    background:rgba(22,19,32,0.5); backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.04); border-radius:20px;
+    padding:20px; display:flex; flex-direction:column; gap:14px;
   }
 
+  /* ===== LOG ===== */
   .combined-log {
-    background:#0b0a12; border:1px solid var(--line); border-radius:12px; padding:12px;
-    max-height:280px; overflow-y:auto; font-size:14px; line-height:1.7;
+    background:rgba(10,8,21,0.7); border:1px solid rgba(255,255,255,0.04); border-radius:14px;
+    padding:14px; max-height:300px; overflow-y:auto;
+    font-size:14px; line-height:1.75;
   }
-  .combined-log .line { margin-bottom:4px; }
-  .combined-log .user { color:var(--teal); }
-  .combined-log .host { color:#fff; }
-  .combined-log .filler { color:var(--accent); font-style:italic; }
-  .combined-log .song { color:var(--accent); font-weight:700; }
-  .combined-log .script-line { color:#ccc; border-left:2px solid var(--accent); padding-left:8px; }
+  .combined-log::-webkit-scrollbar { width:4px; }
+  .combined-log::-webkit-scrollbar-track { background:transparent; }
+  .combined-log::-webkit-scrollbar-thumb { background:#3a3a5a; border-radius:4px; }
+  .combined-log .line { margin-bottom:3px; padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.02); }
+  .combined-log .user { color:#7fdbc8; }
+  .combined-log .host { color:#f0ece4; }
+  .combined-log .filler { color:#f5c97f; font-style:italic; }
+  .combined-log .song { color:#f5a97f; font-weight:600; }
+  .combined-log .script-line { color:#a0a0b8; border-left:2px solid rgba(245,169,127,0.3); padding-left:10px; }
+  .combined-log .system { color:#6a6a8a; font-style:italic; font-size:13px; }
 
+  /* ===== CONTROLS ===== */
   .controls-row {
     display:flex; flex-wrap:wrap; gap:8px; align-items:center;
   }
   .controls-row .btn {
-    background:var(--panel-2); border:1px solid var(--line); color:var(--paper); padding:6px 14px; border-radius:999px;
-    font-weight:600; font-size:13px; cursor:pointer; transition:.15s;
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06);
+    color:#c0c0d0; padding:8px 18px; border-radius:999px;
+    font-weight:600; font-size:13px; cursor:pointer; transition:.2s;
+    font-family:inherit;
   }
-  .controls-row .btn:hover:not(:disabled) { border-color:var(--dim); background:#241f33; }
-  .controls-row .btn.primary { background:var(--accent); border-color:var(--accent); color:#1a0a10; }
-  .controls-row .btn.primary:hover:not(:disabled) { filter:brightness(1.2); }
-  .controls-row .btn.danger { border-color:var(--accent-dim); color:var(--accent); }
-  .controls-row .btn.danger:hover:not(:disabled) { background:var(--accent-bg); }
-  .controls-row .btn.ghost { background:transparent; }
-  .controls-row .btn:disabled { opacity:.4; cursor:not-allowed; }
-
-  /* Removed voice select styles */
-  .voice-settings {
-    display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:4px;
-    font-size:12px; color:var(--dim);
+  .controls-row .btn:hover:not(:disabled) { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.12); }
+  .controls-row .btn.primary {
+    background:linear-gradient(135deg, #f5a97f, #e8896a);
+    border-color:#e8896a; color:#0a0815;
+    box-shadow:0 0 30px rgba(245,169,127,0.15);
   }
-  .voice-settings input[type=range] { background:#0b0a12; border:1px solid var(--line); border-radius:999px; color:#fff; padding:4px 12px; }
-  .voice-settings .val { color:var(--teal); font-family:monospace; min-width:28px; }
+  .controls-row .btn.primary:hover:not(:disabled) {
+    box-shadow:0 0 50px rgba(245,169,127,0.3);
+    transform:scale(1.02);
+  }
+  .controls-row .btn.danger { border-color:rgba(232,137,106,0.3); color:#e8896a; }
+  .controls-row .btn.danger:hover:not(:disabled) { background:rgba(232,137,106,0.08); }
+  .controls-row .btn.ghost { background:transparent; border-color:transparent; }
+  .controls-row .btn.ghost:hover:not(:disabled) { background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.06); }
+  .controls-row .btn:disabled { opacity:.3; cursor:not-allowed; }
+  .controls-row .btn.onair {
+    background:linear-gradient(135deg, #f5a97f, #e8896a);
+    border-color:#e8896a; color:#0a0815;
+    animation:pulseBtn 2s infinite;
+    font-size:15px;
+    padding:10px 28px;
+  }
+  @keyframes pulseBtn {
+    0%,100% { box-shadow:0 0 20px rgba(245,169,127,0.15); }
+    50% { box-shadow:0 0 50px rgba(245,169,127,0.3); }
+  }
 
+  .status-line {
+    font-size:12px; color:#7fdbc8; font-family:monospace;
+    min-height:18px; letter-spacing:0.03em;
+  }
+
+  /* ===== NOW PLAYING ===== */
   .now-playing-area {
-    background:#0b0a12; border:1px solid var(--line); border-radius:12px; padding:10px 14px;
-    display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+    background:rgba(10,8,21,0.5); border:1px solid rgba(255,255,255,0.04); border-radius:12px;
+    padding:10px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:8px;
   }
-  .now-playing-area .label { color:var(--dimmer); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
-  .now-playing-area .info { color:var(--accent); font-weight:600; flex:1; }
-  .now-playing-area .duration { color:var(--teal); font-family:monospace; font-size:13px; }
-  .now-playing-area .yt-controls { display:flex; gap:6px; }
-  .yt-frame { position:relative; width:100%; padding-bottom:42%; margin-top:8px; background:#000; border-radius:12px; overflow:hidden; display:none; border:1px solid var(--line); }
+  .now-playing-area .label {
+    font-size:10px; text-transform:uppercase; letter-spacing:0.12em;
+    color:#4a4a6a; font-weight:600;
+  }
+  .now-playing-area .info {
+    color:#f5a97f; font-weight:600; flex:1; font-size:14px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .now-playing-area .duration { color:#7fdbc8; font-family:monospace; font-size:13px; }
+  .now-playing-area .yt-controls { display:flex; gap:4px; }
+  .now-playing-area .yt-controls button {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06);
+    color:#c0c0d0; border-radius:999px; padding:4px 12px; font-size:14px; cursor:pointer;
+    transition:.15s;
+  }
+  .now-playing-area .yt-controls button:hover { background:rgba(255,255,255,0.08); }
+
+  .yt-frame { position:relative; width:100%; padding-bottom:42%; margin-top:6px; background:#000; border-radius:12px; overflow:hidden; display:none; border:1px solid rgba(255,255,255,0.04); }
   .yt-frame iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
 
+  .key-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .key-row input {
+    flex:1; min-width:140px;
+    background:rgba(10,8,21,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:999px;
+    color:#f0ece4; padding:6px 16px; font-size:13px; outline:none;
+  }
+  .key-row input:focus { border-color:rgba(245,169,127,0.3); }
+  .key-row .btn.small { padding:4px 14px; font-size:12px; }
+  .key-status { font-size:11px; color:#4a4a6a; font-family:monospace; }
+  .key-status.set { color:#7fdbc8; }
+  .warn-text { color:#e8896a; font-size:12px; min-height:18px; }
+
+  /* ===== CHAT INPUT ===== */
   .chat-input-row {
-    display:flex; gap:8px; align-items:center; margin-top:4px;
+    display:flex; gap:8px; align-items:center; margin-top:2px;
   }
   .chat-input-row input[type=text] {
-    flex:1; background:#0b0a12; border:1px solid var(--line); border-radius:999px; color:#fff; padding:8px 16px; outline:none;
+    flex:1;
+    background:rgba(10,8,21,0.6); border:1px solid rgba(255,255,255,0.06); border-radius:999px;
+    color:#f0ece4; padding:10px 18px; font-size:14px; outline:none; font-family:inherit;
   }
-  .chat-input-row input:focus { border-color:var(--accent); }
-  .chat-input-row .icon-btn { background:var(--panel-2); border:1px solid var(--line); border-radius:999px; width:40px; height:40px; font-size:18px; cursor:pointer; color:#fff; }
-  .chat-input-row .icon-btn.live { background:var(--accent); border-color:var(--accent); color:#1a0a10; }
-  .chat-input-row .btn { background:var(--accent); border:1px solid var(--accent); color:#1a0a10; padding:8px 20px; border-radius:999px; font-weight:600; cursor:pointer; }
+  .chat-input-row input:focus { border-color:rgba(245,169,127,0.25); }
+  .chat-input-row .icon-btn {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:999px;
+    width:44px; height:44px; font-size:18px; cursor:pointer; color:#c0c0d0; transition:.2s;
+  }
+  .chat-input-row .icon-btn:hover { background:rgba(255,255,255,0.08); }
+  .chat-input-row .icon-btn.live { background:rgba(245,169,127,0.15); border-color:rgba(245,169,127,0.3); color:#f5a97f; }
+  .chat-input-row .btn.send {
+    background:linear-gradient(135deg, #f5a97f, #e8896a);
+    border:1px solid #e8896a; color:#0a0815;
+    padding:10px 24px; border-radius:999px; font-weight:700; cursor:pointer; font-size:14px;
+    transition:.2s; font-family:inherit;
+  }
+  .chat-input-row .btn.send:hover { box-shadow:0 0 30px rgba(245,169,127,0.2); transform:scale(1.02); }
 
-  .waveform { display:flex; gap:3px; height:24px; align-items:center; }
-  .waveform .bar { width:4px; border-radius:2px; background:var(--dimmer); height:6px; transition:height .1s; }
-  .waveform.active .bar { animation:wave 0.4s infinite alternate ease-in-out; background:var(--teal); }
-  .waveform.thinking .bar { animation:wave-think 0.6s infinite alternate ease-in-out; background:var(--accent); }
-  .waveform .bar:nth-child(1){ animation-delay:0s; } .waveform .bar:nth-child(2){ animation-delay:.1s; }
-  .waveform .bar:nth-child(3){ animation-delay:.2s; } .waveform .bar:nth-child(4){ animation-delay:.3s; }
-  .waveform .bar:nth-child(5){ animation-delay:.4s; } .waveform .bar:nth-child(6){ animation-delay:.5s; }
-  .waveform .bar:nth-child(7){ animation-delay:.6s; } .waveform .bar:nth-child(8){ animation-delay:.7s; }
-  @keyframes wave { 0%{ height:6px; } 100%{ height:22px; } }
-  @keyframes wave-think { 0%{ height:6px; opacity:.6; } 100%{ height:22px; opacity:1; } }
-
-  .status-line { font-size:12px; color:var(--teal); font-family:monospace; min-height:20px; margin:4px 0; }
-  .key-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .key-row input { flex:1; min-width:120px; }
-  .hint { font-size:11px; color:var(--dimmer); font-style:italic; }
-  .warn-text { color:var(--accent); font-size:12px; }
-  .footer { text-align:center; font-size:11px; color:var(--dimmer); margin-top:12px; }
+  .footer {
+    text-align:center; font-size:11px; color:#3a3a5a; margin-top:16px; letter-spacing:0.06em;
+  }
 
   @media (max-width:600px) {
-    h1 { font-size:26px; }
-    .controls-row .btn { font-size:12px; padding:4px 12px; }
-    .voice-settings { gap:6px; }
+    .logo { font-size:28px; }
+    .station-head { padding:12px 16px; }
+    .main-panel { padding:14px; }
+    .controls-row .btn { font-size:12px; padding:6px 14px; }
+    .combined-log { font-size:13px; max-height:220px; }
   }
+
+  /* thinking waveform */
+  .waveform { display:flex; gap:3px; height:22px; align-items:center; margin:4px 0; }
+  .waveform .bar { width:4px; border-radius:2px; background:#3a3a5a; height:6px; transition:height .1s; }
+  .waveform.active .bar { animation:waveAnim 0.4s infinite alternate ease-in-out; background:#7fdbc8; }
+  .waveform.thinking .bar { animation:waveThink 0.6s infinite alternate ease-in-out; background:#f5c97f; }
+  .waveform .bar:nth-child(1){ animation-delay:0s; } .waveform .bar:nth-child(2){ animation-delay:.08s; }
+  .waveform .bar:nth-child(3){ animation-delay:.16s; } .waveform .bar:nth-child(4){ animation-delay:.24s; }
+  .waveform .bar:nth-child(5){ animation-delay:.32s; } .waveform .bar:nth-child(6){ animation-delay:.40s; }
+  .waveform .bar:nth-child(7){ animation-delay:.48s; } .waveform .bar:nth-child(8){ animation-delay:.56s; }
+  @keyframes waveAnim { 0%{ height:6px; } 100%{ height:20px; } }
+  @keyframes waveThink { 0%{ height:6px; opacity:.5; } 100%{ height:20px; opacity:1; } }
 </style>
 </head>
 <body>
-<div class="wrap" id="app">
+<div class="wrap">
+
+  <!-- HEADER -->
   <div class="station-head">
     <div class="station-id">
-      <div class="freq" id="freqReadout">FM 92.4 · SENSYCILVA ENGLISH</div>
-      <h1>Sensy<span class="accent">Cilva</span> Radio</h1>
-      <div class="tagline" id="tagline">Auto‑Pilot · 24/7 AI Broadcast</div>
+      <div class="freq" id="freqReadout">FM 92.4 · SENSYCILVA INTERNATIONAL</div>
+      <div class="logo">Sensy<span class="accent">Cilva</span></div>
+      <div class="tagline" id="tagline">Global radio · 24/7 intelligent broadcast</div>
     </div>
-    <div class="on-air" id="onAirBadge"><span class="lamp"></span><span id="onAirText">STANDBY</span></div>
+    <div class="on-air-badge" id="onAirBadge">
+      <span class="lamp"></span>
+      <span id="onAirText">STANDBY</span>
+    </div>
   </div>
 
+  <!-- PRESETS -->
   <div class="presets" id="presetContainer">
-    <button class="preset-btn active" data-channel="en"><span style="color:#ff4d6d;">●</span> English</button>
-    <button class="preset-btn" data-channel="te"><span style="color:#5ee6c8;">●</span> Telugu</button>
-    <button class="preset-btn" data-channel="hi"><span style="color:#ffb84d;">●</span> Hindi</button>
+    <button class="preset-btn active" data-channel="en"><span class="dot"></span>English</button>
+    <button class="preset-btn" data-channel="te"><span class="dot"></span>Telugu</button>
+    <button class="preset-btn" data-channel="hi"><span class="dot"></span>Hindi</button>
   </div>
 
+  <!-- DIAL -->
   <div class="dial">
     <div class="dial-track">
       <div class="dial-ticks" id="dialTicks"></div>
       <div class="dial-needle" id="dialNeedle"></div>
     </div>
     <div class="dial-readout">
-      <span id="dialStateLeft">SCRIPT NOT LOADED</span>
+      <span id="dialStateLeft">STANDBY</span>
       <span id="dialStateRight">— : —</span>
     </div>
   </div>
 
+  <!-- MAIN -->
   <div class="main-panel" id="mainPanel">
-    <!-- Combined transcript -->
+
+    <!-- LOG -->
     <div class="combined-log" id="combinedLog">
-      <div class="line host">🎙️ Welcome to SensyCilva! Auto‑pilot is starting…</div>
+      <div class="line host">🌍 Welcome to SensyCilva International Radio.</div>
+      <div class="line host">Click <strong>“ON AIR”</strong> to start the broadcast.</div>
     </div>
 
-    <!-- Controls -->
+    <!-- CONTROLS -->
     <div class="controls-row">
-      <button class="btn primary" id="generateBtn">Generate script</button>
-      <button class="btn" id="playBtn" disabled>▶ Go live</button>
+      <button class="btn onair" id="onAirBtn">🔴 ON AIR</button>
       <button class="btn danger" id="stopBtn" disabled>■ Stop</button>
       <button class="btn ghost" id="copyBtn" disabled>Copy</button>
-      <button class="btn ghost" id="toggleCustomBtn">Paste own</button>
-      <span id="puterStatus" style="font-size:11px;color:var(--teal);font-family:monospace;margin-left:auto;">⚡ AI ready</span>
+      <button class="btn ghost" id="toggleCustomBtn">📝 Paste script</button>
+      <span id="puterStatus" style="font-size:11px;color:#7fdbc8;font-family:monospace;margin-left:auto;">⚡ AI ready</span>
     </div>
 
-    <!-- Voice settings (no voice select) -->
-    <div class="voice-settings">
-      <label>Rate <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9"><span class="val" id="rateVal">0.90</span></label>
-      <label>Pitch <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0"><span class="val" id="pitchVal">1.00</span></label>
-      <label>Volume <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0"><span class="val" id="volumeVal">1.00</span></label>
-      <label><input type="checkbox" id="randomizeToggle" checked> Randomize</label>
-      <label><input type="checkbox" id="sfxToggle" checked> SFX</label>
+    <!-- WAVEFORM / STATUS -->
+    <div class="waveform" id="waveformContainer">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
     </div>
+    <div class="status-line" id="status">Ready. Press ON AIR to begin.</div>
 
-    <!-- Now playing + YouTube -->
+    <!-- NOW PLAYING -->
     <div class="now-playing-area">
       <span class="label">▶ NOW PLAYING</span>
       <span class="info" id="nowPlayingInfo">Nothing queued</span>
       <span class="duration" id="musicDuration">0:00</span>
       <div class="yt-controls">
-        <button class="btn ghost small" id="musicPlayPause">▶</button>
-        <button class="btn ghost small" id="musicStop">⏹</button>
+        <button id="musicPlayPause">▶</button>
+        <button id="musicStop">⏹</button>
       </div>
     </div>
     <div class="yt-frame" id="ytPlayerContainer"><div id="ytPlayer"></div></div>
+
+    <!-- API KEY -->
     <div class="key-row">
-      <input type="text" id="ytApiKeyInput" placeholder="YouTube API key" />
+      <input type="text" id="ytApiKeyInput" placeholder="YouTube Data API key" />
       <button class="btn small" id="ytApiKeySave">Save key</button>
       <span class="key-status" id="ytKeyStatus">Not set</span>
     </div>
     <div class="warn-text" id="musicWarning"></div>
 
-    <!-- Chat input -->
+    <!-- CHAT -->
     <div class="chat-input-row">
-      <input type="text" id="userMessageInput" placeholder="Type a message or 'play <song>'…" />
+      <input type="text" id="userMessageInput" placeholder="Type a message or request a song…" />
       <button class="icon-btn" id="micBtn">🎤</button>
-      <button class="btn" id="sendMessageBtn">Send</button>
+      <button class="btn send" id="sendMessageBtn">Send</button>
     </div>
-    <div class="status-line" id="status">Auto‑pilot active — chat anytime to interrupt.</div>
   </div>
 
-  <div class="footer">Browser TTS · AI scripts · Auto‑pilot radio</div>
+  <div class="footer">AI‑powered · Auto‑voice · Global radio network</div>
 </div>
 
 <script>
-(function () {
+(function(){
   'use strict';
 
   /* ============================================================
-     CHANNEL DEFINITIONS with gender‑specific host names
+     CHANNELS — auto‑voice, no user selection
   ============================================================ */
   const CHANNELS = {
     en: {
       id: 'en',
       name: 'SensyCilva English',
       frequency: 'FM 92.4',
-      accentColor: '#ff4d6d',
-      hostNameMale: 'David',
-      hostNameFemale: 'Emma',
-      tagline: 'Anime broadcast · 24/7 Auto‑Pilot',
+      accentColor: '#f5a97f',
+      hostName: 'David',
+      tagline: 'Global radio · 24/7 intelligent broadcast',
       language: 'en',
       voiceHint: 'en',
       script: '',
@@ -261,10 +380,9 @@
       id: 'te',
       name: 'SensyCilva Telugu',
       frequency: 'FM 98.3',
-      accentColor: '#5ee6c8',
-      hostNameMale: 'Ravi',
-      hostNameFemale: 'Anjali',
-      tagline: 'అనిమే ప్రసారం · 24/7 ఆటో-పైలట్',
+      accentColor: '#7fdbc8',
+      hostName: 'Anjali',
+      tagline: 'ప్రపంచ రేడియో · 24/7 తెలివైన ప్రసారం',
       language: 'te',
       voiceHint: 'te',
       script: '',
@@ -272,16 +390,15 @@
       currentSentenceIndex: 0,
       isSpeaking: false,
       nowPlaying: { videoId: null, title: 'Nothing queued', artist: '', duration: 0 },
-      currentHostName: 'Ravi',
+      currentHostName: 'Anjali',
     },
     hi: {
       id: 'hi',
       name: 'SensyCilva Hindi',
       frequency: 'FM 101.1',
-      accentColor: '#ffb84d',
-      hostNameMale: 'Amit',
-      hostNameFemale: 'Priya',
-      tagline: 'एनिमे प्रसारण · 24/7 ऑटो-पायलट',
+      accentColor: '#f5c97f',
+      hostName: 'Amit',
+      tagline: 'वैश्विक रेडियो · 24/7 बुद्धिमान प्रसारण',
       language: 'hi',
       voiceHint: 'hi',
       script: '',
@@ -299,20 +416,10 @@
   /* ============================================================
      DOM REFS
   ============================================================ */
-  const generateBtn = document.getElementById('generateBtn');
-  const playBtn = document.getElementById('playBtn');
+  const onAirBtn = document.getElementById('onAirBtn');
   const stopBtn = document.getElementById('stopBtn');
   const copyBtn = document.getElementById('copyBtn');
   const toggleCustomBtn = document.getElementById('toggleCustomBtn');
-  // Removed voiceSelect
-  const rateSlider = document.getElementById('rateSlider');
-  const pitchSlider = document.getElementById('pitchSlider');
-  const volumeSlider = document.getElementById('volumeSlider');
-  const rateVal = document.getElementById('rateVal');
-  const pitchVal = document.getElementById('pitchVal');
-  const volumeVal = document.getElementById('volumeVal');
-  const randomizeToggle = document.getElementById('randomizeToggle');
-  const sfxToggle = document.getElementById('sfxToggle');
   const puterStatus = document.getElementById('puterStatus');
   const combinedLog = document.getElementById('combinedLog');
   const userMessageInput = document.getElementById('userMessageInput');
@@ -327,8 +434,8 @@
   const dialStateRight = document.getElementById('dialStateRight');
   const freqReadout = document.getElementById('freqReadout');
   const tagline = document.getElementById('tagline');
-  const presetContainer = document.getElementById('presetContainer');
   const mainPanel = document.getElementById('mainPanel');
+  const waveformContainer = document.getElementById('waveformContainer');
 
   const ytApiKeyInput = document.getElementById('ytApiKeyInput');
   const ytApiKeySave = document.getElementById('ytApiKeySave');
@@ -344,12 +451,13 @@
      SPEECH SYNTH
   ============================================================ */
   const speechSynth = window.speechSynthesis;
-  let isSpeakingNow = false;
   let isFillerPlaying = false;
   let fillerUtterance = null;
-  let autoPilotActive = true; // auto‑pilot loop
-  let autoPilotTimer = null;
-  let isInterrupted = false; // user chat interruption
+  let autoPilotActive = true;
+  let isInterrupted = false;
+  let broadcastActive = false;
+  let waitingForSongRequest = false;
+  let conversationHistory = []; // full memory for AI
 
   /* ============================================================
      BUILD DIAL TICKS
@@ -362,6 +470,11 @@
   function setOnAir(live) {
     onAirBadge.classList.toggle('live', live);
     onAirText.textContent = live ? 'ON AIR' : 'STANDBY';
+    if (live) {
+      waveformContainer.classList.add('active');
+    } else {
+      waveformContainer.classList.remove('active');
+    }
   }
   function setDialNeedle(pct) {
     dialNeedle.style.left = Math.max(2, Math.min(98, pct)) + '%';
@@ -450,10 +563,6 @@
             const msg = `Now playing ${ch.nowPlaying.title} by ${ch.nowPlaying.artist}, duration ${durStr}.`;
             speakText(msg, true);
           }
-          // After song starts, schedule next auto action (if autoPilot)
-          if (autoPilotActive) {
-            // Wait until song ends (we'll detect onStateChange)
-          }
         },
         onStateChange: (e)=>{
           const state = e.data;
@@ -467,12 +576,13 @@
             currentChannel.nowPlaying.title = 'Nothing queued';
             currentChannel.nowPlaying.artist = '';
             speakText('Song finished.', true);
-            // Auto‑pilot: after song ends, generate new script and broadcast again
-            if (autoPilotActive && !isInterrupted) {
-              // Wait a bit then start next cycle
+            // After song ends, resume broadcast if it was paused
+            if (broadcastActive && !isInterrupted) {
               setTimeout(() => {
-                if (autoPilotActive && !isInterrupted) {
-                  autoPilotCycle();
+                if (!isInterrupted && !currentChannel.isSpeaking) {
+                  addLogLine('🎙️ Resuming broadcast…', 'system');
+                  // Ask for song request again or continue
+                  askForSongRequest();
                 }
               }, 2000);
             }
@@ -522,7 +632,6 @@
   async function searchYouTube(query) {
     const key = currentApiKey || loadApiKey();
     if(!key) throw new Error('Add a YouTube Data API key above first.');
-    // For random, use a generic query
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=5&q=${encodeURIComponent(query)}&key=${key}`;
     const resp = await fetch(url);
     if(!resp.ok){ const err = await resp.json().catch(()=>({})); throw new Error(err.error?.message || 'Search failed.'); }
@@ -535,8 +644,7 @@
   }
 
   async function playRandomSong() {
-    // Play a random anime/J-POP song
-    const queries = ['anime song', 'jpop', 'japanese anime opening', 'anime soundtrack'];
+    const queries = ['international music', 'world music', 'global hits', 'radio songs'];
     const query = queries[Math.floor(Math.random() * queries.length)];
     try {
       const results = await searchYouTube(query);
@@ -552,7 +660,7 @@
       currentChannel.nowPlaying.title = top.title;
       currentChannel.nowPlaying.artist = top.artist;
       nowPlayingInfo.textContent = `${top.title} — ${top.artist}`;
-      addLogLine(`🎵 Now playing (auto): "${top.title}" by ${top.artist}`, 'song');
+      addLogLine(`🎵 Now playing: "${top.title}" by ${top.artist}`, 'song');
       return { success:true, title:top.title, artist:top.artist };
     } catch(err) {
       console.error('Random song error:', err);
@@ -584,7 +692,7 @@
   }
 
   /* ============================================================
-     SFX (no stop function)
+     SFX
   ============================================================ */
   const SFX = {
     introJingle: 'https://archive.org/download/dj-fm-daddy-radio-kick-tune/DJ%20FM%20Daddy%20Radio%20Kick%20Tune.mp3',
@@ -593,15 +701,14 @@
     outroJingle: 'https://archive.org/download/dj-fm-daddy-radio-kick-tune/DJ%20FM%20Daddy%20Radio%20Kick%20Tune.mp3',
   };
   let sfxEnabled = true, currentSFX = null;
-  function playSFX(url, volume=0.3) {
+  function playSFX(url, volume=0.25) {
     if(!sfxEnabled || !url) return;
     try { const a = new Audio(url); a.volume=volume; currentSFX=a; a.play().catch(()=>{}); } catch(e){}
   }
   function stopCurrentSFX(){ if(currentSFX){ currentSFX.pause(); currentSFX.currentTime=0; currentSFX=null; } }
-  sfxToggle.addEventListener('change', ()=>{ sfxEnabled=sfxToggle.checked; if(!sfxEnabled) stopCurrentSFX(); });
 
   /* ============================================================
-     VOICE AUTO‑SELECT (no dropdown)
+     VOICE AUTO‑SELECT — no user control
   ============================================================ */
   function getVoiceGender(voice) {
     const name = voice.name.toLowerCase();
@@ -612,62 +719,54 @@
     return 'unknown';
   }
 
-  function updateHostNameForChannel(channel) {
-    // We don't have a dropdown anymore, so we need to get the currently selected voice.
-    // But we auto-select, so we need to know which voice is being used.
-    // We'll store the current voice URI in a variable.
-    const voices = speechSynth.getVoices();
-    // Find a voice that matches channel language
-    let preferred = voices.find(v => v.lang.startsWith(channel.voiceHint));
-    if (!preferred) preferred = voices.find(v => v.lang.startsWith('en'));
-    if (preferred) {
-      const gender = getVoiceGender(preferred);
-      if (gender === 'male') {
-        channel.currentHostName = channel.hostNameMale || 'Host';
-      } else if (gender === 'female') {
-        channel.currentHostName = channel.hostNameFemale || 'Host';
-      } else {
-        channel.currentHostName = channel.hostNameMale || 'Host';
-      }
-    } else {
-      channel.currentHostName = channel.hostNameMale || 'Host';
-    }
-    // Store the URI for speech
-    window._currentVoiceURI = preferred ? preferred.voiceURI : null;
-  }
-
-  // We need to call this whenever voices change or channel switches
   function selectVoiceForChannel(channel) {
     const voices = speechSynth.getVoices();
-    let preferred = voices.find(v => v.lang.startsWith(channel.voiceHint));
+    let preferred = null;
+    // Specific voice selection per channel
+    if (channel.id === 'en') {
+      // Prefer English voices, especially David-like
+      preferred = voices.find(v => /david|english (us|uk|australia|india)/i.test(v.name) && v.lang.startsWith('en'));
+      if (!preferred) preferred = voices.find(v => v.lang.startsWith('en'));
+    } else if (channel.id === 'hi') {
+      // Prefer Hindi voices
+      preferred = voices.find(v => v.lang.startsWith('hi') && /male/i.test(v.name));
+      if (!preferred) preferred = voices.find(v => v.lang.startsWith('hi'));
+    } else if (channel.id === 'te') {
+      // Prefer Telugu voices
+      preferred = voices.find(v => v.lang.startsWith('te') && /female/i.test(v.name));
+      if (!preferred) preferred = voices.find(v => v.lang.startsWith('te'));
+    }
+    // Fallback: any voice that matches language hint
+    if (!preferred) {
+      preferred = voices.find(v => v.lang.startsWith(channel.voiceHint));
+    }
     if (!preferred) preferred = voices.find(v => v.lang.startsWith('en'));
     if (preferred) {
       window._currentVoiceURI = preferred.voiceURI;
-      updateHostNameForChannel(channel);
+      // Update host name based on gender
+      const gender = getVoiceGender(preferred);
+      if (gender === 'male') {
+        channel.currentHostName = channel.id === 'en' ? 'David' : channel.id === 'hi' ? 'Amit' : 'Ravi';
+      } else if (gender === 'female') {
+        channel.currentHostName = channel.id === 'en' ? 'Emma' : channel.id === 'hi' ? 'Priya' : 'Anjali';
+      } else {
+        // Use default
+        channel.currentHostName = channel.id === 'en' ? 'David' : channel.id === 'hi' ? 'Amit' : 'Anjali';
+      }
     } else {
       window._currentVoiceURI = null;
+      channel.currentHostName = channel.id === 'en' ? 'David' : channel.id === 'hi' ? 'Amit' : 'Anjali';
     }
   }
 
   /* ============================================================
-     SETTINGS
+     SETTINGS (only rate/pitch/volume removed, no voice select)
   ============================================================ */
   function loadSettings() {
-    const savedRate = parseFloat(storeGet('sensy_rate')) || 0.9;
-    const savedPitch = parseFloat(storeGet('sensy_pitch')) || 1.0;
-    const savedVolume = parseFloat(storeGet('sensy_volume')) || 1.0;
-    const savedRandomize = storeGet('sensy_randomize') !== 'false';
     const savedChannel = storeGet('sensy_channel') || 'en';
-    rateSlider.value = savedRate; pitchSlider.value = savedPitch; volumeSlider.value = savedVolume;
-    rateVal.textContent = savedRate.toFixed(2); pitchVal.textContent = savedPitch.toFixed(2); volumeVal.textContent = savedVolume.toFixed(2);
-    randomizeToggle.checked = savedRandomize;
     return savedChannel;
   }
   function saveSettings() {
-    storeSet('sensy_rate', rateSlider.value);
-    storeSet('sensy_pitch', pitchSlider.value);
-    storeSet('sensy_volume', volumeSlider.value);
-    storeSet('sensy_randomize', randomizeToggle.checked);
     storeSet('sensy_channel', currentChannelId);
   }
 
@@ -690,7 +789,7 @@
   function updateDial() {
     const ch = currentChannel;
     if (!ch.sentences || ch.sentences.length === 0) {
-      dialStateLeft.textContent = 'SCRIPT NOT LOADED';
+      dialStateLeft.textContent = 'STANDBY';
       dialStateRight.textContent = '— : —';
       setDialNeedle(4);
       return;
@@ -707,6 +806,10 @@
     div.textContent = text;
     combinedLog.appendChild(div);
     combinedLog.scrollTop = combinedLog.scrollHeight;
+    // Keep log manageable
+    while (combinedLog.children.length > 200) {
+      combinedLog.removeChild(combinedLog.firstChild);
+    }
   }
 
   function displayScript(script) {
@@ -716,16 +819,9 @@
     ch.sentences = clean.match(/[^.!?]+[.!?]+/g) || [clean];
     ch.currentSentenceIndex = 0;
     ch.isSpeaking = false;
-    combinedLog.innerHTML = '';
-    ch.sentences.forEach((s, i) => {
-      const div = document.createElement('div');
-      div.className = 'line script-line';
-      div.textContent = `📄 ${s.trim()}`;
-      combinedLog.appendChild(div);
-    });
-    combinedLog.scrollTop = combinedLog.scrollHeight;
+    // Clear script lines from log, keep host/user messages
+    // We'll just add script lines as we speak them
     status.textContent = `Script ready (${ch.sentences.length} sentences).`;
-    playBtn.disabled = false;
     copyBtn.disabled = false;
     updateDial();
   }
@@ -741,67 +837,53 @@
     });
   }
 
-  async function generate() {
-    generateBtn.disabled = true;
-    generateBtn.textContent = 'Writing…';
+  async function generateScript() {
     status.textContent = 'Writing script…';
-    combinedLog.innerHTML = '<div class="line host">✍️ Generating new script…</div>';
     try {
       if (typeof puter === 'undefined') {
         try { await loadPuter(); } catch(e) {
           status.textContent = 'AI unavailable.';
-          generateBtn.disabled = false; generateBtn.textContent = 'Generate script';
-          combinedLog.innerHTML = '<div class="line host">❌ AI unavailable. Please refresh.</div>';
-          return;
+          return null;
         }
       }
       const ch = currentChannel;
       const lang = ch.language;
       const langName = lang==='hi'?'Hindi':lang==='te'?'Telugu':'English';
-      const hostName = ch.currentHostName || ch.hostNameMale;
-      // Include a prompt for requests
-      const prompt = `Write a complete anime radio show script in ${langName} for "${ch.name}" hosted by ${hostName}.
-Each sentence should be at least 15-20 words long. Keep it plain and conversational.
-Include: a greeting, a brief news about anime, a recommendation, and a segment where the host asks listeners to call in with requests (mention they can type in chat).
-The host should say something like: "If you have any song requests, please type them in the chat now."
-The script must have at least 25 sentences. Output one sentence per line.`;
+      const hostName = ch.currentHostName || ch.hostNameMale || 'Host';
+      const prompt = `Write a complete international radio show script in ${langName} for "${ch.name}" hosted by ${hostName}.
+Each sentence should be 15-25 words. Keep it conversational and warm.
+Include: a warm greeting, some interesting global news or trivia, a short story or cultural fact, and a segment where the host asks listeners to request songs.
+The host should say: "What song would you like to hear today? Type your request in the chat."
+The script must have at least 20 sentences. Output one sentence per line.`;
       const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
       let script = response.message?.content || response;
       if (script && script.length > 200) {
         displayScript(script);
-        status.textContent = 'Script generated by AI.';
         addLogLine('✅ Script ready!', 'host');
+        return script;
       } else {
         throw new Error('Short response');
       }
     } catch(err) {
-      console.warn('AI generation failed:', err);
-      status.textContent = 'Generation failed.';
-      combinedLog.innerHTML = '<div class="line host">❌ Failed to generate script. Try again.</div>';
+      console.warn('Script generation failed:', err);
+      status.textContent = 'Generation failed. Using fallback.';
+      return null;
     }
-    generateBtn.disabled = false;
-    generateBtn.textContent = 'Generate script';
   }
 
   /* ============================================================
      SPEECH & BROADCAST
   ============================================================ */
   function speakSentence(text, callback, retryCount=0) {
-    const voiceURI = window._currentVoiceURI; // auto-selected
+    const voiceURI = window._currentVoiceURI;
     const voices = speechSynth.getVoices();
     let selectedVoice = voices.find(v => v.voiceURI === voiceURI) || null;
     if (!selectedVoice) selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = selectedVoice;
-    utterance.volume = parseFloat(volumeSlider.value);
-    const baseRate = parseFloat(rateSlider.value);
-    const basePitch = parseFloat(pitchSlider.value);
-    if (randomizeToggle.checked) {
-      utterance.rate = Math.min(2, Math.max(0.5, baseRate + (Math.random()-0.5)*0.15));
-      utterance.pitch = Math.min(1.5, Math.max(0.5, basePitch + (Math.random()-0.5)*0.3));
-    } else {
-      utterance.rate = baseRate; utterance.pitch = basePitch;
-    }
+    utterance.volume = 1.0; // fixed max
+    utterance.rate = 0.9; // fixed comfortable
+    utterance.pitch = 1.0; // fixed natural
     utterance.onend = () => { if(callback) callback(); };
     utterance.onerror = (event) => {
       console.warn('TTS error:', event.error);
@@ -824,54 +906,58 @@ The script must have at least 25 sentences. Output one sentence per line.`;
     });
   }
 
-  // Host introduction
   function introduceHost() {
     const ch = currentChannel;
-    const name = ch.currentHostName || ch.hostNameMale || 'Host';
-    const intro = `Hello, I am ${name}, your radio host for ${ch.name}. Let's get started with today's broadcast.`;
-    addLogLine(`🎙️ Host: ${intro}`, 'host');
+    const name = ch.currentHostName || 'Host';
+    const intro = `Hello, I am ${name}, your host on ${ch.name}. Welcome to the broadcast.`;
+    addLogLine(`🎙️ ${intro}`, 'host');
     if (speechSynth.speaking) speechSynth.cancel();
     speakSentence(intro, () => {});
+    return intro;
   }
 
   function playScript() {
     const ch = currentChannel;
-    if (!ch.script) { status.textContent='No script.'; return; }
+    if (!ch.script || ch.sentences.length === 0) {
+      status.textContent='No script. Generate one first.';
+      return;
+    }
     if (ch.isSpeaking) {
       speechSynth.cancel();
       if (isFillerPlaying) stopFiller();
       ch.isSpeaking = false;
-      playBtn.textContent = '▶ Go live';
       stopBtn.disabled = true;
       status.textContent = 'Stopped.';
       ch.currentSentenceIndex = 0;
       stopCurrentSFX();
       setOnAir(false);
       updateDial();
+      broadcastActive = false;
       return;
     }
+    if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
     if (ch.currentSentenceIndex === 0) {
       introduceHost();
       setTimeout(() => {
         if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
-        playSFX(SFX.introJingle, 0.25);
+        playSFX(SFX.introJingle, 0.2);
         status.textContent = `Broadcasting from sentence ${ch.currentSentenceIndex+1}…`;
-        playBtn.disabled = true;
         stopBtn.disabled = false;
         ch.isSpeaking = true;
+        broadcastActive = true;
         setOnAir(true);
-        if (ch.currentSentenceIndex === 0) setTimeout(() => playSFX(SFX.transitionSweeper,0.2), 1500);
+        if (ch.currentSentenceIndex === 0) setTimeout(() => playSFX(SFX.transitionSweeper,0.15), 1500);
         speakNextSentence();
-      }, 1000);
+      }, 1200);
     } else {
       if (ch.currentSentenceIndex >= ch.sentences.length) ch.currentSentenceIndex = 0;
-      playSFX(SFX.introJingle, 0.25);
+      playSFX(SFX.introJingle, 0.2);
       status.textContent = `Broadcasting from sentence ${ch.currentSentenceIndex+1}…`;
-      playBtn.disabled = true;
       stopBtn.disabled = false;
       ch.isSpeaking = true;
+      broadcastActive = true;
       setOnAir(true);
-      if (ch.currentSentenceIndex === 0) setTimeout(() => playSFX(SFX.transitionSweeper,0.2), 1500);
+      if (ch.currentSentenceIndex === 0) setTimeout(() => playSFX(SFX.transitionSweeper,0.15), 1500);
       speakNextSentence();
     }
   }
@@ -880,52 +966,59 @@ The script must have at least 25 sentences. Output one sentence per line.`;
     const ch = currentChannel;
     if (!ch.isSpeaking) return;
     if (ch.currentSentenceIndex >= ch.sentences.length) {
-      playSFX(SFX.outroJingle, 0.25);
+      playSFX(SFX.outroJingle, 0.2);
       status.textContent = 'Broadcast finished.';
-      playBtn.textContent = '▶ Go live';
-      playBtn.disabled = false;
       stopBtn.disabled = true;
       ch.isSpeaking = false;
+      broadcastActive = false;
       setOnAir(false);
       updateDial();
-      // Auto-pilot: after script ends, play random song
-      if (autoPilotActive && !isInterrupted) {
+      // Ask for song request
+      if (!isInterrupted) {
         setTimeout(() => {
-          if (autoPilotActive && !isInterrupted) {
-            addLogLine('🎵 Auto‑pilot: playing a random song…', 'host');
-            playRandomSong();
-          }
+          askForSongRequest();
         }, 1500);
       }
       return;
     }
     const text = ch.sentences[ch.currentSentenceIndex].trim();
     if (!text) { ch.currentSentenceIndex++; speakNextSentence(); return; }
-    if (ch.currentSentenceIndex > 0 && ch.currentSentenceIndex % 3 === 0) playSFX(SFX.transitionSweeper,0.15);
+    if (ch.currentSentenceIndex > 0 && ch.currentSentenceIndex % 3 === 0) playSFX(SFX.transitionSweeper,0.12);
     updateDial();
     speakSentence(text, () => {
       const wordCount = text.split(/\s+/).length;
-      const pauseMs = wordCount < 8 ? 1200 : 800;
+      const pauseMs = wordCount < 10 ? 1200 : 800;
       setTimeout(() => { ch.currentSentenceIndex++; speakNextSentence(); }, pauseMs);
     });
   }
 
-  function stopAudio() {
+  function stopBroadcast() {
     const ch = currentChannel;
     if (speechSynth.speaking) speechSynth.cancel();
     if (isFillerPlaying) stopFiller();
     stopCurrentSFX();
     ch.isSpeaking = false;
-    playBtn.textContent = '▶ Go live';
-    playBtn.disabled = false;
+    broadcastActive = false;
     stopBtn.disabled = true;
-    status.textContent = 'Stopped.';
+    status.textContent = 'Broadcast stopped.';
     setOnAir(false);
     updateDial();
   }
 
   /* ============================================================
-     FILLER (thinking)
+     SONG REQUEST FLOW
+  ============================================================ */
+  function askForSongRequest() {
+    if (isInterrupted) return;
+    waitingForSongRequest = true;
+    const msg = "What song would you like to hear? Just type the name, or say 'random' for a surprise!";
+    addLogLine(`🎙️ Host: ${msg}`, 'host');
+    speakText(msg, true);
+    status.textContent = '🎵 Waiting for song request…';
+  }
+
+  /* ============================================================
+     FILLER
   ============================================================ */
   const fillerChains = [
     ["Hmm...", "Let me think about that.", "Okay, I see."],
@@ -936,7 +1029,7 @@ The script must have at least 25 sentences. Output one sentence per line.`;
 
   function playFiller() {
     if (isFillerPlaying) return;
-    playSFX(SFX.fillerSound, 0.2);
+    playSFX(SFX.fillerSound, 0.15);
     const chain = getRandomChain();
     let index = 0;
     function speakNextFiller() {
@@ -949,10 +1042,10 @@ The script must have at least 25 sentences. Output one sentence per line.`;
       const utterance = new SpeechSynthesisUtterance(fillerText);
       utterance.voice = selectedVoice;
       utterance.rate = 0.85; utterance.pitch = 1.0;
-      utterance.volume = parseFloat(volumeSlider.value) * 0.8;
+      utterance.volume = 0.8;
       utterance.onstart = () => { isFillerPlaying = true; status.textContent = 'Thinking…'; };
-      utterance.onend = () => { index++; setTimeout(speakNextFiller, 500); };
-      utterance.onerror = () => { index++; setTimeout(speakNextFiller, 500); };
+      utterance.onend = () => { index++; setTimeout(speakNextFiller, 400); };
+      utterance.onerror = () => { index++; setTimeout(speakNextFiller, 400); };
       fillerUtterance = utterance;
       speechSynth.speak(utterance);
     }
@@ -966,35 +1059,18 @@ The script must have at least 25 sentences. Output one sentence per line.`;
   }
 
   /* ============================================================
-     AUTO‑PILOT CYCLE
-  ============================================================ */
-  async function autoPilotCycle() {
-    if (!autoPilotActive || isInterrupted) return;
-    addLogLine('🔄 Auto‑pilot: generating new script…', 'host');
-    await generate();
-    // After script is ready, start broadcast
-    if (currentChannel.script && !currentChannel.isSpeaking) {
-      // Wait a moment, then start broadcast
-      setTimeout(() => {
-        if (autoPilotActive && !isInterrupted) {
-          addLogLine('▶️ Auto‑pilot: starting broadcast…', 'host');
-          playScript(); // This will start speaking
-        }
-      }, 1000);
-    }
-  }
-
-  /* ============================================================
-     CHAT & INTENT PARSING
+     CHAT & INTENT — FULL CONVERSATION MEMORY
   ============================================================ */
   function addHostReply(text) {
     let clean = text.trim();
     if (!/[.!?]$/.test(clean)) clean += '.';
     addLogLine(`🎙️ Host: ${clean}`, 'host');
+    conversationHistory.push({ role: 'host', content: clean });
     return clean;
   }
   function addUserMessage(text) {
     addLogLine(`👤 You: ${text}`, 'user');
+    conversationHistory.push({ role: 'user', content: text });
   }
 
   async function handleUserMessage() {
@@ -1003,22 +1079,9 @@ The script must have at least 25 sentences. Output one sentence per line.`;
     userMessageInput.value = '';
     addUserMessage(msg);
 
-    // User interaction pauses auto‑pilot temporarily
-    isInterrupted = true;
-    // Stop any ongoing broadcast or filler
-    if (currentChannel.isSpeaking) {
-      speechSynth.cancel();
-      if (isFillerPlaying) stopFiller();
-      currentChannel.isSpeaking = false;
-      playBtn.textContent = '▶ Go live';
-      stopBtn.disabled = true;
-      setOnAir(false);
-    }
-    if (isFillerPlaying) stopFiller();
-
     const lower = msg.toLowerCase();
 
-    // 1. Switch channel
+    // === CHANNEL SWITCH ===
     const channelMatch = lower.match(/(?:change|switch|go to)\s+(english|telugu|hindi)/);
     if (channelMatch) {
       const target = channelMatch[1];
@@ -1035,156 +1098,98 @@ The script must have at least 25 sentences. Output one sentence per line.`;
         addHostReply(`We're already on ${currentChannel.name}.`);
         await speakText(`We're already on ${currentChannel.name}.`, true);
       } else {
-        addHostReply("I didn't catch that. Say English, Telugu, or Hindi.");
-        await speakText("I didn't catch that.", true);
+        addHostReply("Say English, Telugu, or Hindi.");
+        await speakText("Say English, Telugu, or Hindi.", true);
       }
-      isInterrupted = false;
-      // Resume auto‑pilot after a moment
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
       return;
     }
 
-    // 2. Ask for song facts
+    // === SONG REQUEST (handles both explicit and "random") ===
+    if (waitingForSongRequest || lower.includes('play') || lower.includes('song') || lower.includes('random') || lower.includes('i want')) {
+      // Check if user said "random"
+      if (lower.includes('random') || lower.includes('surprise') || lower.includes('anything')) {
+        waitingForSongRequest = false;
+        if (currentChannel.isSpeaking) {
+          speechSynth.cancel();
+          currentChannel.isSpeaking = false;
+          stopBtn.disabled = true;
+          setOnAir(false);
+        }
+        addHostReply("Alright, let me pick a random song for you!");
+        await speakText("Let me pick a random song.", true);
+        const result = await playRandomSong();
+        if (!result.success) {
+          addHostReply(`Sorry, I couldn't find a random song. Try a specific name.`);
+          await speakText("Couldn't find a random song.", true);
+        }
+        // Broadcast is paused while song plays
+        return;
+      }
+
+      // Extract song name from various patterns
+      let songQuery = null;
+      const playMatch = msg.match(/^(?:play|play song|i want|i'd like|please play)\s+(.+)/i);
+      if (playMatch) {
+        songQuery = playMatch[1].trim();
+      } else if (waitingForSongRequest) {
+        // If we're waiting, the whole message is the song name
+        songQuery = msg.trim();
+      }
+      if (songQuery && songQuery.length > 1) {
+        waitingForSongRequest = false;
+        if (currentChannel.isSpeaking) {
+          speechSynth.cancel();
+          currentChannel.isSpeaking = false;
+          stopBtn.disabled = true;
+          setOnAir(false);
+        }
+        if (isMusicPlaying) stopMusic();
+        addHostReply(`Playing "${songQuery}" for you.`);
+        await speakText(`Playing ${songQuery}.`, true);
+        const result = await playSongRequest(songQuery);
+        if (!result.success) {
+          addHostReply(`Sorry, I couldn't find "${songQuery}". Try another.`);
+          await speakText(`Couldn't find that song.`, true);
+          // Ask again
+          setTimeout(() => {
+            if (!isInterrupted) askForSongRequest();
+          }, 2000);
+        }
+        return;
+      }
+    }
+
+    // === SONG FACTS ===
     if (lower.includes('facts') || lower.includes('tell me about') || lower.includes('info about')) {
       const ch = currentChannel;
       if (ch.nowPlaying.videoId) {
         const songName = ch.nowPlaying.title;
         const artist = ch.nowPlaying.artist;
-        // Use AI to generate facts
         if (typeof puter !== 'undefined') {
           try {
             const prompt = `Give me 2-3 interesting facts about the song "${songName}" by ${artist}. Keep it short and conversational.`;
             const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
             let facts = response.message?.content || response;
             facts = cleanForTTS(facts);
-            if (!facts || facts.length < 10) facts = `I don't have many details about "${songName}", but I know it's a popular track.`;
+            if (!facts || facts.length < 10) facts = `I don't have many details about "${songName}", but it's a popular track.`;
             addHostReply(facts);
             await speakText(facts, true);
           } catch(e) {
             addHostReply(`Sorry, I couldn't fetch facts about "${songName}" right now.`);
-            await speakText(`Sorry, I couldn't fetch facts.`, true);
+            await speakText(`Couldn't fetch facts.`, true);
           }
         } else {
-          addHostReply(`I need AI to tell you facts. Please try again later.`);
+          addHostReply(`AI unavailable for facts.`);
           await speakText(`AI unavailable.`, true);
         }
       } else {
         addHostReply("No song is currently playing. Ask me to play something first.");
         await speakText("No song playing.", true);
       }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
       return;
     }
 
-    // 3. Generate script (manual)
-    if (lower.includes('generate') && lower.includes('script')) {
-      await generate();
-      if (currentChannel.script) {
-        addHostReply(`Here's a new script for ${currentChannel.name}. Ready when you are.`);
-        await speakText(`Here's a new script.`, true);
-      }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-
-    // 4. Play script (manual)
-    if (lower.includes('play script') || lower.includes('go live') || lower.includes('start broadcast')) {
-      if (!currentChannel.script) { addHostReply("No script. Say 'generate script' first."); await speakText("No script.", true); }
-      else if (currentChannel.isSpeaking) { addHostReply("Already broadcasting. Say 'stop script'."); await speakText("Already broadcasting.", true); }
-      else { playScript(); }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-
-    // 5. Stop script
-    if (lower.includes('stop script') || lower.includes('stop broadcast') || lower.includes('end broadcast')) {
-      if (currentChannel.isSpeaking) {
-        stopAudio();
-        addHostReply("Broadcast stopped.");
-        await speakText("Stopped.", true);
-      } else {
-        addHostReply("Not broadcasting.");
-        await speakText("Not broadcasting.", true);
-      }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-
-    // 6. Play song (user request)
-    const playRegex = /^(?:play\s+song\s+|play\s+)(.+)/i;
-    const match = msg.match(playRegex);
-    if (match) {
-      const songQuery = match[1].trim();
-      if (!songQuery) { addHostReply("Please tell me the song name."); await speakText("Please tell me the song name.", true); }
-      else {
-        // Stop any ongoing broadcast or music
-        if (currentChannel.isSpeaking) {
-          speechSynth.cancel();
-          currentChannel.isSpeaking = false;
-          playBtn.textContent = '▶ Go live';
-          stopBtn.disabled = true;
-          setOnAir(false);
-        }
-        if (isMusicPlaying) stopMusic();
-        playFiller();
-        const result = await playSongRequest(songQuery);
-        stopFiller();
-        if (result.success) {
-          const reply = `Yeah, we got your song! Hope you enjoy ${result.title}.`;
-          addHostReply(reply);
-          await speakText(reply, true);
-        } else {
-          const reply = `Sorry, I ${result.message || "couldn't find that song."}`;
-          addHostReply(reply);
-          await speakText(reply, true);
-        }
-      }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-
-    // 7. Next / skip
-    if (lower.includes('next song') || lower.includes('skip song') || lower.includes('next track')) {
-      if (!ytPlayer || !ytPlayerReady) { addHostReply("No song playing."); await speakText("No song.", true); }
-      else { stopMusic(); addHostReply("Skipped."); await speakText("Skipped.", true); }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-
-    // 8. Pause / resume
-    if (lower.includes('pause music') || lower.includes('pause song')) {
-      if (!ytPlayer || !ytPlayerReady) { addHostReply("No song."); await speakText("No song.", true); }
-      else if (isMusicPlaying) { ytPlayer.pauseVideo(); addHostReply("Paused."); await speakText("Paused.", true); }
-      else { addHostReply("Already paused."); await speakText("Already paused.", true); }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-    if (lower.includes('resume music') || lower.includes('play music') || lower.includes('unpause')) {
-      if (!ytPlayer || !ytPlayerReady) { addHostReply("No song."); await speakText("No song.", true); }
-      else if (!isMusicPlaying) { ytPlayer.playVideo(); addHostReply("Resuming."); await speakText("Resuming.", true); }
-      else { addHostReply("Already playing."); await speakText("Already playing.", true); }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-
-    // 9. Reject
-    if (lower.includes('not my song') || lower.includes('wrong song') || lower.includes('this isn\'t my song')) {
-      if (!ytPlayer || !ytPlayerReady) { addHostReply("No song yet."); await speakText("No song.", true); }
-      else { stopMusic(); addHostReply("Oh, sorry! Let me find something else."); await speakText("Let me find something else.", true); }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
-      return;
-    }
-
-    // 10. What's playing?
+    // === WHAT'S PLAYING ===
     if (lower.includes('what\'s playing') || lower.includes('what song') || lower.includes('now playing')) {
       if (currentChannel.nowPlaying.videoId) {
         const dur = formatDuration(currentChannel.nowPlaying.duration);
@@ -1195,22 +1200,59 @@ The script must have at least 25 sentences. Output one sentence per line.`;
         addHostReply("No song playing right now.");
         await speakText("No song.", true);
       }
-      isInterrupted = false;
-      setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
       return;
     }
 
-    // 11. General chat (AI)
-    // If it's a general chat, we use AI to reply, but we keep auto-pilot paused until done.
+    // === NEXT / SKIP ===
+    if (lower.includes('next song') || lower.includes('skip song') || lower.includes('next track')) {
+      if (!ytPlayer || !ytPlayerReady) { addHostReply("No song playing."); await speakText("No song.", true); }
+      else { stopMusic(); addHostReply("Skipped."); await speakText("Skipped.", true); }
+      return;
+    }
+
+    // === PAUSE / RESUME ===
+    if (lower.includes('pause music') || lower.includes('pause song')) {
+      if (!ytPlayer || !ytPlayerReady) { addHostReply("No song."); await speakText("No song.", true); }
+      else if (isMusicPlaying) { ytPlayer.pauseVideo(); addHostReply("Paused."); await speakText("Paused.", true); }
+      else { addHostReply("Already paused."); await speakText("Already paused.", true); }
+      return;
+    }
+    if (lower.includes('resume music') || lower.includes('play music') || lower.includes('unpause')) {
+      if (!ytPlayer || !ytPlayerReady) { addHostReply("No song."); await speakText("No song.", true); }
+      else if (!isMusicPlaying) { ytPlayer.playVideo(); addHostReply("Resuming."); await speakText("Resuming.", true); }
+      else { addHostReply("Already playing."); await speakText("Already playing.", true); }
+      return;
+    }
+
+    // === STOP BROADCAST ===
+    if (lower.includes('stop broadcast') || lower.includes('stop script') || lower.includes('end broadcast')) {
+      if (currentChannel.isSpeaking || broadcastActive) {
+        stopBroadcast();
+        addHostReply("Broadcast stopped.");
+        await speakText("Stopped.", true);
+      } else {
+        addHostReply("Not broadcasting.");
+        await speakText("Not broadcasting.", true);
+      }
+      return;
+    }
+
+    // === GENERAL CHAT — AI with full conversation memory ===
+    // Interrupt broadcast if active
+    if (currentChannel.isSpeaking) {
+      speechSynth.cancel();
+      if (isFillerPlaying) stopFiller();
+      currentChannel.isSpeaking = false;
+      stopBtn.disabled = true;
+      setOnAir(false);
+    }
     playFiller();
 
     if (typeof puter === 'undefined') {
       try { await loadPuter(); } catch(e) {
         stopFiller();
-        addHostReply("AI is not available right now. Please try again later.");
+        addHostReply("AI is not available. Please try again later.");
         await speakText("AI unavailable.", true);
-        isInterrupted = false;
-        setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
         return;
       }
     }
@@ -1220,16 +1262,22 @@ The script must have at least 25 sentences. Output one sentence per line.`;
       const context = ch.sentences.length > 0 ? ch.sentences[Math.min(ch.currentSentenceIndex, ch.sentences.length-1)] : 'Nothing specific.';
       const lang = ch.language;
       const langName = lang==='hi'?'Hindi':lang==='te'?'Telugu':'English';
-      const prompt = `You are the host of ${ch.name} (${ch.currentHostName || ch.hostNameMale}). You are currently saying: "${context}".
-A listener says: "${msg}".
-Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain, without emotions, and in short sentences.`;
+      // Build conversation history for memory
+      const historyStr = conversationHistory.slice(-10).map(h => `${h.role}: ${h.content}`).join('\n');
+      const prompt = `You are the host of ${ch.name} (${ch.currentHostName}). You are currently saying: "${context}".
+Conversation history (recent):
+${historyStr}
+
+The listener says: "${msg}".
+Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it warm, conversational, and reference the conversation history to show you remember them.
+Reply naturally as a radio host.`;
       const response = await puter.ai.chat(prompt, { model: 'google/gemini-2.5-flash' });
       let reply = response.message?.content || response;
       reply = cleanForTTS(reply);
       if (!reply || reply.length < 20) {
         reply = "Thanks for your message! I appreciate you reaching out. Let's keep the conversation going.";
       }
-      if (reply.length > 300) reply = reply.substring(0,300) + '…';
+      if (reply.length > 350) reply = reply.substring(0,350) + '…';
       stopFiller();
       const cleanReply = addHostReply(reply);
       await speakText(cleanReply, true);
@@ -1239,51 +1287,78 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
       addHostReply("I'm having trouble thinking. Please try again.");
       await speakText("Trouble thinking.", true);
     }
-
-    isInterrupted = false;
-    // Resume auto‑pilot after a moment
-    setTimeout(() => { if (autoPilotActive) autoPilotCycle(); }, 2000);
   }
 
   /* ============================================================
      SWITCH CHANNEL
   ============================================================ */
   function switchChannel(channelId) {
-    // Stop everything
-    stopAudio();
+    stopBroadcast();
     stopMusic();
-    if (autoPilotTimer) clearTimeout(autoPilotTimer);
     isInterrupted = false;
+    waitingForSongRequest = false;
     currentChannelId = channelId;
     currentChannel = CHANNELS[channelId];
-    // Update UI theme
     document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.channel === channelId));
-    mainPanel.className = 'main-panel channel-' + channelId;
+    mainPanel.style.setProperty('--accent', currentChannel.accentColor);
     freqReadout.textContent = currentChannel.frequency + ' · ' + currentChannel.name.toUpperCase();
     tagline.textContent = currentChannel.tagline;
     // Auto-select voice
     selectVoiceForChannel(currentChannel);
     // Introduce host
-    introduceHost();
-    // Load script if any, else generate new
-    if (currentChannel.script) {
-      displayScript(currentChannel.script);
-    } else {
-      combinedLog.innerHTML = '<div class="line host">📻 Auto‑pilot: generating script for ' + currentChannel.name + '…</div>';
-      // Auto-generate script and start
-      setTimeout(() => {
-        if (autoPilotActive) autoPilotCycle();
-      }, 1000);
-    }
-    // Update now playing
-    if (currentChannel.nowPlaying.videoId) {
-      nowPlayingInfo.textContent = `${currentChannel.nowPlaying.title} — ${currentChannel.nowPlaying.artist}`;
-      musicDuration.textContent = formatDuration(currentChannel.nowPlaying.duration);
-    } else {
-      nowPlayingInfo.textContent = 'Nothing queued';
-      musicDuration.textContent = '0:00';
-    }
+    setTimeout(() => {
+      introduceHost();
+    }, 300);
+    // Clear script
+    currentChannel.script = '';
+    currentChannel.sentences = [];
+    currentChannel.currentSentenceIndex = 0;
+    combinedLog.innerHTML = `<div class="line host">🌍 Switched to ${currentChannel.name}.</div>`;
+    status.textContent = `Ready. Press ON AIR to start.`;
+    playBtnDisabled(true);
+    updateDial();
     saveSettings();
+  }
+
+  function playBtnDisabled(disabled) {
+    // We use onAirBtn as the main control
+  }
+
+  /* ============================================================
+     ON AIR BUTTON — starts the full flow
+  ============================================================ */
+  async function startBroadcast() {
+    if (broadcastActive || currentChannel.isSpeaking) {
+      // If already broadcasting, stop
+      stopBroadcast();
+      onAirBtn.textContent = '🔴 ON AIR';
+      return;
+    }
+    isInterrupted = false;
+    waitingForSongRequest = false;
+    onAirBtn.textContent = '⏳ Starting…';
+    onAirBtn.disabled = true;
+    status.textContent = 'Starting broadcast…';
+
+    try {
+      // 1. Generate script
+      const script = await generateScript();
+      if (!script) {
+        status.textContent = 'Failed to generate script. Try again.';
+        onAirBtn.textContent = '🔴 ON AIR';
+        onAirBtn.disabled = false;
+        return;
+      }
+      // 2. Play script (starts with intro)
+      playScript();
+      onAirBtn.textContent = '⏹ STOP';
+      onAirBtn.disabled = false;
+    } catch(e) {
+      console.error('Start broadcast error:', e);
+      status.textContent = 'Error starting broadcast.';
+      onAirBtn.textContent = '🔴 ON AIR';
+      onAirBtn.disabled = false;
+    }
   }
 
   /* ============================================================
@@ -1327,9 +1402,9 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
   sendMessageBtn.addEventListener('click', handleUserMessage);
   userMessageInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendMessageBtn.click(); });
 
-  generateBtn.addEventListener('click', generate);
-  playBtn.addEventListener('click', playScript);
-  stopBtn.addEventListener('click', stopAudio);
+  onAirBtn.addEventListener('click', startBroadcast);
+  stopBtn.addEventListener('click', stopBroadcast);
+
   copyBtn.addEventListener('click', ()=>{
     if(!currentChannel.script){ status.textContent='Nothing to copy.'; return; }
     navigator.clipboard.writeText(currentChannel.script).then(()=>{
@@ -1342,18 +1417,14 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
       status.textContent='Copied!';
     });
   });
+
   toggleCustomBtn.addEventListener('click', ()=>{
     const custom = prompt('Paste your own script (multi‑line):', currentChannel.script || '');
     if(custom !== null && custom.trim()) {
       displayScript(custom.trim());
-      status.textContent = 'Custom script loaded.';
+      status.textContent = 'Custom script loaded. Press ON AIR to broadcast.';
     }
   });
-
-  rateSlider.addEventListener('input', ()=>{ rateVal.textContent=parseFloat(rateSlider.value).toFixed(2); saveSettings(); });
-  pitchSlider.addEventListener('input', ()=>{ pitchVal.textContent=parseFloat(pitchSlider.value).toFixed(2); saveSettings(); });
-  volumeSlider.addEventListener('input', ()=>{ volumeVal.textContent=parseFloat(volumeSlider.value).toFixed(2); saveSettings(); });
-  randomizeToggle.addEventListener('change', saveSettings);
 
   /* ============================================================
      PRESETS
@@ -1372,7 +1443,7 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
     speechSynth.onvoiceschanged = () => {
       selectVoiceForChannel(currentChannel);
     };
-    setTimeout(() => { if(speechSynth.getVoices().length>0) selectVoiceForChannel(currentChannel); }, 200);
+    setTimeout(() => { if(speechSynth.getVoices().length>0) selectVoiceForChannel(currentChannel); }, 300);
   }
 
   const savedChannel = loadSettings();
@@ -1380,33 +1451,25 @@ Reply in ${langName} with 2-3 sentences (each at least 15 words). Keep it plain,
     currentChannelId = savedChannel;
     currentChannel = CHANNELS[savedChannel];
   }
-  // Apply initial theme
-  mainPanel.className = 'main-panel channel-' + currentChannelId;
+  // Apply theme
+  mainPanel.style.setProperty('--accent', currentChannel.accentColor);
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.channel === currentChannelId));
   freqReadout.textContent = currentChannel.frequency + ' · ' + currentChannel.name.toUpperCase();
   tagline.textContent = currentChannel.tagline;
-  combinedLog.innerHTML = '<div class="line host">🎙️ Auto‑pilot starting for ' + currentChannel.name + '…</div>';
-  status.textContent = 'Auto‑pilot active.';
+  status.textContent = 'Ready. Press ON AIR to begin.';
+  updateDial();
 
   // Initial voice select
   setTimeout(() => {
     selectVoiceForChannel(currentChannel);
     introduceHost();
-    // Start auto-pilot: generate script then broadcast
-    if (autoPilotActive) {
-      setTimeout(() => {
-        autoPilotCycle();
-      }, 1000);
-    }
   }, 500);
-
-  updateDial();
 
   if (typeof puter === 'undefined') {
     loadPuter().catch(() => puterStatus.textContent = '⚠ AI unavailable');
   }
 
-  console.log('📻 SensyCilva Auto‑Pilot Radio loaded.');
+  console.log('🌍 SensyCilva International Radio loaded.');
 })();
 </script>
 </body>

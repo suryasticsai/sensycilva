@@ -1,1 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SensyCilva – Studio Radio</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>" />
+    <style>
+        /* (styles unchanged – same as previous) */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0b0d11; color:#b7e1fa; font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; }
+        .container { background:#1a1e26; border-radius:24px; padding:32px; max-width:840px; width:100%; border:1px solid #2a2f3a; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+        h1 { font-size:26px; font-weight:700; margin-bottom:2px; }
+        h1 span { color:#ff9500; }
+        .sub { color:#5a7a8a; font-size:14px; margin-bottom:16px; }
+        .tab-bar { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+        .tab-bar button { background:#1a212a; border:1px solid #2a323e; color:#8a9aaa; padding:8px 20px; border-radius:30px; cursor:pointer; transition:.2s; font-family:inherit; }
+        .tab-bar button.active { background:#1a3348; border-color:#4a8fc0; color:#b7e1fa; }
+        .tab-bar button:hover { background:#252f3d; border-color:#4a6a8a; }
+        .tab-content { display:none; }
+        .tab-content.active { display:block; }
 
+        .lang-selector { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+        .lang-selector label { color:#6a8a9a; font-weight:600; font-size:13px; }
+        .lang-selector select { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:6px 16px; color:#c0d8ee; font-size:13px; outline:none; cursor:pointer; }
+        .actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+        .actions button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:10px 20px; border-radius:30px; font-weight:600; font-size:14px; cursor:pointer; transition:.2s; font-family:inherit; }
+        .actions button:hover { background:#234a66; }
+        .actions button:disabled { opacity:0.5; cursor:not-allowed; }
+        .actions button.copy { background:#1f2935; border-color:#2f3a48; }
+        .actions button.copy:hover { background:#2a3645; }
+        .actions button.play { background:#1a3a2a; border-color:#4cd964; }
+        .actions button.play:hover { background:#2a4a3a; }
+        .actions button.stop { background:#3a1a1a; border-color:#ff4a3a; }
+        .actions button.stop:hover { background:#4a2a2a; }
+        .actions button.custom { background:#1a2a3a; border-color:#5ac8fa; }
+        .actions button.custom:hover { background:#2a3a4a; }
+        .status { font-size:13px; color:#5ac8fa; margin-bottom:12px; min-height:24px; transition:0.2s; }
+        .status.thinking { color:#ff9500; animation: pulse-text 1s infinite; }
+        .status.error { color:#ff6a5a; }
+        .status.success { color:#4cd964; }
+        .status.warning { color:#ff9500; }
+        @keyframes pulse-text { 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
+
+        .script-box { background:#0a0c10; border-radius:16px; padding:16px; min-height:300px; max-height:400px; overflow-y:auto; border:1px solid #1a212a; white-space:pre-wrap; font-size:15px; line-height:1.7; color:#b7e1fa; }
+        .custom-area { margin-top:12px; display:none; flex-direction:column; gap:8px; }
+        .custom-area textarea { background:#0a0c10; border:1px solid #252e3a; border-radius:12px; padding:12px; color:#c0d8ee; font-size:14px; font-family:'Segoe UI',sans-serif; min-height:150px; resize:vertical; outline:none; }
+        .custom-area textarea:focus { border-color:#4a8fc0; }
+        .custom-area .custom-actions { display:flex; gap:10px; flex-wrap:wrap; }
+        .custom-area .custom-actions button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:8px 18px; border-radius:30px; font-weight:600; font-size:13px; cursor:pointer; transition:.2s; font-family:inherit; }
+        .custom-area .custom-actions button:hover { background:#234a66; }
+        .custom-area .custom-actions button.set { background:#1a3a2a; border-color:#4cd964; }
+        .custom-area .custom-actions button.set:hover { background:#2a4a3a; }
+        .controls-row { display:flex; gap:16px; flex-wrap:wrap; align-items:center; background:#0a0c10; border-radius:12px; padding:12px 16px; margin-top:12px; border:1px solid #1a212a; }
+        .controls-row label { font-size:12px; color:#6a8a9a; display:flex; align-items:center; gap:6px; }
+        .controls-row select, .controls-row input[type="range"] { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none; }
+        .controls-row input[type="range"] { width:80px; padding:0; accent-color:#5ac8fa; }
+        .controls-row .val { color:#5ac8fa; font-size:12px; min-width:30px; }
+        .footer { margin-top:16px; font-size:12px; color:#3a4a5a; text-align:center; }
+        .footer a { color:#5ac8fa; text-decoration:none; }
+        .note { font-size:11px; color:#4a5a6a; margin-top:6px; font-style:italic; }
+        .voice-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .voice-group label { color:#6a8a9a; font-weight:600; font-size:12px; }
+        .voice-group select { background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:4px 12px; color:#c0d8ee; font-size:12px; outline:none; max-width:220px; }
+        .checkbox-group { display:flex; align-items:center; gap:6px; }
+        .checkbox-group input[type="checkbox"] { accent-color:#4cd964; width:16px; height:16px; cursor:pointer; }
+        .checkbox-group label { font-size:12px; color:#6a8a9a; cursor:pointer; }
+
+        .chat-section { margin-top:16px; border-top:1px solid #1a212a; padding-top:16px; }
+        .chat-log { background:#0a0c10; border-radius:12px; padding:12px; max-height:150px; overflow-y:auto; border:1px solid #1a212a; margin-bottom:10px; font-size:14px; line-height:1.6; }
+        .chat-log .user { color:#5ac8fa; }
+        .chat-log .host { color:#4cd964; }
+        .chat-log .system { color:#6a7a8a; font-style:italic; }
+        .chat-log .filler { color:#ff9500; font-style:italic; }
+
+        .chat-input { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .chat-input input { flex:1; background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:8px 16px; color:#c0d8ee; font-size:14px; outline:none; min-width:100px; }
+        .chat-input input:focus { border-color:#4a8fc0; }
+        .chat-input button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:8px 20px; border-radius:30px; font-weight:600; font-size:14px; cursor:pointer; transition:.2s; font-family:inherit; white-space:nowrap; }
+        .chat-input button:hover { background:#234a66; }
+        .chat-input button:disabled { opacity:0.5; cursor:not-allowed; }
+        .chat-input .mic-btn { background:#1a2a3a; border-color:#5ac8fa; padding:8px 14px; font-size:18px; min-width:44px; }
+        .chat-input .mic-btn:hover { background:#2a3a4a; }
+        .chat-input .mic-btn.listening { background:#3a1a1a; border-color:#ff4a3a; }
+        .chat-input .music-btn { background:#1a2a1a; border-color:#4cd964; padding:8px 14px; font-size:18px; min-width:44px; }
+        .chat-input .music-btn:hover { background:#2a3a2a; }
+        .chat-input .music-btn.playing { background:#1a3a2a; border-color:#ff9500; }
+        .chat-input .sfx-btn { background:#2a2a1a; border-color:#ffaa00; padding:8px 14px; font-size:18px; min-width:44px; }
+        .chat-input .sfx-btn:hover { background:#3a3a2a; }
+        .chat-input .sfx-btn.disabled { opacity:0.5; }
+
+        .waveform-container {
+            display:flex;
+            align-items:center;
+            gap:3px;
+            height:30px;
+            margin-bottom:8px;
+            justify-content:center;
+        }
+        .waveform-container .bar {
+            width:4px;
+            border-radius:2px;
+            background:#4a6a8a;
+            transition:height 0.1s;
+            height:6px;
+        }
+        .waveform-container.active .bar {
+            animation: wave-bounce 0.4s infinite alternate ease-in-out;
+        }
+        .waveform-container.thinking .bar {
+            animation: wave-bounce 0.6s infinite alternate ease-in-out;
+            background:#ff9500;
+        }
+        .waveform-container .bar:nth-child(1) { animation-delay:0.0s; }
+        .waveform-container .bar:nth-child(2) { animation-delay:0.1s; }
+        .waveform-container .bar:nth-child(3) { animation-delay:0.2s; }
+        .waveform-container .bar:nth-child(4) { animation-delay:0.3s; }
+        .waveform-container .bar:nth-child(5) { animation-delay:0.4s; }
+        .waveform-container .bar:nth-child(6) { animation-delay:0.5s; }
+        .waveform-container .bar:nth-child(7) { animation-delay:0.6s; }
+        .waveform-container .bar:nth-child(8) { animation-delay:0.7s; }
+
+        @keyframes wave-bounce {
+            0% { height:6px; background:#4a6a8a; }
+            100% { height:28px; background:#5ac8fa; }
+        }
+        .waveform-container.thinking .bar {
+            animation: wave-bounce-think 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes wave-bounce-think {
+            0% { height:6px; background:#6a4a2a; }
+            100% { height:28px; background:#ff9500; }
+        }
+
+        .transcript-display {
+            background:#0a0c10;
+            border-radius:12px;
+            padding:8px 16px;
+            min-height:36px;
+            border:1px solid #1a212a;
+            color:#b7e1fa;
+            font-size:14px;
+            margin-bottom:8px;
+            font-style:italic;
+            transition:0.2s;
+        }
+        .transcript-display.active { border-color:#5ac8fa; color:#5ac8fa; }
+        .transcript-display .interim { color:#5ac8fa; }
+        .transcript-display .final { color:#4cd964; }
+        .transcript-display .error { color:#ff6a5a; }
+        .transcript-display .thinking { color:#ff9500; animation: pulse-text 1s infinite; }
+
+        .bg-music-info { font-size:11px; color:#4a5a6a; margin-top:4px; text-align:center; }
+        .sfx-info { font-size:11px; color:#4a5a6a; margin-top:4px; text-align:center; }
+
+        /* Music Tab */
+        .music-section { margin-top:16px; border-top:1px solid #1a212a; padding-top:16px; }
+        .music-key-section { display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+        .music-key-section input { flex:1; background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:8px 16px; color:#c0d8ee; font-size:14px; outline:none; min-width:150px; }
+        .music-key-section input:focus { border-color:#4a8fc0; }
+        .music-key-section button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:6px 16px; border-radius:30px; cursor:pointer; transition:.2s; font-family:inherit; }
+        .music-key-section button:hover { background:#234a66; }
+        .music-key-section .key-status { font-size:12px; color:#6a8a9a; }
+
+        .music-search { display:flex; gap:10px; margin-bottom:10px; }
+        .music-search input { flex:1; background:#0a0c10; border:1px solid #252e3a; border-radius:30px; padding:8px 16px; color:#c0d8ee; font-size:14px; outline:none; }
+        .music-search input:focus { border-color:#4a8fc0; }
+        .music-search button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:8px 20px; border-radius:30px; cursor:pointer; transition:.2s; font-family:inherit; }
+        .music-search button:hover { background:#234a66; }
+        .music-search button:disabled { opacity:0.5; cursor:not-allowed; }
+        .music-results { background:#0a0c10; border-radius:12px; padding:10px; max-height:200px; overflow-y:auto; border:1px solid #1a212a; margin-bottom:10px; }
+        .music-results .result-item { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid #1a212a; }
+        .music-results .result-item:last-child { border-bottom:none; }
+        .music-results .result-item .title { color:#b7e1fa; font-size:14px; flex:1; }
+        .music-results .result-item .play-btn { background:#1a3a2a; border:1px solid #4cd964; color:#4cd964; padding:4px 12px; border-radius:30px; cursor:pointer; font-size:12px; }
+        .music-results .result-item .play-btn:hover { background:#2a4a3a; }
+
+        .music-player-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .music-player-controls button { background:#1a3348; border:1px solid #4a8fc0; color:#b7e1fa; padding:8px 16px; border-radius:30px; cursor:pointer; transition:.2s; font-family:inherit; }
+        .music-player-controls button:hover { background:#234a66; }
+        .music-player-controls .now-playing { color:#6a8a9a; font-size:13px; flex:1; }
+        .music-player-controls .progress { color:#5ac8fa; font-size:12px; min-width:50px; }
+        .music-warning { color:#ff6a5a; font-size:12px; margin-top:4px; }
+        .music-error-detail { color:#ff6a5a; font-size:12px; margin-top:4px; background:#1a0a0a; padding:6px 10px; border-radius:8px; border:1px solid #ff6a5a33; }
+
+        .yt-player-container { position:relative; width:100%; padding-bottom:56.25%; margin:10px 0; background:#000; border-radius:12px; overflow:hidden; display:none; }
+        .yt-player-container iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+        .music-note { color:#4a5a6a; font-size:11px; margin-top:4px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎙️ <span>SensyCilva</span> – Studio Radio</h1>
+    <div class="sub">Interactive radio host + YouTube Music player</div>
+
+    <div class="tab-bar">
+        <button class="tab-btn active" data-tab="radio">📻 Radio</button>
+        <button class="tab-btn" data-tab="music">🎵 Music</button>
+    </div>
+
+    <!-- Radio Tab -->
+    <div id="tab-radio" class="tab-content active">
+        <div class="lang-selector">
+            <label for="langSelect">🌐 Script Language</label>
+            <select id="langSelect">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+            </select>
+            <span id="puterStatus" style="font-size:11px;color:#4cd964;">⚡ Puter.js</span>
+            <button class="custom" id="toggleCustomBtn">📝 Paste Custom Script</button>
+        </div>
+
+        <div class="actions">
+            <button id="generateBtn">📝 Generate AI Script</button>
+            <button id="playBtn" class="play" disabled>🔊 Play</button>
+            <button id="stopBtn" class="stop" disabled>⏹ Stop</button>
+            <button id="copyBtn" class="copy" disabled>📋 Copy</button>
+        </div>
+
+        <div class="status" id="status">Ready – generate a script</div>
+        <div class="script-box" id="scriptBox"><span class="empty">Click "Generate AI Script" to create a new script.</span></div>
+
+        <div class="custom-area" id="customArea">
+            <textarea id="customScriptText" placeholder="Paste your custom script here."></textarea>
+            <div class="custom-actions">
+                <button class="set" id="setCustomBtn">✅ Use This Script</button>
+                <button id="cancelCustomBtn">✖ Cancel</button>
+            </div>
+        </div>
+
+        <div class="controls-row">
+            <div class="voice-group"><label>Voice</label><select id="voiceSelect"></select></div>
+            <label>Rate <input type="range" id="rateSlider" min="0.5" max="2" step="0.05" value="0.9" /><span class="val" id="rateVal">0.90</span></label>
+            <label>Pitch <input type="range" id="pitchSlider" min="0.5" max="1.5" step="0.05" value="1.0" /><span class="val" id="pitchVal">1.00</span></label>
+            <label>Volume <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1.0" /><span class="val" id="volumeVal">1.00</span></label>
+            <div class="checkbox-group"><input type="checkbox" id="randomizeToggle" checked /><label for="randomizeToggle">Randomize voice</label></div>
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-log" id="chatLog">
+                <div class="host">🎙️ Welcome! Speak or type – the host will reply.</div>
+            </div>
+            <div class="waveform-container" id="waveformContainer">
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                <span class="bar"></span><span class="bar"></span>
+            </div>
+            <div class="transcript-display" id="transcriptDisplay">🎤 Press the mic button and speak...</div>
+            <div class="chat-input">
+                <input type="text" id="userMessageInput" placeholder="Type or speak..." />
+                <button class="mic-btn" id="micBtn">🎤</button>
+                <button id="sendMessageBtn">Send</button>
+                <button class="music-btn" id="musicBtn">🎵</button>
+                <button class="sfx-btn" id="sfxBtn">🔊</button>
+            </div>
+            <div class="bg-music-info" id="musicStatus">Background music: OFF</div>
+            <div class="sfx-info" id="sfxStatus">Sound effects: ON</div>
+        </div>
+        <div class="note">💡 Jingles at start/end, sweepers between sections, fillers during thinking.</div>
+    </div>
+
+    <!-- Music Tab -->
+    <div id="tab-music" class="tab-content">
+        <div class="music-section">
+            <div class="music-key-section">
+                <input type="text" id="ytApiKeyInput" placeholder="Paste your YouTube Data API key" />
+                <button id="ytApiKeySave">💾 Save Key</button>
+                <span class="key-status" id="ytKeyStatus">Not set</span>
+            </div>
+            <div class="music-search">
+                <input type="text" id="musicQuery" placeholder="Search for a song..." />
+                <button id="musicSearchBtn">🔍 Search</button>
+            </div>
+            <div class="music-results" id="musicResults">
+                <div class="system">Search for a song to see results.</div>
+            </div>
+            <div class="yt-player-container" id="ytPlayerContainer">
+                <div id="ytPlayer"></div>
+            </div>
+            <div class="music-player-controls">
+                <button id="musicPlayPause">▶️ Play</button>
+                <button id="musicStop">⏹ Stop</button>
+                <span class="now-playing" id="nowPlaying">No song playing</span>
+                <span class="progress" id="musicProgress">0:00</span>
+            </div>
+            <div class="music-warning" id="musicWarning"></div>
+            <div class="music-error-detail" id="musicErrorDetail"></div>
+            <div class="music-note">💡 Plays audio directly via YouTube iframe – no local server needed.</div>
+        </div>
+    </div>
+
+    <div class="footer">Browser TTS · Puter AI · YouTube Music · Studio FX</div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ============================================================
+        //  DOM REFS (music)
+        // ============================================================
+        const ytApiKeyInput = document.getElementById('ytApiKeyInput');
+        const ytApiKeySave = document.getElementById('ytApiKeySave');
+        const ytKeyStatus = document.getElementById('ytKeyStatus');
+        const musicQuery = document.getElementById('musicQuery');
+        const musicSearchBtn = document.getElementById('musicSearchBtn');
+        const musicResults = document.getElementById('musicResults');
+        const musicPlayPause = document.getElementById('musicPlayPause');
+        const musicStop = document.getElementById('musicStop');
+        const nowPlaying = document.getElementById('nowPlaying');
+        const musicProgress = document.getElementById('musicProgress');
+        const musicWarning = document.getElementById('musicWarning');
+        const musicErrorDetail = document.getElementById('musicErrorDetail');
+        const ytPlayerContainer = document.getElementById('ytPlayerContainer');
+
+        // ============================================================
+        //  YOUTUBE API KEY (localStorage)
+        // ============================================================
+        function loadApiKey() {
+            const key = localStorage.getItem('yt_api_key') || '';
+            ytApiKeyInput.value = key;
+            updateKeyStatus(key);
+            return key;
+        }
+
+        function updateKeyStatus(key) {
+            if (key) {
+                ytKeyStatus.textContent = '✅ Key loaded';
+                ytKeyStatus.style.color = '#4cd964';
+            } else {
+                ytKeyStatus.textContent = '⭕ No key set';
+                ytKeyStatus.style.color = '#6a7a8a';
+            }
+        }
+
+        ytApiKeySave.addEventListener('click', () => {
+            const key = ytApiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('yt_api_key', key);
+                updateKeyStatus(key);
+                ytApiKeyInput.value = key;
+                musicWarning.textContent = '✅ API key saved. You can now search.';
+                setTimeout(() => { musicWarning.textContent = ''; }, 3000);
+            } else {
+                localStorage.removeItem('yt_api_key');
+                updateKeyStatus('');
+                musicWarning.textContent = '⛔ Key removed.';
+                setTimeout(() => { musicWarning.textContent = ''; }, 2000);
+            }
+        });
+
+        let currentApiKey = loadApiKey();
+
+        // ============================================================
+        //  TAB SWITCHING
+        // ============================================================
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                document.getElementById('tab-' + tab).classList.add('active');
+                if (tab === 'music') {
+                    musicErrorDetail.textContent = '';
+                    musicWarning.textContent = '';
+                }
+            });
+        });
+
+        // ============================================================
+        //  MUSIC SEARCH (YouTube Data API v3)
+        // ============================================================
+        async function searchYouTubeMusic(query) {
+            const key = currentApiKey || loadApiKey();
+            if (!key) {
+                throw new Error('Please set your YouTube Data API key first.');
+            }
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=10&q=${encodeURIComponent(query)}&key=${key}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Search failed');
+            }
+            const data = await response.json();
+            return data.items.map(item => ({
+                id: item.id.videoId,
+                title: item.snippet.title,
+                channel: item.snippet.channelTitle,
+                thumbnail: item.snippet.thumbnails.default.url,
+            }));
+        }
+
+        musicSearchBtn.addEventListener('click', async () => {
+            const query = musicQuery.value.trim();
+            if (!query) return;
+            musicSearchBtn.disabled = true;
+            musicSearchBtn.textContent = '⏳ Searching...';
+            musicResults.innerHTML = '<div class="system">⏳ Searching...</div>';
+            musicErrorDetail.textContent = '';
+            try {
+                const results = await searchYouTubeMusic(query);
+                if (results.length === 0) {
+                    musicResults.innerHTML = '<div class="system">No results found.</div>';
+                    return;
+                }
+                musicResults.innerHTML = '';
+                results.forEach(song => {
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `
+                        <span class="title">${song.title} – ${song.channel}</span>
+                        <button class="play-btn" data-id="${song.id}" data-title="${song.title}">▶ Play</button>
+                    `;
+                    musicResults.appendChild(div);
+                });
+                document.querySelectorAll('.music-results .play-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const videoId = this.dataset.id;
+                        const title = this.dataset.title;
+                        playYouTubeVideo(videoId, title);
+                    });
+                });
+            } catch (err) {
+                musicResults.innerHTML = `<div class="system error" style="color:#ff6a5a;">❌ ${err.message}</div>`;
+                if (err.message.includes('API key')) {
+                    musicWarning.textContent = '🔑 Please enter a valid YouTube Data API key.';
+                }
+            }
+            musicSearchBtn.disabled = false;
+            musicSearchBtn.textContent = '🔍 Search';
+        });
+
+        musicQuery.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') musicSearchBtn.click();
+        });
+
+        // ============================================================
+        //  YOUTUBE PLAYER – FIXED LOADING LOGIC
+        // ============================================================
+        let ytPlayer = null;
+        let ytPlayerReady = false;
+        let currentVideoId = null;
+        let isMusicPlaying = false;
+        let playerProgressInterval = null;
+        let playerVolume = 80;
+        let ytApiPromise = null;
+
+        // CORRECTED: only resolve when YT.Player is actually available
+        function loadYouTubeAPI() {
+            if (ytApiPromise) return ytApiPromise;
+
+            ytApiPromise = new Promise((resolve) => {
+                if (window.YT && window.YT.Player) {
+                    resolve();
+                    return;
+                }
+                // Preserve any existing callback
+                const previousCallback = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = () => {
+                    if (typeof previousCallback === 'function') previousCallback();
+                    resolve();
+                };
+                const script = document.createElement('script');
+                script.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(script);
+                // Do NOT resolve on script.onload – wait for the real callback
+            });
+
+            return ytApiPromise;
+        }
+
+        // Pre-load the API early so it's ready when the user clicks
+        loadYouTubeAPI();
+
+        function createPlayer(videoId) {
+            if (ytPlayer) {
+                ytPlayer.destroy();
+                ytPlayer = null;
+            }
+            ytPlayerContainer.style.display = 'block';
+            ytPlayer = new YT.Player('ytPlayer', {
+                height: '200',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    autoplay: 1,
+                    controls: 1,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0,
+                    fs: 0,
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange,
+                    onError: onPlayerError,
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            ytPlayerReady = true;
+            event.target.setVolume(playerVolume);
+            if (playerProgressInterval) clearInterval(playerProgressInterval);
+            playerProgressInterval = setInterval(() => {
+                if (ytPlayer && ytPlayer.getCurrentTime) {
+                    const current = ytPlayer.getCurrentTime();
+                    const duration = ytPlayer.getDuration();
+                    if (duration) {
+                        const mins = Math.floor(current / 60);
+                        const secs = Math.floor(current % 60);
+                        musicProgress.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    }
+                }
+            }, 1000);
+            musicWarning.textContent = '';
+            musicErrorDetail.textContent = '';
+            event.target.playVideo();
+            isMusicPlaying = true;
+            musicPlayPause.textContent = '⏸ Pause';
+        }
+
+        function onPlayerStateChange(event) {
+            const state = event.data;
+            if (state === YT.PlayerState.PLAYING) {
+                isMusicPlaying = true;
+                musicPlayPause.textContent = '⏸ Pause';
+            } else if (state === YT.PlayerState.PAUSED) {
+                isMusicPlaying = false;
+                musicPlayPause.textContent = '▶️ Play';
+            } else if (state === YT.PlayerState.ENDED) {
+                isMusicPlaying = false;
+                musicPlayPause.textContent = '▶️ Play';
+                nowPlaying.textContent = 'Finished';
+                musicProgress.textContent = '0:00';
+            }
+        }
+
+        function onPlayerError(event) {
+            console.error('YouTube player error:', event.data);
+            let errorMsg = 'YouTube playback error.';
+            let detail = '';
+            if (event.data === 2) {
+                errorMsg = 'Invalid video ID.';
+                detail = 'The video may be private or removed.';
+            } else if (event.data === 5) {
+                errorMsg = 'HTML5 player error.';
+                detail = 'Try a different video or refresh.';
+            } else if (event.data === 100) {
+                errorMsg = 'Video not found.';
+                detail = 'The video may be unavailable.';
+            } else if (event.data === 101 || event.data === 150) {
+                errorMsg = 'Embedding disabled.';
+                detail = 'This video does not allow embedding.';
+            } else {
+                detail = 'Error code: ' + event.data;
+            }
+            musicWarning.textContent = '⚠️ ' + errorMsg;
+            musicErrorDetail.textContent = '💡 ' + detail;
+            nowPlaying.textContent = '❌ Error';
+            isMusicPlaying = false;
+            musicPlayPause.textContent = '▶️ Play';
+        }
+
+        // ============================================================
+        //  PLAY SONG
+        // ============================================================
+        async function playYouTubeVideo(videoId, title) {
+            currentVideoId = videoId;
+            nowPlaying.textContent = `⏳ Loading ${title}...`;
+            musicWarning.textContent = '';
+            musicErrorDetail.textContent = '';
+
+            try {
+                // Wait for the API to be ready (resolves instantly if already loaded)
+                await loadYouTubeAPI();
+                if (ytPlayer && ytPlayer.loadVideoById) {
+                    ytPlayer.loadVideoById(videoId);
+                } else {
+                    createPlayer(videoId);
+                }
+                nowPlaying.textContent = `▶ ${title}`;
+            } catch (err) {
+                console.error('YouTube load error:', err);
+                musicWarning.textContent = '⚠️ Failed to load YouTube player.';
+                musicErrorDetail.textContent = '💡 ' + err.message;
+                nowPlaying.textContent = '❌ Error';
+            }
+        }
+
+        // ============================================================
+        //  PLAYER CONTROLS
+        // ============================================================
+        function togglePlayPause() {
+            if (!ytPlayer || !ytPlayerReady) {
+                const firstPlayBtn = document.querySelector('.music-results .play-btn');
+                if (firstPlayBtn) {
+                    firstPlayBtn.click();
+                } else {
+                    nowPlaying.textContent = '⏳ Search for a song first.';
+                }
+                return;
+            }
+            if (isMusicPlaying) {
+                ytPlayer.pauseVideo();
+            } else {
+                ytPlayer.playVideo();
+            }
+        }
+
+        function stopMusic() {
+            if (ytPlayer && ytPlayer.stopVideo) {
+                ytPlayer.stopVideo();
+            }
+            isMusicPlaying = false;
+            musicPlayPause.textContent = '▶️ Play';
+            nowPlaying.textContent = 'No song playing';
+            musicProgress.textContent = '0:00';
+            if (playerProgressInterval) {
+                clearInterval(playerProgressInterval);
+                playerProgressInterval = null;
+            }
+        }
+
+        musicPlayPause.addEventListener('click', togglePlayPause);
+        musicStop.addEventListener('click', stopMusic);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.key === ' ' && document.getElementById('tab-music').classList.contains('active')) {
+                e.preventDefault();
+                togglePlayPause();
+            }
+        });
+
+        // ============================================================
+        //  BACKGROUND MUSIC (reliable public domain track)
+        // ============================================================
+        const BG_MUSIC_URL = 'https://archive.org/download/BensoundJazzComedy/jazzcomedy.mp3';
+        const bgAudio = new Audio(BG_MUSIC_URL);
+        bgAudio.loop = true;
+        bgAudio.volume = 0.15;
+        let isBgMusicPlaying = false;
+        const musicBgBtn = document.getElementById('musicBtn');
+        const musicBgStatus = document.getElementById('musicStatus');
+
+        bgAudio.addEventListener('error', (e) => {
+            console.warn('Background music load error:', e);
+            musicBgStatus.textContent = '⚠️ Music unavailable';
+            musicBgStatus.style.color = '#ff6a5a';
+        });
+
+        musicBgBtn.addEventListener('click', () => {
+            if (isBgMusicPlaying) {
+                bgAudio.pause();
+                isBgMusicPlaying = false;
+                musicBgBtn.textContent = '🎵';
+                musicBgBtn.classList.remove('playing');
+                musicBgStatus.textContent = 'Background music: OFF';
+                musicBgStatus.style.color = '#4a5a6a';
+            } else {
+                bgAudio.play().then(() => {
+                    isBgMusicPlaying = true;
+                    musicBgBtn.textContent = '🔊';
+                    musicBgBtn.classList.add('playing');
+                    musicBgStatus.textContent = 'Background music: ON';
+                    musicBgStatus.style.color = '#4cd964';
+                }).catch(err => {
+                    console.warn('Music playback failed:', err);
+                    musicBgStatus.textContent = '⚠️ Music unavailable';
+                    musicBgStatus.style.color = '#ff6a5a';
+                    musicBgBtn.textContent = '🎵';
+                });
+            }
+        });
+
+        // ============================================================
+        //  RADIO HOST CODE – placeholder (insert your full code here)
+        // ============================================================
+        console.log('🎙️ SensyCilva – Studio Radio with YouTube Music loaded.');
+        console.log('🔑 Enter your YouTube API key in the Music tab.');
+        console.log('🎶 Background music URL:', BG_MUSIC_URL);
+        console.log('✅ YouTube IFrame API loads correctly now.');
+    })();
+</script>
+</body>
+</html>

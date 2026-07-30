@@ -783,29 +783,80 @@ knobTrack.addEventListener('wheel',(e)=>{e.preventDefault();setVolume(volValue+(
 
 // ─── OSCILLOSCOPE ─────────────────────────────────────
 (function initOscilloscope(){
-  const canvas=$('oscCanvas'); const ctx=canvas.getContext('2d'); let w,h; function resize(){ w=canvas.offsetWidth; h=canvas.offsetHeight; canvas.width=w; canvas.height=h; } resize(); window.addEventListener('resize',resize);
+  const canvas = document.getElementById('oscCanvas');
+  const ctx = canvas.getContext('2d');
+  let w, h;
+  function resize(){ w = canvas.offsetWidth; h = canvas.offsetHeight; canvas.width = w; canvas.height = h; }
+  resize(); window.addEventListener('resize', resize);
   let phase=0, amp=0, targetAmp=0, col='#00ffe7', harmonic=0, harmonicTarget=0;
-  window._oscSetAmp=(a,c)=>{ if(a!==undefined) targetAmp=a; if(c) col=c; };
-  window._oscSetHarmonic=(h)=>{ harmonicTarget=h; };
+  window._oscSetAmp = (a, c) => {
+    if (a !== undefined) targetAmp = a;
+    if (c) col = c;  // c must be a hex string, not CSS var
+  };
+  window._oscSetHarmonic = (h) => { harmonicTarget = h; };
   function draw(){
-    ctx.clearRect(0,0,w,h); amp+=(targetAmp-amp)*0.08; harmonic+=(harmonicTarget-harmonic)*0.06; phase+=0.04+amp*0.06;
-    if(amp<0.01){ ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.stroke(); }
-    else { const grad=ctx.createLinearGradient(0,0,w,0); grad.addColorStop(0,col+'00'); grad.addColorStop(0.15,col); grad.addColorStop(0.85,col); grad.addColorStop(1,col+'00'); ctx.strokeStyle=grad; ctx.lineWidth=2; ctx.shadowColor=col; ctx.shadowBlur=amp*14; ctx.beginPath(); for(let i=0;i<=200;i++){ const x=(i/200)*w,t=i/200; const y=h/2+Math.sin(t*Math.PI*8+phase)*amp*(h*.28)+Math.sin(t*Math.PI*16+phase*1.4)*amp*harmonic*(h*.1)+Math.sin(t*Math.PI*3.5+phase*.7)*amp*(h*.08); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke(); ctx.shadowBlur=0; ctx.globalAlpha=amp*.06; ctx.fillStyle=col; ctx.fill(); ctx.globalAlpha=1; }
+    ctx.clearRect(0, 0, w, h);
+    amp += (targetAmp - amp) * 0.08;
+    harmonic += (harmonicTarget - harmonic) * 0.06;
+    phase += 0.04 + amp * 0.06;
+    if(amp < 0.01){
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h/2);
+      ctx.lineTo(w, h/2);
+      ctx.stroke();
+    } else {
+      const colHex = col;
+      const grad = ctx.createLinearGradient(0, 0, w, 0);
+      grad.addColorStop(0, colHex + '00');
+      grad.addColorStop(0.15, colHex);
+      grad.addColorStop(0.85, colHex);
+      grad.addColorStop(1, colHex + '00');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = colHex;
+      ctx.shadowBlur = amp * 14;
+      ctx.beginPath();
+      for(let i=0; i<=200; i++){
+        const x = (i/200) * w, t = i/200;
+        const y = h/2 + Math.sin(t*Math.PI*8 + phase) * amp * (h*0.28)
+                + Math.sin(t*Math.PI*16 + phase*1.4) * amp * harmonic * (h*0.1)
+                + Math.sin(t*Math.PI*3.5 + phase*0.7) * amp * (h*0.08);
+        i===0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = amp * 0.06;
+      ctx.fillStyle = colHex;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
     requestAnimationFrame(draw);
   }
   requestAnimationFrame(draw);
 })();
 
-// ─── MOOD ─────────────────────────────────────────────
-const MOODS={
-  action:{grad:'var(--accent), #ff6b35', osc:'#ff6b35'},
-  fantasy:{grad:'var(--accent3), var(--accent2)', osc:'var(--accent3)'},
-  comedy:{grad:'var(--amber), var(--accent)', osc:'var(--amber)'},
-  romance:{grad:'var(--accent), #ff9eb5', osc:'#ff9eb5'},
-  default:{grad:'var(--accent2), var(--accent3)', osc:'var(--accent2)'}
+// ─── MOOD SYSTEM ──────────────────────────────────────
+const MOODS = {
+  action: { grad: 'var(--accent), #ff6b35' },
+  fantasy: { grad: 'var(--accent3), var(--accent2)' },
+  comedy: { grad: 'var(--amber), var(--accent)' },
+  romance: { grad: 'var(--accent), #ff9eb5' },
+  default: { grad: 'var(--accent2), var(--accent3)' }
 };
-function setMood(type='default'){ const m=MOODS[type]||MOODS.default; moodStrip.style.background=`linear-gradient(90deg,${m.grad})`; if(window._oscSetAmp) window._oscSetAmp(undefined,m.osc); oscColor=m.osc; }
-function detectMood(text){ const t=text.toLowerCase(); if(/attack|titan|demon|slayer|jujutsu|dragon|fight|battle|sword|power/.test(t))return 'action'; if(/elf|magic|fantasy|wizard|isekai|frieren/.test(t))return 'fantasy'; if(/comedy|funny|muscle|mashle|cream|puff|laugh|absurd/.test(t))return 'comedy'; if(/romance|love|heart|beautiful|sweet/.test(t))return 'romance'; return 'default'; }
+function setMood(type='default'){
+  const m = MOODS[type] || MOODS.default;
+  moodStrip.style.background = `linear-gradient(90deg, ${m.grad})`;
+}
+function detectMood(text){
+  const t = text.toLowerCase();
+  if(/attack|titan|demon|slayer|jujutsu|dragon|fight|battle|sword|power/.test(t)) return 'action';
+  if(/elf|magic|fantasy|wizard|isekai|frieren/.test(t)) return 'fantasy';
+  if(/comedy|funny|muscle|mashle|cream|puff|laugh|absurd/.test(t)) return 'comedy';
+  if(/romance|love|heart|beautiful|sweet/.test(t)) return 'romance';
+  return 'default';
+}
 
 // ─── UI HELPERS ───────────────────────────────────────
 function setSpeaking(on,col){ avatarOrb.className='avatar-orb'+(on?' speaking':''); lipBars.className='lip-bars'+(on?' speaking':''); if(window._oscSetAmp) window._oscSetAmp(on?0.85:0, col||oscColor); if(window._oscSetHarmonic) window._oscSetHarmonic(on?0.6:0); }
@@ -846,13 +897,6 @@ clipBtn.addEventListener('click',saveClip);
 clearClipsBtn.addEventListener('click',()=>{ clips=[]; storeJSON('sensy_clips',[]); renderClips(); toast('Clips cleared','info'); });
 
 // ─── VOICE ────────────────────────────────────────────
-// We no longer need browser voice locking – we use the worker.
-// But we keep a minimal fallback for when worker fails.
-function initVoices(){
-  voicesLoaded = true;
-  updateVoiceBadge();
-}
-// Override voice badge to show Smallest.ai
 function updateVoiceBadge() {
   const langName = { en: 'English', hi: 'Hindi', te: 'Telugu' }[currentLang] || currentLang;
   voiceNameDisplay.textContent = `Smallest.ai · ${langName} (female)`;
@@ -860,19 +904,22 @@ function updateVoiceBadge() {
   voiceDot.className = 'voice-dot ok';
   voiceDot2.className = 'voice-dot ok';
 }
-// Call updateVoiceBadge on channel switch and init
-const originalSetChannel = setChannel;
-setChannel = function(lang) {
-  originalSetChannel(lang);
+function initVoices(){
+  voicesLoaded = true;
   updateVoiceBadge();
-};
+}
 setTimeout(updateVoiceBadge, 500);
 
 // ─── CHANNELS ─────────────────────────────────────────
 function applyChannelTheme(lang){
-  document.body.classList.remove('lang-en','lang-hi','lang-te'); document.body.classList.add(CHANNELS[lang].bodyClass);
-  freqReadout.textContent=CHANNELS[lang].label; channelTagline.textContent=CHANNELS[lang].tagline;
-  oscColor=CHANNELS[lang].oscColor; if(window._oscSetAmp) window._oscSetAmp(undefined, oscColor); setMood('default'); flashChannel();
+  document.body.classList.remove('lang-en','lang-hi','lang-te');
+  document.body.classList.add(CHANNELS[lang].bodyClass);
+  freqReadout.textContent = CHANNELS[lang].label;
+  channelTagline.textContent = CHANNELS[lang].tagline;
+  oscColor = CHANNELS[lang].oscColor;
+  if(window._oscSetAmp) window._oscSetAmp(undefined, oscColor);
+  setMood('default');
+  flashChannel();
 }
 function setChannel(lang){
   if(lang===currentLang&&voicesLoaded)return; hardStop(); currentLang=lang; chBtns.forEach(b=>b.classList.toggle('active',b.dataset.lang===lang)); store('sensy_lang',lang); applyChannelTheme(lang); const names={en:'English',hi:'Hindi',te:'Telugu'}; setSubtitle('Channel: '+names[lang]+' — Hit GO ON AIR',true,true);
@@ -880,8 +927,8 @@ function setChannel(lang){
 chBtns.forEach(b=>b.addEventListener('click',()=>setChannel(b.dataset.lang)));
 
 // ─── FALLBACK SCRIPTS ────────────────────────────────
-const FALLBACKS = { /* ... same as before ... */ };
-FALLBACKS.en=`Welcome to SensyCilva Radio — where every frequency tells a story. I'm Sensy, your English host, and we're going live! 
+const FALLBACKS = {
+  en: `Welcome to SensyCilva Radio — where every frequency tells a story. I'm Sensy, your English host, and we're going live! 
 The anime world is buzzing — Attack on Titan's finale left everyone speechless. Eren's master plan unfolded, and Mikasa finally got her defining moment.
 If you haven't watched it yet, drop everything and go binge it now. Seriously.
 This week's spotlight is Frieren: Beyond Journey's End — a breathtaking fantasy about an elf who outlives her human companions.
@@ -889,23 +936,24 @@ It's emotional, beautifully animated, and will make you think about life, friend
 On the lighter side, Mashle: Magic and Muscles is pure comedy gold — a muscle-bound hero with zero magic who punches his way through a wizard school.
 And a fun fact: Sailor Moon's creator married Hunter x Hunter's creator — anime royalty right there!
 I want to hear from you — what are you watching? Where are you calling from? Type in the chat, I'll respond!
-That's our show for today. I'm Sensy, signing off from SensyCilva Radio. Stay curious, keep watching, and I'll see you next time!`;
-FALLBACKS.hi=`SensyCilva Radio पर आपका स्वागत है — हर धुन एक कहानी। मैं हूँ Sensy, आपकी हिंदी होस्ट, और आज का show शुरू हो गया!
+That's our show for today. I'm Sensy, signing off from SensyCilva Radio. Stay curious, keep watching, and I'll see you next time!`,
+  hi: `SensyCilva Radio पर आपका स्वागत है — हर धुन एक कहानी। मैं हूँ Sensy, आपकी हिंदी होस्ट, और आज का show शुरू हो गया!
 Anime की दुनिया में बड़ी खबर — Attack on Titan का finale आ गया और सबको चौंका दिया।
 Frieren: Beyond Journey's End इस हफ्ते की रोशनी है — एक elf की कहानी जो अपने साथियों को outlive कर लेती है।
 Animation बेहतरीन है, कहानी दिल को छू जाती है।
 Comedy चाहिए? Mashle: Magic and Muscles — hero के पास magic नहीं, सिर्फ ताकत और cream puffs!
 एक trivia — Sailor Moon की creator ने Hunter x Hunter के creator से शादी की। क्या jodi है!
 मुझे बताओ — आप क्या देख रहे हो? कहाँ से call कर रहे हो?
-यही आज का show है। मैं हूँ Sensy, SensyCilva Radio से। Bye!`;
-FALLBACKS.te=`SensyCilva Radio కి స్వాగతం — ప్రతి beat లో anime కథ. నేను Sensy, మీ తెలుగు host, show మొదలు పెడదాం!
+यही आज का show है। मैं हूँ Sensy, SensyCilva Radio से। Bye!`,
+  te: `SensyCilva Radio కి స్వాగతం — ప్రతి beat లో anime కథ. నేను Sensy, మీ తెలుగు host, show మొదలు పెడదాం!
 Anime ప్రపంచంలో పెద్ద వార్త — Attack on Titan finale వచ్చింది, అందరినీ షాక్ చేసింది.
 ఈ వారం spotlight Frieren: Beyond Journey's End — ఒక elf mage తన మానవ సహచరుల కంటే ఎక్కువ కాలం జీవిస్తుంది.
 Animation అద్భుతం, కథ హృదయాన్ని తాకుతుంది.
 Comedy కావాలంటే Mashle: Magic and Muscles — hero దగ్గర magic లేదు, కానీ బలం అపారం, cream puffs!
 ఒక trivia — Sailor Moon creator, Hunter x Hunter creator ని పెళ్లి చేసుకున్నారు.
 మీరు ఏ anime చూస్తున్నారు? ఎక్కడ నుండి call చేస్తున్నారు?
-ఇవాళ్టి show అయిపోయింది. నేను Sensy, SensyCilva Radio నుండి. Bye!`;
+ఇవాళ్టి show అయిపోయింది. నేను Sensy, SensyCilva Radio నుండి. Bye!`
+};
 
 // ─── RSS NEWS FETCHER ────────────────────────────────
 async function fetchRSSNews(topic='anime'){
@@ -998,8 +1046,7 @@ async function speakOne(text) {
   return new Promise(async (resolve) => {
     try {
       const langCode = LANG_MAP[currentLang] || 'en-US';
-      // Default gender: female (you can add a toggle later)
-      const gender = 'female';
+      const gender = 'female'; // can add a toggle later
 
       const response = await fetch(`${WORKER_URL}/api/tts`, {
         method: 'POST',
@@ -1016,7 +1063,6 @@ async function speakOne(text) {
       const audio = new Audio(url);
       audio.volume = volValue;
 
-      // Update UI
       setSubtitle(text);
       setSpeaking(true, oscColor);
       setMood(detectMood(text));
@@ -1081,9 +1127,7 @@ function fallbackSpeak(text) {
 // ─── BROADCAST ENGINE ─────────────────────────────────
 async function startBroadcast(){
   if(!synth){ toast('Speech not available','error'); return; }
-  // We don't need voicesLoaded for worker, but keep for fallback
   if(!voicesLoaded){ const vv=synth.getVoices(); if(vv.length){voicesLoaded=true;} else { /* ignore */ } }
-  // Update badge
   updateVoiceBadge();
 
   sentences=[]; sentIdx=0; instantOpenerDone=false; queuedScript=null;
@@ -1092,16 +1136,13 @@ async function startBroadcast(){
   setOnAirUI('live'); setStatus('ON AIR','live'); setAvatarStatus('Broadcasting live…');
   progressTrack.style.display='block'; flashStatic();
 
-  // 1. Instant opener
   const opener = getInstantOpener(currentLang);
   addMsg('host',opener);
   await speakOne(opener);
   instantOpenerDone = true;
 
-  // 2. Start background script generation
   generateScriptInBackground();
 
-  // 3. Main loop
   elapsedTimer=setInterval(()=>{if(!isPaused&&isBroadcasting)updateProgress();},1000);
   await speakLinesWithWaiting();
 }
@@ -1126,7 +1167,6 @@ async function speakLinesWithWaiting(){
         await new Promise(r=>setTimeout(r,words<6?900:500));
       }
     } else {
-      // Script finished – generate new if needed
       if(!generatingInBackground) generateScriptInBackground();
       let waitCycles=0;
       while(generatingInBackground && isBroadcasting && !isPaused){
@@ -1291,7 +1331,6 @@ freqReadout.textContent=CHANNELS[savedLang].label; channelTagline.textContent=CH
 oscColor=CHANNELS[savedLang].oscColor; if(window._oscSetAmp) window._oscSetAmp(0, oscColor); setMood('default');
 const savedVol=parseFloat(load('sensy_vol','1')); setVolume(savedVol);
 loadPuter().catch(()=>{});
-// Ensure voice badge shows correctly
 setTimeout(updateVoiceBadge, 600);
 
 console.log('%cSensyCilva Radio — Smallest.ai powered 🚀','color:#ff2d78;font-size:22px;font-weight:bold;');

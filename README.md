@@ -39,17 +39,17 @@ Switching channels changes the colour palette, oscilloscope colour, Sensy's lang
 
 ```
 ┌─────────────────────────────────────────────────┐
-│                  Browser (HTML)                  │
-│                                                  │
+│                  Browser (HTML)                 │
+│                                                 │
 │  ┌──────────┐   ┌──────────┐   ┌─────────────┐  │
-│  │  Puter.js │   │  Web TTS │   │  YouTube    │  │
-│  │  (Gemini) │   │  SpeechSy│   │  IFrame API │  │
+│  │  Puter.js│   │  Web TTS │   │  YouTube    │  │
+│  │  (Gemini)│   │  SpeechSy│   │  IFrame API │  │
 │  └────┬─────┘   └────┬─────┘   └──────┬──────┘  │
-│       │              │                │           │
-│       ▼              ▼                ▼           │
-│  AI Script      Sensy speaks    Music plays       │
-│  generation     with lip-sync   in the embed      │
-└─────────────────────────────────────────────────-┘
+│       │              │                │         │
+│       ▼              ▼                ▼         │
+│  AI Script      Sensy speaks    Music plays     │
+│  generation     with lip-sync   in the embed    │
+└─────────────────────────────────────────────────┘
                           │
                           │ /api/youtube/search
                           ▼

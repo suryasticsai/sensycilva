@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SensyCilva Radio — AI Host</title>
+<title>SensyCilva — AI Radio with Smallest.ai</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='32' y='48' text-anchor='middle' font-size='48' font-family='Arial'%3E🎙%3C/text%3E%3C/svg%3E">
 <style>
 /* ═══════════════════════════════════════════════════
@@ -478,20 +478,14 @@ select:focus{border-color:var(--accent2);}
             <img src="logo.png" alt="SensyCilva" id="logoImg" onerror="this.style.display='none';this.parentElement.textContent='🎙'">
           </div>
           <div class="brand-text">
-            <div class="eyebrow">
-              <div class="eyebrow-dot"></div>
-              <span id="freqReadout">FM 92.4 · SENSYCILVA ENGLISH CHANNEL</span>
-            </div>
+            <div class="eyebrow"><div class="eyebrow-dot"></div><span id="freqReadout">FM 92.4 · SENSYCILVA ENGLISH CHANNEL</span></div>
             <h1>Sensy<span class="brand-color">Cilva</span></h1>
             <div class="tagline" id="channelTagline">Frequencies from another dimension — AI host, real vibes</div>
           </div>
         </div>
         <div style="display:flex;gap:8px;">
           <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark">🌙/☀️</button>
-          <button class="onair-btn" id="onAirBtn">
-            <span class="lamp" id="onAirLamp"></span>
-            <span id="onAirLabel">GO ON AIR</span>
-          </button>
+          <button class="onair-btn" id="onAirBtn"><span class="lamp" id="onAirLamp"></span><span id="onAirLabel">GO ON AIR</span></button>
         </div>
       </div>
       <div class="hero-bottom">
@@ -622,8 +616,18 @@ select:focus{border-color:var(--accent2);}
 'use strict';
 
 // ════════════════════════════════════════════════════
-//  DOM REFS
+//  CONFIG — set your Worker URL here
 // ════════════════════════════════════════════════════
+const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev'; // <-- CHANGE THIS TO YOUR WORKER
+
+// Language codes for Smallest.ai
+const LANG_MAP = {
+  en: 'en-US',
+  hi: 'hi-IN',
+  te: 'te-IN'
+};
+
+// ─── DOM REFS ──────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const onAirBtn=$('onAirBtn'), onAirLamp=$('onAirLamp'), onAirLabel=$('onAirLabel');
 const pauseBtn=$('pauseBtn');
@@ -650,9 +654,7 @@ const statsWords=$('statsWords'), statsSongs=$('statsSongs'), statsTime=$('stats
 const themeToggle=$('themeToggle');
 const aboutModal=$('aboutModal'), aboutClose=$('aboutClose'), aboutBtn=$('aboutBtn');
 
-// ════════════════════════════════════════════════════
-//  CHANNEL CONFIGS
-// ════════════════════════════════════════════════════
+// ─── CHANNEL CONFIGS ──────────────────────────────────
 const CHANNELS = {
   en: {
     label: 'FM 92.4 · SENSYCILVA ENGLISH CHANNEL',
@@ -680,9 +682,7 @@ const CHANNELS = {
   }
 };
 
-// ════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════
+// ─── STATE ────────────────────────────────────────────
 const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
 let currentLang = 'en';
 let lockedVoice = null;
@@ -699,9 +699,9 @@ let currentUtterance = null;
 let currentSpokenLine = '';
 
 let puterReady = false;
-let generatingInBackground = false; // true while script is being generated in background
+let generatingInBackground = false;
 let instantOpenerDone = false;
-let queuedScript = null; // script generated in background
+let queuedScript = null;
 
 let ytPlayer = null, ytReady = false, ytApiLoaded = false, ytApiPromise = null;
 let musicPlaying = false;
@@ -716,7 +716,7 @@ let stats = { words:0, songs:0, lines:0, msgs:0, sessionStart:Date.now() };
 let clips = [];
 let oscColor = '#00ffe7';
 
-// ─── SONG FUN FACTS ───
+// ─── SONG FACTS ───────────────────────────────────────
 const SONG_FACTS = [
   "Anime OSTs often outsell the anime's DVD releases in Japan!",
   "Yoko Kanno composed over 100 tracks for Cowboy Bebop — in just months.",
@@ -740,20 +740,20 @@ funFactTicker.style.transition='opacity .4s ease';
 function startFunFacts(){ funFactTicker.classList.add('visible'); funFactText.textContent=SONG_FACTS[Math.floor(Math.random()*SONG_FACTS.length)]; if(funFactInterval) clearInterval(funFactInterval); funFactInterval=setInterval(showNextFunFact,8000); }
 function stopFunFacts(){ funFactTicker.classList.remove('visible'); if(funFactInterval){clearInterval(funFactInterval);funFactInterval=null;} }
 
-// ─── STORAGE ───
+// ─── STORAGE ──────────────────────────────────────────
 function store(k,v){try{v===null?localStorage.removeItem(k):localStorage.setItem(k,String(v));}catch(e){}}
 function load(k,def=''){try{return localStorage.getItem(k)||def;}catch(e){return def;}}
 function loadJSON(k,def){try{return JSON.parse(localStorage.getItem(k)||'null')||def;}catch(e){return def;}}
 function storeJSON(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
-// ─── TOAST ───
+// ─── TOAST ────────────────────────────────────────────
 function toast(msg,type='info',duration=3000){
   const el=document.createElement('div'); el.className=`toast ${type}`; const icon={success:'✓',error:'✗',info:'◈'}[type]||'◈';
   el.innerHTML=`<span>${icon}</span> ${esc(msg)}`; toastContainer.appendChild(el);
   setTimeout(()=>{ el.style.animation='toast-out .3s forwards'; setTimeout(()=>el.remove(),350); },duration);
 }
 
-// ─── VOLUME KNOB ───
+// ─── VOLUME KNOB ──────────────────────────────────────
 let isDraggingKnob=false, knobStartY=0, knobStartVal=1;
 function setVolume(v){ v=Math.max(0,Math.min(1,v)); volValue=v; volSlider.value=v; store('sensy_vol',v); const pct=Math.round(v*100); knobCenter.textContent=pct+'%'; const deg=Math.round(v*320); knobTrack.style.background=`conic-gradient(var(--accent2) ${deg}deg, rgba(255,255,255,.08) ${deg}deg, rgba(255,255,255,.08) 320deg)`; const rotateDeg=-160+(v*320); knobDot.style.transform=`translateX(-50%) rotate(${rotateDeg}deg)`; }
 knobTrack.addEventListener('mousedown',(e)=>{isDraggingKnob=true;knobStartY=e.clientY;knobStartVal=volValue;document.body.style.userSelect='none';});
@@ -767,28 +767,7 @@ vol50.addEventListener('click',()=>{setVolume(0.5);toast('Volume: 50%','info');}
 vol100.addEventListener('click',()=>{setVolume(1);toast('Volume: 100%','success');});
 knobTrack.addEventListener('wheel',(e)=>{e.preventDefault();setVolume(volValue+(e.deltaY<0?0.05:-0.05));},{passive:false});
 
-// ─── VOICE ───
-const VOICE_PREFS={
-  en:['Google UK English Female','Google UK English Male','Microsoft Hazel - English (Great Britain)','Karen','Moira','Samantha','Google US English','en-US','en-GB','en-IN','en'],
-  hi:['Google हिन्दी','Google Hindi','Microsoft Swara - Hindi (India)','Lekha','hi-IN','hi'],
-  te:['Google తెలుగు','Google Telugu','Microsoft Chitra','Chitra','te-IN','te']
-};
-function pickVoice(lang){
-  if(!synth)return null; const voices=synth.getVoices(); if(!voices.length)return null; const prefs=VOICE_PREFS[lang]||VOICE_PREFS.en;
-  for(const p of prefs){ let v=voices.find(x=>x.name===p); if(v)return v; v=voices.find(x=>x.lang.startsWith(p)); if(v)return v; }
-  return voices.find(v=>v.lang.startsWith(lang))||voices[0]||null;
-}
-function lockVoiceForLang(lang){
-  const v=pickVoice(lang); lockedVoice=v;
-  if(v){ voiceDot.className='voice-dot ok'; voiceDot2.className='voice-dot ok'; voiceNameDisplay.textContent=v.name; voiceInfo.textContent=v.name+' ('+v.lang+')'; }
-  else { voiceDot.className='voice-dot err'; voiceDot2.className='voice-dot err'; voiceNameDisplay.textContent='No voice — using default'; voiceInfo.textContent='No voice found'; }
-  return v;
-}
-function initVoices(){ if(!synth)return; const voices=synth.getVoices(); if(voices.length){voicesLoaded=true; lockVoiceForLang(currentLang);} }
-if(synth){ if('onvoiceschanged' in synth) synth.onvoiceschanged=()=>initVoices(); setTimeout(initVoices,200); setTimeout(initVoices,600); setTimeout(initVoices,1500); }
-else { voiceDot.className='voice-dot err'; voiceDot2.className='voice-dot err'; voiceNameDisplay.textContent='TTS not supported'; voiceInfo.textContent='TTS unavailable in this browser'; }
-
-// ─── STARFIELD ───
+// ─── STARFIELD ────────────────────────────────────────
 (function initStarfield(){
   const canvas=$('starfield'); const ctx=canvas.getContext('2d'); let stars=[];
   function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
@@ -802,7 +781,7 @@ else { voiceDot.className='voice-dot err'; voiceDot2.className='voice-dot err'; 
   requestAnimationFrame(draw);
 })();
 
-// ─── OSCILLOSCOPE ───
+// ─── OSCILLOSCOPE ─────────────────────────────────────
 (function initOscilloscope(){
   const canvas=$('oscCanvas'); const ctx=canvas.getContext('2d'); let w,h; function resize(){ w=canvas.offsetWidth; h=canvas.offsetHeight; canvas.width=w; canvas.height=h; } resize(); window.addEventListener('resize',resize);
   let phase=0, amp=0, targetAmp=0, col='#00ffe7', harmonic=0, harmonicTarget=0;
@@ -817,7 +796,7 @@ else { voiceDot.className='voice-dot err'; voiceDot2.className='voice-dot err'; 
   requestAnimationFrame(draw);
 })();
 
-// ─── MOOD ───
+// ─── MOOD ─────────────────────────────────────────────
 const MOODS={
   action:{grad:'var(--accent), #ff6b35', osc:'#ff6b35'},
   fantasy:{grad:'var(--accent3), var(--accent2)', osc:'var(--accent3)'},
@@ -828,7 +807,7 @@ const MOODS={
 function setMood(type='default'){ const m=MOODS[type]||MOODS.default; moodStrip.style.background=`linear-gradient(90deg,${m.grad})`; if(window._oscSetAmp) window._oscSetAmp(undefined,m.osc); oscColor=m.osc; }
 function detectMood(text){ const t=text.toLowerCase(); if(/attack|titan|demon|slayer|jujutsu|dragon|fight|battle|sword|power/.test(t))return 'action'; if(/elf|magic|fantasy|wizard|isekai|frieren/.test(t))return 'fantasy'; if(/comedy|funny|muscle|mashle|cream|puff|laugh|absurd/.test(t))return 'comedy'; if(/romance|love|heart|beautiful|sweet/.test(t))return 'romance'; return 'default'; }
 
-// ─── UI HELPERS ───
+// ─── UI HELPERS ───────────────────────────────────────
 function setSpeaking(on,col){ avatarOrb.className='avatar-orb'+(on?' speaking':''); lipBars.className='lip-bars'+(on?' speaking':''); if(window._oscSetAmp) window._oscSetAmp(on?0.85:0, col||oscColor); if(window._oscSetHarmonic) window._oscSetHarmonic(on?0.6:0); }
 function setThinking(on){ avatarOrb.className='avatar-orb'; lipBars.className='lip-bars'; if(window._oscSetAmp) window._oscSetAmp(on?0.3:0,'#f5a623'); }
 function setOnAirUI(state){
@@ -855,7 +834,7 @@ function addTypingIndicator(){ const div=document.createElement('div'); div.clas
 function removeTypingIndicator(){ const el=$('typingIndicator'); if(el)el.remove(); }
 function updateStatsDisplay(){ stWords.textContent=stats.words; stSongs.textContent=stats.songs; stLines.textContent=stats.lines; stMsgs.textContent=stats.msgs; statsWords.textContent=stats.words; statsSongs.textContent=stats.songs; }
 
-// ─── CLIPS ───
+// ─── CLIPS ────────────────────────────────────────────
 clips=loadJSON('sensy_clips',[]);
 function renderClips(){
   if(!clips.length){ clipsList.innerHTML='<div class="clips-empty">No clips yet — click 🔖 while Sensy speaks</div>'; return; }
@@ -866,41 +845,43 @@ function saveClip(){ if(!currentSpokenLine)return; const now=new Date(); clips.p
 clipBtn.addEventListener('click',saveClip);
 clearClipsBtn.addEventListener('click',()=>{ clips=[]; storeJSON('sensy_clips',[]); renderClips(); toast('Clips cleared','info'); });
 
-// ─── TTS ───
-function speakOne(text){
-  return new Promise((resolve)=>{
-    if(!synth){ resolve(); return; }
-    if(synth.speaking||synth.pending) synth.cancel();
-    setTimeout(()=>{
-      let voice=lockedVoice; if(!voice){ const vv=synth.getVoices(); voice=vv.find(v=>v.lang.startsWith(currentLang))||vv[0]||null; }
-      const utt=new SpeechSynthesisUtterance(text);
-      utt.voice=voice||null; utt.rate=0.88; utt.volume=volValue; utt.pitch=0.95;
-      utt.lang=voice?voice.lang:(currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US');
-      let resolved=false; const done=()=>{ if(!resolved){ resolved=true; resolve(); } };
-      utt.onstart=()=>{ currentSpokenLine=text; setSubtitle(text); setSpeaking(true, oscColor); setMood(detectMood(text)); stats.words+=(text.match(/\S+/g)||[]).length; updateStatsDisplay(); };
-      const timeout=Math.max(6000,text.length*120); const watchdog=setTimeout(()=>{ if(!resolved){ if(synth.speaking) synth.cancel(); setSpeaking(false); currentUtterance=null; done(); } },timeout);
-      utt.onend=()=>{ clearTimeout(watchdog); setSpeaking(false); currentUtterance=null; done(); };
-      utt.onerror=(e)=>{ console.warn('TTS error:',e.error); clearTimeout(watchdog); setSpeaking(false); currentUtterance=null; done(); };
-      currentUtterance=utt; synth.speak(utt);
-    },80);
-  });
+// ─── VOICE ────────────────────────────────────────────
+// We no longer need browser voice locking – we use the worker.
+// But we keep a minimal fallback for when worker fails.
+function initVoices(){
+  voicesLoaded = true;
+  updateVoiceBadge();
 }
-function stopTTS(){ if(synth&&(synth.speaking||synth.pending)) synth.cancel(); setSpeaking(false); currentUtterance=null; }
+// Override voice badge to show Smallest.ai
+function updateVoiceBadge() {
+  const langName = { en: 'English', hi: 'Hindi', te: 'Telugu' }[currentLang] || currentLang;
+  voiceNameDisplay.textContent = `Smallest.ai · ${langName} (female)`;
+  voiceInfo.textContent = `Smallest.ai · ${langName} · via Worker`;
+  voiceDot.className = 'voice-dot ok';
+  voiceDot2.className = 'voice-dot ok';
+}
+// Call updateVoiceBadge on channel switch and init
+const originalSetChannel = setChannel;
+setChannel = function(lang) {
+  originalSetChannel(lang);
+  updateVoiceBadge();
+};
+setTimeout(updateVoiceBadge, 500);
 
-// ─── CHANNELS ───
+// ─── CHANNELS ─────────────────────────────────────────
 function applyChannelTheme(lang){
   document.body.classList.remove('lang-en','lang-hi','lang-te'); document.body.classList.add(CHANNELS[lang].bodyClass);
   freqReadout.textContent=CHANNELS[lang].label; channelTagline.textContent=CHANNELS[lang].tagline;
   oscColor=CHANNELS[lang].oscColor; if(window._oscSetAmp) window._oscSetAmp(undefined, oscColor); setMood('default'); flashChannel();
 }
 function setChannel(lang){
-  if(lang===currentLang&&voicesLoaded)return; hardStop(); currentLang=lang; chBtns.forEach(b=>b.classList.toggle('active',b.dataset.lang===lang)); store('sensy_lang',lang); lockVoiceForLang(lang); sentences=[]; sentIdx=0; applyChannelTheme(lang); const names={en:'English',hi:'Hindi',te:'Telugu'}; setSubtitle('Channel: '+names[lang]+' — Hit GO ON AIR',true,true);
+  if(lang===currentLang&&voicesLoaded)return; hardStop(); currentLang=lang; chBtns.forEach(b=>b.classList.toggle('active',b.dataset.lang===lang)); store('sensy_lang',lang); applyChannelTheme(lang); const names={en:'English',hi:'Hindi',te:'Telugu'}; setSubtitle('Channel: '+names[lang]+' — Hit GO ON AIR',true,true);
 }
 chBtns.forEach(b=>b.addEventListener('click',()=>setChannel(b.dataset.lang)));
 
-// ─── FALLBACK SCRIPTS ───
-const FALLBACKS = {
-en:`Welcome to SensyCilva Radio — where every frequency tells a story. I'm Sensy, your English host, and we're going live! 
+// ─── FALLBACK SCRIPTS ────────────────────────────────
+const FALLBACKS = { /* ... same as before ... */ };
+FALLBACKS.en=`Welcome to SensyCilva Radio — where every frequency tells a story. I'm Sensy, your English host, and we're going live! 
 The anime world is buzzing — Attack on Titan's finale left everyone speechless. Eren's master plan unfolded, and Mikasa finally got her defining moment.
 If you haven't watched it yet, drop everything and go binge it now. Seriously.
 This week's spotlight is Frieren: Beyond Journey's End — a breathtaking fantasy about an elf who outlives her human companions.
@@ -908,38 +889,36 @@ It's emotional, beautifully animated, and will make you think about life, friend
 On the lighter side, Mashle: Magic and Muscles is pure comedy gold — a muscle-bound hero with zero magic who punches his way through a wizard school.
 And a fun fact: Sailor Moon's creator married Hunter x Hunter's creator — anime royalty right there!
 I want to hear from you — what are you watching? Where are you calling from? Type in the chat, I'll respond!
-That's our show for today. I'm Sensy, signing off from SensyCilva Radio. Stay curious, keep watching, and I'll see you next time!`,
-hi:`SensyCilva Radio पर आपका स्वागत है — हर धुन एक कहानी। मैं हूँ Sensy, आपकी हिंदी होस्ट, और आज का show शुरू हो गया!
+That's our show for today. I'm Sensy, signing off from SensyCilva Radio. Stay curious, keep watching, and I'll see you next time!`;
+FALLBACKS.hi=`SensyCilva Radio पर आपका स्वागत है — हर धुन एक कहानी। मैं हूँ Sensy, आपकी हिंदी होस्ट, और आज का show शुरू हो गया!
 Anime की दुनिया में बड़ी खबर — Attack on Titan का finale आ गया और सबको चौंका दिया।
 Frieren: Beyond Journey's End इस हफ्ते की रोशनी है — एक elf की कहानी जो अपने साथियों को outlive कर लेती है।
 Animation बेहतरीन है, कहानी दिल को छू जाती है।
 Comedy चाहिए? Mashle: Magic and Muscles — hero के पास magic नहीं, सिर्फ ताकत और cream puffs!
 एक trivia — Sailor Moon की creator ने Hunter x Hunter के creator से शादी की। क्या jodi है!
 मुझे बताओ — आप क्या देख रहे हो? कहाँ से call कर रहे हो?
-यही आज का show है। मैं हूँ Sensy, SensyCilva Radio से। Bye!`,
-te:`SensyCilva Radio కి స్వాగతం — ప్రతి beat లో anime కథ. నేను Sensy, మీ తెలుగు host, show మొదలు పెడదాం!
+यही आज का show है। मैं हूँ Sensy, SensyCilva Radio से। Bye!`;
+FALLBACKS.te=`SensyCilva Radio కి స్వాగతం — ప్రతి beat లో anime కథ. నేను Sensy, మీ తెలుగు host, show మొదలు పెడదాం!
 Anime ప్రపంచంలో పెద్ద వార్త — Attack on Titan finale వచ్చింది, అందరినీ షాక్ చేసింది.
 ఈ వారం spotlight Frieren: Beyond Journey's End — ఒక elf mage తన మానవ సహచరుల కంటే ఎక్కువ కాలం జీవిస్తుంది.
 Animation అద్భుతం, కథ హృదయాన్ని తాకుతుంది.
 Comedy కావాలంటే Mashle: Magic and Muscles — hero దగ్గర magic లేదు, కానీ బలం అపారం, cream puffs!
 ఒక trivia — Sailor Moon creator, Hunter x Hunter creator ని పెళ్లి చేసుకున్నారు.
 మీరు ఏ anime చూస్తున్నారు? ఎక్కడ నుండి call చేస్తున్నారు?
-ఇవాళ్టి show అయిపోయింది. నేను Sensy, SensyCilva Radio నుండి. Bye!`
-};
+ఇవాళ్టి show అయిపోయింది. నేను Sensy, SensyCilva Radio నుండి. Bye!`;
 
-// ─── RSS NEWS FETCHER ───
+// ─── RSS NEWS FETCHER ────────────────────────────────
 async function fetchRSSNews(topic='anime'){
   try{
-    const url = `https://sensycilva.suryasticsai.workers.dev/api/news?category=${topic}`;
+    const url = `${WORKER_URL}/api/news?category=${topic}`;
     const r = await fetch(url);
     if(!r.ok) return [];
     const data = await r.json();
     return data.items||[];
   }catch(e){ console.warn('RSS fetch failed:',e); return []; }
 }
-// We'll inject RSS into script generation
 
-// ─── PUTER / AI ───
+// ─── PUTER / AI ───────────────────────────────────────
 function loadPuter(){
   return new Promise((res,rej)=>{
     if(typeof puter!=='undefined'){puterReady=true;res();return;}
@@ -948,42 +927,27 @@ function loadPuter(){
 }
 async function aiChat(prompt){ if(!puterReady) await loadPuter(); const r=await puter.ai.chat(prompt,{model:'google/gemini-2.5-flash'}); return (r.message?.content||r||'').trim(); }
 
-// ─── INSTANT OPENER ───
+// ─── INSTANT OPENER ───────────────────────────────────
 const INSTANT_OPENERS = {
-  en: [
-    "Welcome to SensyCilva Radio! I'm Sensy, your host. We're going live right now — a brand new show is cooking in the background, but first, let's get you settled in with some great vibes and conversation!"
-  ],
-  hi: [
-    "SensyCilva Radio में आपका स्वागत है! मैं हूँ Sensy, आपकी होस्ट। Show शुरू हो गया है — नया script बन रहा है, पर पहले आपके साथ कुछ मज़ा करते हैं!"
-  ],
-  te: [
-    "SensyCilva Radio కి స్వాగతం! నేను Sensy, మీ హోస్ట్. Show మొదలు పెడదాం — కొత్త script రూట్లో ఉంది, కానీ ముందు కొంత fun చేద్దాం!"
-  ]
+  en: ["Welcome to SensyCilva Radio! I'm Sensy, your host. We're going live right now — a brand new show is cooking in the background, but first, let's get you settled in with some great vibes and conversation!"],
+  hi: ["SensyCilva Radio में आपका स्वागत है! मैं हूँ Sensy, आपकी होस्ट। Show शुरू हो गया है — नया script बन रहा है, पर पहले आपके साथ कुछ मज़ा करते हैं!"],
+  te: ["SensyCilva Radio కి స్వాగతం! నేను Sensy, మీ హోస్ట్. Show మొదలు పెడదాం — కొత్త script రూట్లో ఉంది, కానీ ముందు కొంత fun చేద్దాం!"]
 };
+function getInstantOpener(lang){ const list=INSTANT_OPENERS[lang]||INSTANT_OPENERS.en; return list[Math.floor(Math.random()*list.length)]; }
 
-function getInstantOpener(lang){
-  const list = INSTANT_OPENERS[lang]||INSTANT_OPENERS.en;
-  return list[Math.floor(Math.random()*list.length)];
-}
-
-// ─── SCRIPT LOADING ───
+// ─── SCRIPT LOADING ──────────────────────────────────
 function loadScript(rawText){
   const lines=rawText.split(/\n+/).map(l=>l.trim()).filter(l=>l.length>2);
   sentences=lines; sentIdx=0; progressTrack.style.display='block'; updateProgress();
   scriptPreview.innerHTML=lines.map(l=>`<span>${esc(l)}</span>`).join('<br>');
-  // if we have a queued script and we're in background generation, apply it
-  if(queuedScript && generatingInBackground){
-    // This will be called when generation completes
-  }
 }
 
-// ─── BACKGROUND SCRIPT GENERATION ───
+// ─── BACKGROUND SCRIPT GENERATION ────────────────────
 async function generateScriptInBackground(){
   generatingInBackground = true;
   try{
     await loadPuter();
     const langName=currentLang==='hi'?'Hindi':currentLang==='te'?'Telugu':'English';
-    // Fetch news from RSS (anime news)
     const newsItems = await fetchRSSNews('anime');
     const newsBullets = newsItems.slice(0,3).map(item => `- ${item.title}`).join('\n');
     const ch=CHANNELS[currentLang];
@@ -1004,20 +968,16 @@ Output ONLY the script lines, one per line, no numbering.`;
     const text = await aiChat(prompt);
     if(text && text.length>100){
       queuedScript = text;
-      // If we're still in the instant opener or not broadcasting, we can switch
       if(!isBroadcasting || instantOpenerDone){
         loadScript(queuedScript);
         queuedScript = null;
         generatingInBackground = false;
         if(isBroadcasting){
-          // Continue with new script
           setStatus('ON AIR','live');
           setSubtitle('Fresh script ready! Continuing broadcast…',false,true);
-          // Continue speaking from current index
         }
       }
     } else {
-      // Use fallback
       queuedScript = FALLBACKS[currentLang]||FALLBACKS.en;
     }
   }catch(e){
@@ -1025,29 +985,114 @@ Output ONLY the script lines, one per line, no numbering.`;
     queuedScript = FALLBACKS[currentLang]||FALLBACKS.en;
   }
   generatingInBackground = false;
-  // If queuedScript is set and we're ready, apply it
   if(queuedScript && (!isBroadcasting || instantOpenerDone)){
     loadScript(queuedScript);
     queuedScript = null;
   }
 }
 
-// ─── BROADCAST ENGINE ───
+// ════════════════════════════════════════════════════
+//  TTS ENGINE — Smallest.ai via Worker
+// ════════════════════════════════════════════════════
+async function speakOne(text) {
+  return new Promise(async (resolve) => {
+    try {
+      const langCode = LANG_MAP[currentLang] || 'en-US';
+      // Default gender: female (you can add a toggle later)
+      const gender = 'female';
+
+      const response = await fetch(`${WORKER_URL}/api/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, language: langCode, gender })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Worker TTS error: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.volume = volValue;
+
+      // Update UI
+      setSubtitle(text);
+      setSpeaking(true, oscColor);
+      setMood(detectMood(text));
+      stats.words += (text.match(/\S+/g) || []).length;
+      updateStatsDisplay();
+
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        setSpeaking(false);
+        resolve();
+      };
+      audio.onerror = (e) => {
+        console.warn('Audio playback error, falling back to browser TTS:', e);
+        URL.revokeObjectURL(url);
+        fallbackSpeak(text).then(resolve);
+      };
+      audio.play().catch((e) => {
+        console.warn('Playback failed, falling back to browser TTS:', e);
+        URL.revokeObjectURL(url);
+        fallbackSpeak(text).then(resolve);
+      });
+    } catch (error) {
+      console.warn('Smallest.ai worker failed, using browser TTS:', error);
+      fallbackSpeak(text).then(resolve);
+    }
+  });
+}
+
+// ─── FALLBACK: Browser TTS ───────────────────────────
+function fallbackSpeak(text) {
+  return new Promise((resolve) => {
+    if (!synth) { resolve(); return; }
+    if (synth.speaking || synth.pending) synth.cancel();
+    setTimeout(() => {
+      let voice = null;
+      const voices = synth.getVoices();
+      voice = voices.find(v => v.lang.startsWith(currentLang)) || voices[0] || null;
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.voice = voice || null;
+      utt.rate = 0.88;
+      utt.volume = volValue;
+      utt.pitch = 0.95;
+      utt.lang = voice ? voice.lang : (currentLang === 'hi' ? 'hi-IN' : currentLang === 'te' ? 'te-IN' : 'en-US');
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; resolve(); } };
+      utt.onstart = () => {
+        setSubtitle(text);
+        setSpeaking(true, oscColor);
+        setMood(detectMood(text));
+        stats.words += (text.match(/\S+/g) || []).length;
+        updateStatsDisplay();
+      };
+      const timeout = Math.max(6000, text.length * 120);
+      const watchdog = setTimeout(() => { if (!resolved) { if (synth.speaking) synth.cancel(); setSpeaking(false); done(); } }, timeout);
+      utt.onend = () => { clearTimeout(watchdog); setSpeaking(false); done(); };
+      utt.onerror = () => { clearTimeout(watchdog); setSpeaking(false); done(); };
+      synth.speak(utt);
+    }, 80);
+  });
+}
+
+// ─── BROADCAST ENGINE ─────────────────────────────────
 async function startBroadcast(){
   if(!synth){ toast('Speech not available','error'); return; }
-  if(!voicesLoaded){ const vv=synth.getVoices(); if(vv.length){voicesLoaded=true; lockVoiceForLang(currentLang);}else{toast('Voices loading…','error');return;} }
-  if(!lockedVoice) lockVoiceForLang(currentLang);
+  // We don't need voicesLoaded for worker, but keep for fallback
+  if(!voicesLoaded){ const vv=synth.getVoices(); if(vv.length){voicesLoaded=true;} else { /* ignore */ } }
+  // Update badge
+  updateVoiceBadge();
 
-  // Clear previous state
   sentences=[]; sentIdx=0; instantOpenerDone=false; queuedScript=null;
-
-  // Set up UI
   isBroadcasting=true; isPaused=false;
   broadcastStartTime=Date.now(); pausedElapsed=0;
   setOnAirUI('live'); setStatus('ON AIR','live'); setAvatarStatus('Broadcasting live…');
   progressTrack.style.display='block'; flashStatic();
 
-  // 1. Play instant opener
+  // 1. Instant opener
   const opener = getInstantOpener(currentLang);
   addMsg('host',opener);
   await speakOne(opener);
@@ -1056,20 +1101,14 @@ async function startBroadcast(){
   // 2. Start background script generation
   generateScriptInBackground();
 
-  // 3. Meanwhile, start the main speak loop with current (maybe empty) script
-  // If script not ready, we'll wait a bit then loop
+  // 3. Main loop
   elapsedTimer=setInterval(()=>{if(!isPaused&&isBroadcasting)updateProgress();},1000);
-
-  // We'll run speakLines in a loop that checks for new script periodically
-  // Instead, we'll use a while loop that checks sentIdx < sentences.length
-  // If sentences is empty, we wait.
   await speakLinesWithWaiting();
 }
 
 async function speakLinesWithWaiting(){
   while(isBroadcasting && !isPaused){
     if(sentences.length === 0){
-      // No script yet – wait a bit
       await new Promise(r=>setTimeout(r,300));
       continue;
     }
@@ -1087,18 +1126,13 @@ async function speakLinesWithWaiting(){
         await new Promise(r=>setTimeout(r,words<6?900:500));
       }
     } else {
-      // Script finished – we should generate new script automatically
-      // But for now, we'll end broadcast after a short pause
-      if(!generatingInBackground){
-        // Generate new script if not already
-        generateScriptInBackground();
-      }
-      // Wait for new script or end
+      // Script finished – generate new if needed
+      if(!generatingInBackground) generateScriptInBackground();
       let waitCycles=0;
       while(generatingInBackground && isBroadcasting && !isPaused){
         await new Promise(r=>setTimeout(r,500));
         waitCycles++;
-        if(waitCycles>20) break; // timeout after ~10 sec
+        if(waitCycles>20) break;
       }
       if(queuedScript){
         loadScript(queuedScript);
@@ -1106,7 +1140,6 @@ async function speakLinesWithWaiting(){
         sentIdx=0;
         continue;
       } else {
-        // No queued script, end broadcast
         finishBroadcast();
         break;
       }
@@ -1115,30 +1148,25 @@ async function speakLinesWithWaiting(){
 }
 
 function finishBroadcast(){
-  isBroadcasting=false; isPaused=false; clearInterval(elapsedTimer); stopTTS();
+  isBroadcasting=false; isPaused=false; clearInterval(elapsedTimer);
   setOnAirUI('off'); setStatus('FINISHED'); setSpeaking(false); setAvatarStatus('Show complete!');
   setSubtitle('Broadcast complete! Hit GO ON AIR for a new show.',true,true);
-  addMsg('host','That\'s a wrap! Thanks for tuning in to SensyCilva Radio! ✨');
+  addMsg('host','That\'s a wrap! Thanks for tuning in! ✨');
   flashStatic(); toast('Broadcast finished!','success'); setMood('default');
 }
 
 function hardStop(){
-  isBroadcasting=false; isPaused=false; clearInterval(elapsedTimer); stopTTS();
+  isBroadcasting=false; isPaused=false; clearInterval(elapsedTimer);
   setOnAirUI('off'); setStatus('STOPPED'); setSpeaking(false); setAvatarStatus('Stopped.');
   setSubtitle('Stopped.', true, true); pausedElapsed=0; setMood('default');
-  generatingInBackground = false;
-  queuedScript = null;
+  generatingInBackground = false; queuedScript = null;
 }
 
 function togglePause(){
   if(!isBroadcasting) return;
-  if(isPaused){
-    isPaused=false; broadcastStartTime=Date.now(); setOnAirUI('live'); setStatus('ON AIR','live'); setAvatarStatus('Broadcasting live…'); setSpeaking(true); setSubtitle('Back on air!',false,true); addMsg('system','Resumed.');
-  } else {
-    isPaused=true; pausedElapsed+=(Date.now()-broadcastStartTime); stopTTS(); setOnAirUI('paused'); setStatus('PAUSED'); setAvatarStatus('Paused — press ▶ to continue.'); setSpeaking(false); setSubtitle('Broadcast paused. Press ▶ to continue.',true,true); addMsg('system','Paused.');
-  }
+  if(isPaused){ isPaused=false; broadcastStartTime=Date.now(); setOnAirUI('live'); setStatus('ON AIR','live'); setAvatarStatus('Broadcasting live…'); setSpeaking(true); setSubtitle('Back on air!',false,true); addMsg('system','Resumed.'); }
+  else { isPaused=true; pausedElapsed+=(Date.now()-broadcastStartTime); setOnAirUI('paused'); setStatus('PAUSED'); setAvatarStatus('Paused — press ▶ to continue.'); setSpeaking(false); setSubtitle('Broadcast paused. Press ▶ to continue.',true,true); addMsg('system','Paused.'); }
 }
-
 onAirBtn.addEventListener('click',async()=>{
   if(isBroadcasting){ hardStop(); sentences=[]; sentIdx=0; progressTrack.style.display='none'; scriptPreview.textContent='Script cleared. Click GO ON AIR to start fresh.'; }
   else if(isPaused){ togglePause(); }
@@ -1146,7 +1174,7 @@ onAirBtn.addEventListener('click',async()=>{
 });
 pauseBtn.addEventListener('click',()=>togglePause());
 
-// ─── YOUTUBE ───
+// ─── YOUTUBE ──────────────────────────────────────────
 ytToggleBtn.addEventListener('click',()=>{ const isOpen=ytVideoPanel.classList.toggle('open'); ytToggleBtn.classList.toggle('open',isOpen); ytToggleBtn.querySelector('span:first-child').textContent=isOpen?'🎬 Hide Video':'🎬 Show Video'; });
 function loadYTApi(){
   if(ytApiPromise)return ytApiPromise;
@@ -1167,7 +1195,7 @@ function createYTPlayer(videoId){
     height:'160',width:'100%',videoId:videoId,
     playerVars:{autoplay:1,controls:1,modestbranding:1,rel:0,fs:0,iv_load_policy:3},
     events:{
-      onReady(e){ ytReady=true; e.target.setVolume(70); e.target.playVideo(); musicPlaying=true; mPlayPause.textContent='⏸ Pause'; vinylDisc.classList.add('spinning'); startFunFacts(); if(isBroadcasting&&!isPaused){isPaused=true;pausedElapsed+=(Date.now()-broadcastStartTime);stopTTS();setOnAirUI('paused');setStatus('PAUSED');setSpeaking(false);addMsg('system','Music playing — broadcast paused.');} },
+      onReady(e){ ytReady=true; e.target.setVolume(70); e.target.playVideo(); musicPlaying=true; mPlayPause.textContent='⏸ Pause'; vinylDisc.classList.add('spinning'); startFunFacts(); if(isBroadcasting&&!isPaused){isPaused=true;pausedElapsed+=(Date.now()-broadcastStartTime);setOnAirUI('paused');setStatus('PAUSED');setSpeaking(false);addMsg('system','Music playing — broadcast paused.');} },
       onStateChange(e){
         if(e.data===YT.PlayerState.PLAYING){ musicPlaying=true; mPlayPause.textContent='⏸ Pause'; vinylDisc.classList.add('spinning'); }
         else if(e.data===YT.PlayerState.PAUSED){ musicPlaying=false; mPlayPause.textContent='▶ Play'; vinylDisc.classList.remove('spinning'); if(isBroadcasting&&isPaused){isPaused=false;broadcastStartTime=Date.now();setOnAirUI('live');setStatus('ON AIR','live');setSpeaking(true);setAvatarStatus('Broadcasting live…');addMsg('system','Music paused — broadcast resumed.');} }
@@ -1180,7 +1208,7 @@ function createYTPlayer(videoId){
   progressTick=setInterval(()=>{ try{ if(ytPlayer&&ytReady&&typeof ytPlayer.getCurrentTime==='function'){ const t=Math.floor(ytPlayer.getCurrentTime()); trackTime.textContent=Math.floor(t/60)+':'+(t%60<10?'0':'')+t%60; } }catch(e){} },1000);
 }
 function playById(id,title,channel){ trackName.textContent=title||'Loading…'; trackChannel.textContent=channel||'—'; musicWarn.textContent=''; loadYTApi().then(()=>{ setTimeout(()=>createYTPlayer(id),80); }).catch(()=>{ musicWarn.textContent='YouTube API failed.'; toast('YouTube unavailable','error'); }); }
-async function searchYT(query,max=5){ const url=`https://sensycilva.suryasticsai.workers.dev/api/youtube/search?q=${encodeURIComponent(query)}&max=${max}`; const r=await fetch(url); if(!r.ok)throw new Error('Worker error'); const d=await r.json(); if(d.error)throw new Error(d.error||'Search failed'); return (d.items||[]).filter(i=>i.id).map(i=>({id:i.id,title:i.title,channel:i.channel,thumb:i.thumb})); }
+async function searchYT(query,max=5){ const url=`${WORKER_URL}/api/youtube/search?q=${encodeURIComponent(query)}&max=${max}`; const r=await fetch(url); if(!r.ok)throw new Error('Worker error'); const d=await r.json(); if(d.error)throw new Error(d.error||'Search failed'); return (d.items||[]).filter(i=>i.id).map(i=>({id:i.id,title:i.title,channel:i.channel,thumb:i.thumb})); }
 async function playSong(query){ await loadYTApi(); const results=await searchYT(query,5); if(!results.length)return{success:false,msg:'No results'}; results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);}); queueIdx=songQueue.findIndex(s=>s.id===results[0].id); playById(results[0].id,results[0].title,results[0].channel); showSearchResults(results); stats.songs++; updateStatsDisplay(); return{success:true,title:results[0].title,channel:results[0].channel}; }
 function showSearchResults(results){ searchResults.innerHTML=''; results.forEach(r=>{ const div=document.createElement('div'); div.className='sr-item'; div.innerHTML=`${r.thumb?`<img class="sr-thumb" src="${esc(r.thumb)}" alt="" loading="lazy">`:''}<div class="sr-meta"><div class="t">${esc(r.title)}</div><div class="c">${esc(r.channel)}</div></div><div class="sr-play-btn">▶</div>`; div.addEventListener('click',()=>{ queueIdx=songQueue.findIndex(s=>s.id===r.id); if(queueIdx<0){songQueue.push(r);queueIdx=songQueue.length-1;} playById(r.id,r.title,r.channel); addMsg('song',r.title+' — '+r.channel); toast('Now playing: '+r.title,'success'); }); searchResults.appendChild(div); }); }
 async function nextSong(){ if(queueIdx<songQueue.length-1){queueIdx++;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);stats.songs++;updateStatsDisplay();return{success:true,title:songQueue[queueIdx].title};} try{const results=await searchYT('popular anime OST',3); if(results.length){results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);});queueIdx=songQueue.length-results.length;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);stats.songs++;updateStatsDisplay();return{success:true,title:songQueue[queueIdx].title};}}catch(e){} return{success:false,msg:'Queue empty'}; }
@@ -1188,14 +1216,14 @@ mPlayPause.addEventListener('click',()=>{ if(!ytPlayer||!ytReady){musicWarn.text
 mStop.addEventListener('click',()=>{ stopFunFacts(); if(ytPlayer&&ytReady){try{ytPlayer.stopVideo();}catch(e){}} musicPlaying=false; mPlayPause.textContent='▶ Play'; vinylDisc.classList.remove('spinning'); trackName.textContent='Nothing playing'; trackTime.textContent='0:00'; trackChannel.textContent='—'; if(progressTick){clearInterval(progressTick);progressTick=null;} ytVideoPanel.classList.remove('open'); ytToggleBtn.classList.remove('open'); ytToggleBtn.querySelector('span:first-child').textContent='🎬 Show Video'; ytPlayerContainer.innerHTML=''; if(ytPlayer){try{ytPlayer.destroy();}catch(e){}ytPlayer=null;ytReady=false;} if(isBroadcasting&&isPaused){isPaused=false;broadcastStartTime=Date.now();setOnAirUI('live');setStatus('ON AIR','live');setSpeaking(true);setAvatarStatus('Broadcasting live…');addMsg('system','Music stopped — broadcast resumed.');} });
 mNext.addEventListener('click',async()=>{ const r=await nextSong(); if(r.success){addMsg('song',r.title);}else{musicWarn.textContent=r.msg;toast(r.msg,'error');} });
 
-// ─── AI CHAT ───
+// ─── AI CHAT ──────────────────────────────────────────
 let userChatCount=0; let userLocation='';
-async function speakOneOff(text){ const wasOnAir=isBroadcasting&&!isPaused; if(wasOnAir){isPaused=true;stopTTS();} addMsg('host',text); await speakOne(text); if(wasOnAir){isPaused=false;setStatus('ON AIR','live');setSpeaking(true);setAvatarStatus('Broadcasting live…');} }
+async function speakOneOff(text){ const wasOnAir=isBroadcasting&&!isPaused; if(wasOnAir){isPaused=true;} addMsg('host',text); await speakOne(text); if(wasOnAir){isPaused=false;setStatus('ON AIR','live');setSpeaking(true);setAvatarStatus('Broadcasting live…');} }
 
 async function handleUserInput(msg){
   msg=msg.trim(); if(!msg)return; userInput.value=''; addMsg('user',msg); stats.msgs++; updateStatsDisplay();
   const wasBroadcasting=isBroadcasting&&!isPaused;
-  if(wasBroadcasting){ isPaused=true; stopTTS(); setStatus('PAUSED',''); setSpeaking(false); setAvatarStatus('Listening…'); }
+  if(wasBroadcasting){ isPaused=true; setStatus('PAUSED',''); setSpeaking(false); setAvatarStatus('Listening…'); }
   setStatus('Thinking…','thinking'); setThinking(true); setSubtitle('Sensy is thinking…',true,true);
   const typingEl=addTypingIndicator(); let reply=''; userChatCount++;
   try{
@@ -1221,7 +1249,6 @@ Classify intent and respond:
 ${isFirst?'- If first message: ALWAYS ask where they are calling from and whether they like anime, after greeting!':''}
 No asterisks, no stage directions in your response.`);
     removeTypingIndicator();
-    // Detect location
     const locWords=['from','calling','india','japan','usa','uk','hyderabad','mumbai','delhi','tokyo','london','new york','bangalore','chennai','kolkata','pune','city','country','state'];
     if(locWords.some(w=>msg.toLowerCase().includes(w))&&msg.toLowerCase().includes('from')){ userLocation=msg; }
     if(intent.startsWith('PLAY:')){ const q=intent.replace(/^PLAY:\s*/,'').trim(); setSubtitle('Searching: '+q,true,true); try{ const r=await playSong(q); if(r.success){reply=`Playing "${r.title}" for you!`;addMsg('song',r.title+' — '+r.channel);}else reply=`Couldn't find "${q}"`; }catch(e){reply=e.message||'Need YouTube API key!';} }
@@ -1239,13 +1266,13 @@ No asterisks, no stage directions in your response.`);
 sendBtn.addEventListener('click',()=>handleUserInput(userInput.value));
 userInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendBtn.click();});
 
-// ─── SPEECH RECOGNITION ───
-if(SR){ recognition=new SR(); recognition.continuous=false; recognition.interimResults=true; recognition.onstart=()=>{ isListening=true; micBtn.classList.add('live'); micBtn.textContent='🔴'; transcriptRow.className='transcript-row listening'; transcriptRow.textContent='Listening…'; if(isBroadcasting&&!isPaused){isPaused=true;stopTTS();setSpeaking(false);} window._oscSetAmp&&window._oscSetAmp(0.4,'var(--accent3)'); }; recognition.onresult=(e)=>{ let interim='',final=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal)final+=t;else interim+=t; } if(final){transcriptRow.className='transcript-row final';transcriptRow.textContent='✓ '+final;userInput.value=final;setTimeout(()=>sendBtn.click(),300);}else if(interim){transcriptRow.textContent='🎤 '+interim;} }; recognition.onerror=(e)=>{ const msgs={'not-allowed':'Mic access denied.','no-speech':'Nothing heard.','network':'Network issue.','audio-capture':'No mic found.'}; transcriptRow.className='transcript-row'; transcriptRow.textContent=msgs[e.error]||'Error: '+e.error; micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; }; recognition.onend=()=>{ micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; if(!transcriptRow.textContent.startsWith('✓')&&!transcriptRow.textContent.includes('denied')){transcriptRow.className='transcript-row';transcriptRow.textContent='Mic off — type or click 🎤';} }; micBtn.addEventListener('click',()=>{ if(isListening){recognition.stop();return;} recognition.lang=currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US'; try{recognition.start();}catch(e){transcriptRow.textContent='Could not start mic.';} }); } else { micBtn.disabled=true; transcriptRow.textContent='Speech recognition not available — please type.'; }
+// ─── SPEECH RECOGNITION ──────────────────────────────
+if(SR){ recognition=new SR(); recognition.continuous=false; recognition.interimResults=true; recognition.onstart=()=>{ isListening=true; micBtn.classList.add('live'); micBtn.textContent='🔴'; transcriptRow.className='transcript-row listening'; transcriptRow.textContent='Listening…'; if(isBroadcasting&&!isPaused){isPaused=true;} window._oscSetAmp&&window._oscSetAmp(0.4,'var(--accent3)'); }; recognition.onresult=(e)=>{ let interim='',final=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal)final+=t;else interim+=t; } if(final){transcriptRow.className='transcript-row final';transcriptRow.textContent='✓ '+final;userInput.value=final;setTimeout(()=>sendBtn.click(),300);}else if(interim){transcriptRow.textContent='🎤 '+interim;} }; recognition.onerror=(e)=>{ const msgs={'not-allowed':'Mic access denied.','no-speech':'Nothing heard.','network':'Network issue.','audio-capture':'No mic found.'}; transcriptRow.className='transcript-row'; transcriptRow.textContent=msgs[e.error]||'Error: '+e.error; micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; }; recognition.onend=()=>{ micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; if(!transcriptRow.textContent.startsWith('✓')&&!transcriptRow.textContent.includes('denied')){transcriptRow.className='transcript-row';transcriptRow.textContent='Mic off — type or click 🎤';} }; micBtn.addEventListener('click',()=>{ if(isListening){recognition.stop();return;} recognition.lang=currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US'; try{recognition.start();}catch(e){transcriptRow.textContent='Could not start mic.';} }); } else { micBtn.disabled=true; transcriptRow.textContent='Speech recognition not available — please type.'; }
 
-// ─── THEME TOGGLE ───
+// ─── THEME TOGGLE ─────────────────────────────────────
 themeToggle.addEventListener('click',()=>{ document.body.classList.toggle('light'); toast('Theme toggled','info'); });
 
-// ─── ABOUT ───
+// ─── ABOUT ────────────────────────────────────────────
 function openAbout(){ aboutModal.classList.add('open'); document.body.style.overflow='hidden'; }
 function closeAbout(){ aboutModal.classList.remove('open'); document.body.style.overflow=''; }
 aboutBtn.addEventListener('click',openAbout); document.querySelector('#aboutBtnFooter')?.addEventListener('click',openAbout);
@@ -1253,10 +1280,10 @@ aboutClose.addEventListener('click',closeAbout);
 aboutModal.addEventListener('click',(e)=>{ if(e.target===aboutModal) closeAbout(); });
 document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeAbout(); });
 
-// ─── SESSION TIMER ───
+// ─── SESSION TIMER ────────────────────────────────────
 setInterval(()=>{ const sec=Math.floor((Date.now()-stats.sessionStart)/1000); const m=Math.floor(sec/60),s=sec%60; statsTime.textContent=m+':'+(s<10?'0':'')+s; },1000);
 
-// ─── INIT ───
+// ─── INIT ─────────────────────────────────────────────
 const savedLang=load('sensy_lang','en'); currentLang=savedLang;
 document.body.classList.remove('lang-en','lang-hi','lang-te'); document.body.classList.add(CHANNELS[savedLang].bodyClass);
 chBtns.forEach(b=>b.classList.toggle('active',b.dataset.lang===savedLang));
@@ -1264,8 +1291,11 @@ freqReadout.textContent=CHANNELS[savedLang].label; channelTagline.textContent=CH
 oscColor=CHANNELS[savedLang].oscColor; if(window._oscSetAmp) window._oscSetAmp(0, oscColor); setMood('default');
 const savedVol=parseFloat(load('sensy_vol','1')); setVolume(savedVol);
 loadPuter().catch(()=>{});
-console.log('%cSensyCilva Radio v2.0 🚀','color:#ff2d78;font-size:22px;font-weight:bold;');
-console.log('%cInstant show + background AI script generation + RSS news + multi-language','color:#00ffe7;');
+// Ensure voice badge shows correctly
+setTimeout(updateVoiceBadge, 600);
+
+console.log('%cSensyCilva Radio — Smallest.ai powered 🚀','color:#ff2d78;font-size:22px;font-weight:bold;');
+console.log('%cTTS via Cloudflare Worker with Natural Voices','color:#00ffe7;');
 })();
 </script>
 </body>

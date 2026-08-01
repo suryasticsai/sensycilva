@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smallest.ai TTS Test</title>
-  <!-- Allow connections to your Worker -->
+  <title>Smallest.ai TTS Test — Debug</title>
   <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://sensycilva.suryasticsai.workers.dev;">
   <style>
     * { box-sizing: border-box; margin: 0; }
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, sans-serif;
       background: #0d0a1a;
       color: #eee8ff;
       min-height: 100vh;
@@ -23,13 +22,12 @@
       border: 1px solid rgba(255,255,255,0.09);
       border-radius: 20px;
       padding: 2rem;
-      max-width: 600px;
+      max-width: 700px;
       width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.8);
     }
     h1 {
       font-size: 1.8rem;
-      margin-bottom: 0.25rem;
       background: linear-gradient(135deg, #ff2d78, #b06fff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -65,15 +63,8 @@
       border-color: #b06fff;
       box-shadow: 0 0 0 3px rgba(176,111,255,0.15);
     }
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .row {
-      display: flex;
-      gap: 1rem;
-      margin-top: 0.25rem;
-    }
+    textarea { resize: vertical; min-height: 80px; }
+    .row { display: flex; gap: 1rem; margin-top: 0.25rem; }
     .row select { flex: 1; }
     button {
       background: linear-gradient(135deg, #ff2d78, #b06fff);
@@ -105,6 +96,22 @@
     #status.success { border-color: #39ff88; color: #39ff88; }
     #status.error   { border-color: #ff4560; color: #ff4560; }
     #status.info    { border-color: #b06fff; color: #b06fff; }
+    #debug {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: #0d0a1a;
+      border: 1px solid rgba(255,255,255,0.06);
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #9990bb;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    #debug.visible { display: block; }
     audio {
       width: 100%;
       margin-top: 1rem;
@@ -126,16 +133,26 @@
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
     }
+    .toggle-debug {
+      background: none;
+      border: none;
+      color: #5a537a;
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      margin-top: 0.5rem;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h1>🔊 TTS Test</h1>
-  <div class="sub">Test the Smallest.ai voice via your Cloudflare Worker</div>
+  <h1>🔊 TTS Debug</h1>
+  <div class="sub">Test Smallest.ai – shows full response details</div>
 
-  <label for="textInput">Text to speak</label>
-  <textarea id="textInput" placeholder="Type something…">Hello from SensyCilva! This is a test of the Smallest.ai voice.</textarea>
+  <label for="textInput">Text</label>
+  <textarea id="textInput" placeholder="Type something…">Hello from SensyCilva! This is a test.</textarea>
 
   <div class="row">
     <div>
@@ -157,31 +174,47 @@
 
   <button id="speakBtn">🔊 Speak</button>
 
-  <div id="status">Ready — press Speak to test.</div>
+  <div id="status">Ready — press Speak.</div>
+  <button class="toggle-debug" id="toggleDebugBtn">Show debug info</button>
+  <div id="debug"></div>
+
   <audio id="audioPlayer" controls></audio>
 
   <div class="worker-url">
-    Worker endpoint: <code>https://sensycilva.suryasticsai.workers.dev/api/tts</code>
+    Worker: <code>https://sensycilva.suryasticsai.workers.dev/api/tts</code>
   </div>
 </div>
 
 <script>
   (function() {
-    'use strict';
-
     const textInput = document.getElementById('textInput');
     const langSelect = document.getElementById('langSelect');
     const genderSelect = document.getElementById('genderSelect');
     const speakBtn = document.getElementById('speakBtn');
     const statusEl = document.getElementById('status');
+    const debugEl = document.getElementById('debug');
+    const toggleDebugBtn = document.getElementById('toggleDebugBtn');
     const audioPlayer = document.getElementById('audioPlayer');
 
     const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev/api/tts';
+
+    let debugVisible = false;
 
     function setStatus(msg, type = '') {
       statusEl.textContent = msg;
       statusEl.className = type;
     }
+
+    function debugLog(msg) {
+      debugEl.textContent += msg + '\n';
+      debugEl.scrollTop = debugEl.scrollHeight;
+    }
+
+    toggleDebugBtn.addEventListener('click', () => {
+      debugVisible = !debugVisible;
+      debugEl.classList.toggle('visible', debugVisible);
+      toggleDebugBtn.textContent = debugVisible ? 'Hide debug info' : 'Show debug info';
+    });
 
     async function speak() {
       const text = textInput.value.trim();
@@ -194,7 +227,10 @@
       const gender = genderSelect.value;
 
       speakBtn.disabled = true;
-      setStatus('⏳ Requesting TTS from Worker…', 'info');
+      setStatus('⏳ Requesting TTS…', 'info');
+      debugEl.textContent = '';
+      debugLog(`📤 Sending request to ${WORKER_URL}`);
+      debugLog(`Payload: ${JSON.stringify({ text, language, gender }, null, 2)}`);
 
       try {
         const response = await fetch(WORKER_URL, {
@@ -203,19 +239,29 @@
           body: JSON.stringify({ text, language, gender })
         });
 
+        debugLog(`📥 Response status: ${response.status} ${response.statusText}`);
+        debugLog(`📥 Headers: ${[...response.headers.entries()].map(([k,v]) => `${k}: ${v}`).join('\n')}`);
+
         if (!response.ok) {
           let errorMsg = `HTTP ${response.status}`;
+          let rawBody = '';
           try {
+            // Try to read as JSON first
             const data = await response.json();
             if (data.error) errorMsg = data.error;
+            debugLog(`📥 JSON error: ${JSON.stringify(data, null, 2)}`);
           } catch (_) {
-            const textErr = await response.text();
-            if (textErr) errorMsg = textErr;
+            // Not JSON – get text
+            rawBody = await response.text();
+            if (rawBody) errorMsg = rawBody;
+            debugLog(`📥 Raw error body: ${rawBody}`);
           }
           throw new Error(errorMsg);
         }
 
+        // Read as blob
         const blob = await response.blob();
+        debugLog(`📥 Audio size: ${blob.size} bytes, type: ${blob.type}`);
         if (blob.size === 0) throw new Error('Audio file is empty.');
 
         const url = URL.createObjectURL(blob);
@@ -223,11 +269,13 @@
         audioPlayer.style.display = 'block';
         await audioPlayer.play();
 
-        setStatus(`✅ Audio played successfully (${blob.size} bytes)`, 'success');
+        setStatus(`✅ Audio played (${blob.size} bytes)`, 'success');
 
       } catch (error) {
         console.error('TTS error:', error);
         setStatus(`❌ ${error.message}`, 'error');
+        debugLog(`❌ Error: ${error.message}`);
+        debugLog(`❌ Stack: ${error.stack}`);
 
         // Fallback to browser TTS
         if ('speechSynthesis' in window) {
@@ -243,8 +291,6 @@
     }
 
     speakBtn.addEventListener('click', speak);
-
-    // Allow Shift+Enter for newline, Enter to speak
     textInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -252,7 +298,6 @@
       }
     });
 
-    // Auto-focus the text input
     textInput.focus();
   })();
 </script>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smallest.ai TTS Test</title>
+  <!-- Allow connections to your Worker -->
+  <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://sensycilva.suryasticsai.workers.dev;">
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0d0a1a;
+      color: #eee8ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      background: #1a162c;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.25rem;
+      background: linear-gradient(135deg, #ff2d78, #b06fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sub {
+      color: #9990bb;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 0.75rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      color: #9990bb;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+    }
+    textarea, select, button {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #0d0a1a;
+      color: #eee8ff;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    textarea:focus, select:focus {
+      outline: none;
+      border-color: #b06fff;
+      box-shadow: 0 0 0 3px rgba(176,111,255,0.15);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.25rem;
+    }
+    .row select { flex: 1; }
+    button {
+      background: linear-gradient(135deg, #ff2d78, #b06fff);
+      border: none;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: #fff;
+      margin-top: 1.25rem;
+      padding: 0.9rem;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+    button:hover:not(:disabled) { transform: scale(1.01); }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: #0d0a1a;
+      border: 1px solid rgba(255,255,255,0.06);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      min-height: 2.5rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      transition: border-color 0.3s;
+    }
+    #status.success { border-color: #39ff88; color: #39ff88; }
+    #status.error   { border-color: #ff4560; color: #ff4560; }
+    #status.info    { border-color: #b06fff; color: #b06fff; }
+    audio {
+      width: 100%;
+      margin-top: 1rem;
+      border-radius: 12px;
+      display: none;
+    }
+    .worker-url {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.8rem;
+      color: #5a537a;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .worker-url code {
+      color: #9990bb;
+      background: rgba(255,255,255,0.05);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🔊 TTS Test</h1>
+  <div class="sub">Test the Smallest.ai voice via your Cloudflare Worker</div>
+
+  <label for="textInput">Text to speak</label>
+  <textarea id="textInput" placeholder="Type something…">Hello from SensyCilva! This is a test of the Smallest.ai voice.</textarea>
+
+  <div class="row">
+    <div>
+      <label for="langSelect">Language</label>
+      <select id="langSelect">
+        <option value="en-US">English (US)</option>
+        <option value="hi-IN">Hindi</option>
+        <option value="te-IN">Telugu</option>
+      </select>
+    </div>
+    <div>
+      <label for="genderSelect">Gender</label>
+      <select id="genderSelect">
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="speakBtn">🔊 Speak</button>
+
+  <div id="status">Ready — press Speak to test.</div>
+  <audio id="audioPlayer" controls></audio>
+
+  <div class="worker-url">
+    Worker endpoint: <code>https://sensycilva.suryasticsai.workers.dev/api/tts</code>
+  </div>
+</div>
+
+<script>
+  (function() {
+    'use strict';
+
+    const textInput = document.getElementById('textInput');
+    const langSelect = document.getElementById('langSelect');
+    const genderSelect = document.getElementById('genderSelect');
+    const speakBtn = document.getElementById('speakBtn');
+    const statusEl = document.getElementById('status');
+    const audioPlayer = document.getElementById('audioPlayer');
+
+    const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev/api/tts';
+
+    function setStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className = type;
+    }
+
+    async function speak() {
+      const text = textInput.value.trim();
+      if (!text) {
+        setStatus('⚠️ Please enter some text.', 'error');
+        return;
+      }
+
+      const language = langSelect.value;
+      const gender = genderSelect.value;
+
+      speakBtn.disabled = true;
+      setStatus('⏳ Requesting TTS from Worker…', 'info');
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, language, gender })
+        });
+
+        if (!response.ok) {
+          let errorMsg = `HTTP ${response.status}`;
+          try {
+            const data = await response.json();
+            if (data.error) errorMsg = data.error;
+          } catch (_) {
+            const textErr = await response.text();
+            if (textErr) errorMsg = textErr;
+          }
+          throw new Error(errorMsg);
+        }
+
+        const blob = await response.blob();
+        if (blob.size === 0) throw new Error('Audio file is empty.');
+
+        const url = URL.createObjectURL(blob);
+        audioPlayer.src = url;
+        audioPlayer.style.display = 'block';
+        await audioPlayer.play();
+
+        setStatus(`✅ Audio played successfully (${blob.size} bytes)`, 'success');
+
+      } catch (error) {
+        console.error('TTS error:', error);
+        setStatus(`❌ ${error.message}`, 'error');
+
+        // Fallback to browser TTS
+        if ('speechSynthesis' in window) {
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = language;
+          utter.rate = 0.9;
+          window.speechSynthesis.speak(utter);
+          setStatus(`⚠️ Worker error — browser TTS speaking as fallback.`, 'error');
+        }
+      } finally {
+        speakBtn.disabled = false;
+      }
+    }
+
+    speakBtn.addEventListener('click', speak);
+
+    // Allow Shift+Enter for newline, Enter to speak
+    textInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        speak();
+      }
+    });
+
+    // Auto-focus the text input
+    textInput.focus();
+  })();
+</script>
+
+</body>
+</html>

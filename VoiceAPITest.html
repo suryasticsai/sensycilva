@@ -8,9 +8,6 @@
 <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://sensycilva.suryasticsai.workers.dev https://api.puter.com wss://api.puter.com;">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='32' y='48' text-anchor='middle' font-size='48' font-family='Arial'%3E🎙%3C/text%3E%3C/svg%3E">
 <style>
-/* ═══════════════════════════════════════════════════
-   FULL CSS – DARK/LIGHT THEMES, CHANNEL COLOURS
-═══════════════════════════════════════════════════ */
 :root{
   --bg:#080612;
   --bg2:#0d0a1a;
@@ -1065,6 +1062,17 @@ Output ONLY the script lines, one per line, no numbering.`;
   }
 }
 
+// ─── CLEAN SONG QUERY ─────────────────────────────────
+function cleanSongQuery(query) {
+  // Remove text after '|', '(', '[', '-' etc.
+  let cleaned = query.split(/[|([]/)[0].trim();
+  // Remove common fluff words
+  cleaned = cleaned.replace(/\blyrics\b|\bofficial\b|\bvideo\b|\bsong\b|\bmp3\b|\baudio\b/gi, '').trim();
+  // Remove extra spaces
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  return cleaned || query;
+}
+
 // ─── TTS ENGINE (with cancellation) ──────────────────
 let currentSpeakResolve = null;
 let currentAudio = null;
@@ -1317,7 +1325,32 @@ function createYTPlayer(videoId){
 }
 function playById(id,title,channel){ trackName.textContent=title||'Loading…'; trackChannel.textContent=channel||'—'; musicWarn.textContent=''; loadYTApi().then(()=>{ setTimeout(()=>createYTPlayer(id),80); }).catch(()=>{ musicWarn.textContent='YouTube API failed.'; toast('YouTube unavailable','error'); }); }
 async function searchYT(query,max=5){ const url=`${WORKER_URL}/api/youtube/search?q=${encodeURIComponent(query)}&max=${max}`; const r=await fetch(url); if(!r.ok)throw new Error('Worker error'); const d=await r.json(); if(d.error)throw new Error(d.error||'Search failed'); return (d.items||[]).filter(i=>i.id).map(i=>({id:i.id,title:i.title,channel:i.channel,thumb:i.thumb})); }
-async function playSong(query){ await loadYTApi(); const results=await searchYT(query,5); if(!results.length)return{success:false,msg:'No results'}; results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);}); queueIdx=songQueue.findIndex(s=>s.id===results[0].id); playById(results[0].id,results[0].title,results[0].channel); showSearchResults(results); stats.songs++; updateStatsDisplay(); return{success:true,title:results[0].title,channel:results[0].channel}; }
+
+// ─── FIXED: playSong with clean query ──────────────────
+async function playSong(query) {
+  await loadYTApi();
+  const cleanQuery = cleanSongQuery(query);
+  console.log('Searching for (cleaned):', cleanQuery);
+  try {
+    const results = await searchYT(cleanQuery, 5);
+    if (!results.length) {
+      return { success: false, msg: `Couldn't find "${cleanQuery}". Try a different title.` };
+    }
+    results.forEach(r => {
+      if (!songQueue.some(s => s.id === r.id)) songQueue.push(r);
+    });
+    queueIdx = songQueue.findIndex(s => s.id === results[0].id);
+    playById(results[0].id, results[0].title, results[0].channel);
+    showSearchResults(results);
+    stats.songs++;
+    updateStatsDisplay();
+    return { success: true, title: results[0].title, channel: results[0].channel };
+  } catch (e) {
+    console.error('playSong error:', e);
+    return { success: false, msg: e.message || 'Search failed.' };
+  }
+}
+
 function showSearchResults(results){ searchResults.innerHTML=''; results.forEach(r=>{ const div=document.createElement('div'); div.className='sr-item'; div.innerHTML=`${r.thumb?`<img class="sr-thumb" src="${esc(r.thumb)}" alt="" loading="lazy">`:''}<div class="sr-meta"><div class="t">${esc(r.title)}</div><div class="c">${esc(r.channel)}</div></div><div class="sr-play-btn">▶</div>`; div.addEventListener('click',()=>{ queueIdx=songQueue.findIndex(s=>s.id===r.id); if(queueIdx<0){songQueue.push(r);queueIdx=songQueue.length-1;} playById(r.id,r.title,r.channel); addMsg('song',r.title+' — '+r.channel); toast('Now playing: '+r.title,'success'); }); searchResults.appendChild(div); }); }
 async function nextSong(){ if(queueIdx<songQueue.length-1){queueIdx++;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);stats.songs++;updateStatsDisplay();return{success:true,title:songQueue[queueIdx].title};} try{const results=await searchYT('popular anime OST',3); if(results.length){results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);});queueIdx=songQueue.length-results.length;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);stats.songs++;updateStatsDisplay();return{success:true,title:songQueue[queueIdx].title};}}catch(e){} return{success:false,msg:'Queue empty'}; }
 mPlayPause.addEventListener('click',()=>{ if(!ytPlayer||!ytReady){musicWarn.textContent='No track loaded.';return;} if(musicPlaying){ytPlayer.pauseVideo();}else{ytPlayer.playVideo();} });
@@ -1413,7 +1446,9 @@ Do not use asterisks or stage directions. Just speak naturally.`;
 
     // Handle commands
     if (intent.startsWith('PLAY:')) {
-      const q = intent.replace(/^PLAY:\s*/, '').trim();
+      let q = intent.replace(/^PLAY:\s*/, '').trim();
+      // Clean the query
+      q = cleanSongQuery(q);
       setSubtitle('Searching: ' + q, true, true);
       try {
         const r = await playSong(q);
@@ -1421,7 +1456,7 @@ Do not use asterisks or stage directions. Just speak naturally.`;
           reply = `Playing "${r.title}" for you!`;
           addMsg('song', r.title + ' — ' + r.channel);
         } else {
-          reply = `Couldn't find "${q}" — try a different title.`;
+          reply = r.msg || `Couldn't find "${q}" — try a different title.`;
         }
       } catch (e) {
         reply = e.message || 'Need YouTube API key!';

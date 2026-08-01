@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SensyCilva — AI Radio with Smallest.ai</title>
-<!-- ─── CSP: allow connections to Worker ─── -->
-<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://sensycilva.suryasticsai.workers.dev;">
+<title>SensyCilva — AI Radio</title>
+<!-- ─── CSP: allow Worker AND Puter WebSocket ─── -->
+<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://sensycilva.suryasticsai.workers.dev wss://api.puter.com;">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext x='32' y='48' text-anchor='middle' font-size='48' font-family='Arial'%3E🎙%3C/text%3E%3C/svg%3E">
 <style>
 /* ═══════════════════════════════════════════════════
@@ -25,8 +25,6 @@
   --paper:#eee8ff;
   --paper-dim:#9990bb;
   --paper-dimmer:#5a537a;
-
-  /* English channel default — Electric Pink/Cyan */
   --accent:#ff2d78;
   --accent-dim:rgba(255,45,120,.15);
   --accent-glow:rgba(255,45,120,.35);
@@ -36,7 +34,6 @@
   --accent3:#b06fff;
   --accent3-dim:rgba(176,111,255,.15);
   --accent3-glow:rgba(176,111,255,.3);
-
   --signal:#ff2d78;
   --signal-dim:rgba(255,45,120,.15);
   --signal-glow:rgba(255,45,120,.35);
@@ -51,20 +48,17 @@
   --green:#39ff88;
   --green-dim:rgba(57,255,136,.15);
   --red:#ff4560;
-
   --mono:'JetBrains Mono','SF Mono','Fira Code','Courier New',monospace;
   --sans:'Inter','Segoe UI',system-ui,sans-serif;
   --display:'Inter','Segoe UI',system-ui,sans-serif;
   --radius:14px;
   --radius-sm:8px;
   --radius-pill:999px;
-
   --hero-bg:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,45,120,.18) 0%, transparent 70%);
   --shadow:0 8px 32px rgba(0,0,0,.6);
   --shadow-sm:0 4px 16px rgba(0,0,0,.4);
   --transition:all .3s cubic-bezier(.4,0,.2,1);
 }
-/* ─── LIGHT MODE ─── */
 body.light{
   --bg:#f2eff5;
   --bg2:#e8e4ed;
@@ -82,7 +76,6 @@ body.light{
   --shadow:0 8px 32px rgba(0,0,0,.12);
   --shadow-sm:0 4px 16px rgba(0,0,0,.08);
 }
-/* ─── HINDI CHANNEL THEME ─── */
 body.lang-hi{
   --bg:#090610; --bg2:#0e0a0e; --bg3:#140c12;
   --panel2:#1e1225; --panel3:#251630;
@@ -109,8 +102,6 @@ body.light.lang-te{
   --panel:#ffffffcc; --panel-solid:#fff; --panel2:#edf2f8; --panel3:#e0e8f0;
   --paper:#1a1a2e; --paper-dim:#4a4a6a; --paper-dimmer:#7a7a9a;
 }
-
-/* ─── RESET ─── */
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overscroll-behavior:none;}
 body{
@@ -121,15 +112,10 @@ body{
   overflow-x:hidden;
   transition:background .4s ease, color .3s ease;
 }
-/* ─── STARFIELD ─── */
 #starfield{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;}
 body.light #starfield{opacity:.15;}
 .grid-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 90% 70% at 50% 50%,black 10%,transparent 100%);}
 .app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
-
-/* ═══════════════════════════════════════════════════
-   HERO
-═══════════════════════════════════════════════════ */
 .hero{
   background:linear-gradient(180deg,rgba(8,6,18,.1) 0%,rgba(13,10,26,.97) 100%);
   backdrop-filter:blur(12px);
@@ -150,8 +136,6 @@ body.light #starfield{opacity:.15;}
 .brand-text h1{font-family:var(--display);font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1;}
 .brand-text h1 .brand-color{color:var(--accent);text-shadow:0 0 30px var(--accent-glow),0 0 60px var(--accent-dim);transition:color .6s ease, text-shadow .6s ease;}
 .brand-text .tagline{font-size:11px;color:var(--paper-dimmer);margin-top:3px;letter-spacing:.02em;}
-
-/* ─── ON AIR BUTTON ─── */
 .onair-btn{
   display:flex;align-items:center;gap:10px;padding:13px 26px;border-radius:var(--radius-pill);
   font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
@@ -167,8 +151,6 @@ body.light #starfield{opacity:.15;}
 .onair-btn.paused{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
 .onair-btn.paused .lamp{background:var(--amber);box-shadow:0 0 10px rgba(245,166,35,.5);}
 @keyframes lamp-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.25;transform:scale(.75);}}
-
-/* ─── CHANNEL BUTTONS ─── */
 .hero-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .channels{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
 .ch-btn{
@@ -180,22 +162,16 @@ body.light #starfield{opacity:.15;}
 .ch-btn:hover::before{opacity:1;}
 .ch-btn:hover{border-color:var(--accent);color:var(--paper);transform:translateY(-1px);}
 .ch-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);box-shadow:0 0 14px var(--accent-glow);transform:none;}
-
 #voiceSelect{background:var(--panel2);border:1px solid var(--line2);color:var(--paper);border-radius:var(--radius-pill);font-size:11px;padding:6px 12px;outline:none;font-family:inherit;cursor:pointer;}
 #voiceSelect:focus{border-color:var(--accent2);}
-
-/* ─── THEME TOGGLE ─── */
 .theme-toggle{
   background:var(--panel2);border:1px solid var(--line2);color:var(--paper-dimmer);padding:6px 14px;border-radius:var(--radius-pill);
   font-size:13px;cursor:pointer;transition:var(--transition);display:flex;align-items:center;gap:6px;
 }
 .theme-toggle:hover{border-color:var(--accent);color:var(--accent);}
-
 .mini-stats{display:flex;gap:16px;flex-wrap:wrap;}
 .stat-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--paper-dimmer);letter-spacing:.06em;}
 .stat-item .sv{color:var(--accent2);font-weight:700;transition:color .6s;}
-
-/* ─── OSCILLOSCOPE ─── */
 .osc-bar{position:relative;background:var(--bg3);border-bottom:1px solid var(--line2);height:72px;overflow:hidden;display:flex;align-items:center;}
 .osc-bar::before,.osc-bar::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;}
 .osc-bar::before{left:0;background:linear-gradient(90deg,var(--bg3),transparent);}
@@ -210,8 +186,6 @@ body.light #starfield{opacity:.15;}
 .status-pill.thinking{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);animation:fade-pulse .85s infinite;}
 .status-pill.error{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
 @keyframes fade-pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
-
-/* ─── MAIN GRID ─── */
 .main{flex:1;display:grid;grid-template-columns:1fr 1fr;max-width:1100px;margin:0 auto;width:100%;border-left:1px solid var(--line);border-right:1px solid var(--line);}
 @media(max-width:720px){.main{grid-template-columns:1fr;}.osc-overlay{padding:0 16px;}.hero{padding:14px 16px 12px;}}
 .pane{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;}
@@ -219,8 +193,6 @@ body.light #starfield{opacity:.15;}
 .pane-head{padding:12px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10;}
 .pane-head h2{font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--paper-dimmer);font-weight:700;}
 .pane-body{flex:1;padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
-
-/* ─── BUTTONS ─── */
 button{font-family:inherit;cursor:pointer;transition:var(--transition);}
 button:disabled{opacity:.35;cursor:not-allowed!important;}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--panel2);border:1px solid var(--line2);color:var(--paper);padding:9px 18px;border-radius:var(--radius-pill);font-weight:600;font-size:12px;letter-spacing:.04em;position:relative;overflow:hidden;}
@@ -243,8 +215,6 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 #pauseBtn{width:40px;height:40px;border-radius:50%;background:var(--panel2);border:1.5px solid var(--line3);color:var(--paper-dimmer);font-size:14px;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
 #pauseBtn:not(:disabled):hover{border-color:var(--amber);color:var(--amber);box-shadow:0 0 20px rgba(245,166,35,.4);transform:scale(1.1);}
 #pauseBtn.active-pause{border-color:var(--accent2);color:var(--accent2);box-shadow:0 0 16px var(--accent2-glow);}
-
-/* ─── SENSY AVATAR ─── */
 .sensy-avatar-wrap{display:flex;align-items:center;gap:14px;background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden;}
 .sensy-avatar-wrap::before{content:'';position:absolute;top:-30px;right:-20px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--accent3-dim) 0%,transparent 70%);pointer-events:none;}
 .avatar-orb{width:56px;height:56px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;position:relative;transition:box-shadow .3s, background .6s;}
@@ -262,16 +232,12 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 .lb:nth-child(4){animation-delay:.12s}.lb:nth-child(5){animation-delay:.16s}.lb:nth-child(6){animation-delay:.2s}
 .lb:nth-child(7){animation-delay:.24s}.lb:nth-child(8){animation-delay:.28s}
 @keyframes lb-anim{0%{height:3px;}100%{height:14px;}}
-
-/* ─── PROGRESS ─── */
 .progress-track{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);padding:12px 16px;}
 .progress-label{font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;}
 .progress-bar-wrap{background:rgba(0,0,0,.5);border-radius:var(--radius-pill);height:3px;overflow:hidden;margin-bottom:6px;}
 .progress-bar{height:3px;background:linear-gradient(90deg,var(--accent2),var(--accent3),var(--accent));border-radius:var(--radius-pill);transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px var(--accent2-glow);}
 .progress-stats{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--paper-dimmer);}
 .progress-stats span{color:var(--accent2);}
-
-/* ─── SCRIPT PREVIEW ─── */
 .script-box{background:#050310;border:1px solid var(--line2);border-radius:var(--radius);padding:14px;max-height:170px;overflow-y:auto;font-size:12.5px;line-height:1.75;color:var(--paper-dimmer);font-family:var(--mono);}
 .script-box .hl{color:var(--accent2);background:var(--accent2-dim);border-radius:4px;padding:1px 4px;box-shadow:0 0 12px var(--accent2-glow);}
 .script-box .done{color:var(--paper-dimmer);opacity:.3;}
@@ -280,8 +246,6 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 .custom-area textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 2px var(--accent2-dim);}
 .section-label{font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--paper-dimmer);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
 .section-label::after{content:'';flex:1;height:1px;background:var(--line2);}
-
-/* ─── VOLUME KNOB ─── */
 .volume-control{display:flex;align-items:center;gap:14px;background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);padding:12px 16px;}
 .knob-wrap{position:relative;width:58px;height:58px;flex-shrink:0;}
 .knob-track{width:58px;height:58px;border-radius:50%;background:conic-gradient(var(--accent2) 0deg, var(--accent2) 0deg, rgba(255,255,255,.08) 0deg, rgba(255,255,255,.08) 320deg);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;box-shadow:0 0 0 3px var(--bg3),0 0 18px var(--accent2-dim);transition:box-shadow .3s;}
@@ -292,8 +256,6 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 .vol-label{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--paper-dimmer);font-family:var(--mono);margin-bottom:4px;}
 .vol-desc{font-size:11px;color:var(--paper-dim);line-height:1.5;}
 .vol-btns{display:flex;gap:6px;margin-top:8px;}
-
-/* ─── MUSIC PLAYER ─── */
 .music-player{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);overflow:hidden;}
 .music-player-header{padding:12px 14px 10px;background:linear-gradient(135deg,var(--amber-dim),var(--accent3-dim));border-bottom:1px solid var(--line);}
 .music-vinyl{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
@@ -323,14 +285,10 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 .key-input:focus{border-color:var(--accent2);box-shadow:0 0 0 2px var(--accent2-dim);}
 .key-status{font-family:var(--mono);font-size:10px;color:var(--paper-dimmer);}
 .music-warn{color:var(--signal);font-size:11px;font-family:var(--mono);margin-top:4px;}
-
-/* ─── STATS ─── */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .stat-card{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:10px 12px;display:flex;flex-direction:column;gap:2px;}
 .stat-card .sv{font-family:var(--mono);font-size:20px;font-weight:900;color:var(--accent2);letter-spacing:-.02em;transition:color .6s;}
 .stat-card .sl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--paper-dimmer);}
-
-/* ─── CLIPS ─── */
 .clips-panel{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius);}
 .clips-header{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--paper-dimmer);font-weight:700;}
 .clips-list{max-height:120px;overflow-y:auto;display:flex;flex-direction:column;}
@@ -349,8 +307,6 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 .fi-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
 .fi-title{font-size:11px;font-weight:700;color:var(--accent3);margin-bottom:2px;}
 .fi-desc{font-size:10px;color:var(--paper-dimmer);line-height:1.5;}
-
-/* ─── CHAT ─── */
 .chat-log{flex:1;background:#050310;border:1px solid var(--line2);border-radius:var(--radius);padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:220px;max-height:360px;}
 .msg{display:flex;flex-direction:column;gap:3px;}
 .msg .from{font-size:9px;font-family:var(--mono);letter-spacing:.08em;display:flex;align-items:center;gap:5px;}
@@ -371,7 +327,7 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 .transcript-row{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px 14px;font-size:11px;color:var(--paper-dimmer);font-style:italic;min-height:34px;transition:.2s;font-family:var(--mono);}
 .transcript-row.listening{border-color:var(--accent3);color:var(--accent3);font-style:normal;background:var(--accent3-dim);}
 .transcript-row.final{border-color:var(--accent2);color:var(--accent2);font-style:normal;background:var(--accent2-dim);}
-.chat-input-row{display:flex;gap:8px;flex-wrap:wrap;}
+.chat-input-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 .chat-input{flex:1;background:#050310;border:1px solid var(--line2);border-radius:var(--radius-pill);color:var(--paper);font-family:inherit;font-size:13px;padding:10px 18px;outline:none;}
 .chat-input:focus{border-color:var(--accent3);box-shadow:0 0 0 2px var(--accent3-dim);}
 .chat-input::placeholder{color:var(--paper-dimmer);}
@@ -391,8 +347,6 @@ button:disabled{opacity:.35;cursor:not-allowed!important;}
 .voice-dot.ok{background:var(--green);box-shadow:0 0 8px rgba(57,255,136,.5);}
 .voice-dot.err{background:var(--signal);}
 .mood-strip{height:3px;width:100%;border-radius:0;background:linear-gradient(90deg,var(--accent2),var(--accent3),var(--accent));transition:background 1.5s ease;}
-
-/* ─── FOOTER ─── */
 .site-footer{border-top:1px solid var(--line2);background:var(--panel);backdrop-filter:blur(12px);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:relative;z-index:1;}
 .footer-left{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .footer-logo{width:36px;height:36px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
@@ -418,8 +372,6 @@ select:focus{border-color:var(--accent2);}
 ::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--line3);}
 :focus-visible{outline:2px solid var(--accent2);outline-offset:2px;}
-
-/* ─── TOAST ─── */
 .toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
 .toast{background:var(--panel2);border:1px solid var(--line2);border-radius:var(--radius-sm);padding:10px 16px;font-size:12px;color:var(--paper);display:flex;align-items:center;gap:8px;animation:toast-in .3s cubic-bezier(.34,1.56,.64,1) forwards;pointer-events:all;min-width:220px;max-width:300px;box-shadow:var(--shadow);}
 .toast.success{border-color:var(--green);color:var(--green);}
@@ -634,9 +586,7 @@ select:focus{border-color:var(--accent2);}
 // ════════════════════════════════════════════════════
 //  CONFIG — set your Worker URL here
 // ════════════════════════════════════════════════════
-const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev'; // <-- CHANGE THIS TO YOUR WORKER
-
-// Language codes for Smallest.ai
+const WORKER_URL = 'https://sensycilva.suryasticsai.workers.dev';
 const LANG_MAP = {
   en: 'en-US',
   hi: 'hi-IN',
@@ -701,11 +651,11 @@ const CHANNELS = {
   }
 };
 
-// ─── SONG-END TRANSITION LINES (host talks back into the show) ──
+// ─── SONG-END TRANSITIONS (host talks back into the show) ──
 const SONG_TRANSITIONS = {
   en: ["That was a great one! Back to the show —", "Loved that track. Now, where were we —", "Nice pick! Alright, continuing on —"],
   hi: ["Kya gaana tha! Chaliye wapas show pe —", "Mast tha! Ab dekhte hain —", "Badhiya gaana! Chalo show continue karte hain —"],
-  te: ["Adi chala bagundi! Malli show ki vellipoduam —", "Nice track! Ippudu continue chestham —", "Super pాట! Ippudu malli start chesthunna —"]
+  te: ["Adi chala bagundi! Malli show ki vellipoduam —", "Nice track! Ippudu continue chestham —", "Super pāṭa! Ippudu malli start chesthunna —"]
 };
 
 // ─── STATE ────────────────────────────────────────────
@@ -714,7 +664,6 @@ let currentLang = 'en';
 let lockedVoice = null;
 let voicesLoaded = false;
 let autoListenMode = false;
-let lastInputWasVoice = false;
 
 let sentences = [];
 let sentIdx = 0;
@@ -745,7 +694,7 @@ let stats = { words:0, songs:0, lines:0, msgs:0, sessionStart:Date.now() };
 let clips = [];
 let oscColor = '#00ffe7';
 
-// ─── VOICE CATALOG (populated from worker) ───────────
+// ─── VOICE CATALOG ──────────────────────────────────
 let voiceCatalogCache = {};
 let selectedVoiceId = '';
 
@@ -829,7 +778,7 @@ speedSlider.addEventListener('input', ()=>{ speechSpeed = parseFloat(speedSlider
   let phase=0, amp=0, targetAmp=0, col='#00ffe7', harmonic=0, harmonicTarget=0;
   window._oscSetAmp = (a, c) => {
     if (a !== undefined) targetAmp = a;
-    if (c) col = c;  // c must be a hex string, not CSS var
+    if (c) col = c;
   };
   window._oscSetHarmonic = (h) => { harmonicTarget = h; };
   function draw(){
@@ -934,17 +883,7 @@ function saveClip(){ if(!currentSpokenLine)return; const now=new Date(); clips.p
 clipBtn.addEventListener('click',saveClip);
 clearClipsBtn.addEventListener('click',()=>{ clips=[]; storeJSON('sensy_clips',[]); renderClips(); toast('Clips cleared','info'); });
 
-// ─── VOICE ────────────────────────────────────────────
-function updateVoiceBadge() {
-  const langName = { en: 'English', hi: 'Hindi', te: 'Telugu' }[currentLang] || currentLang;
-  const voices = voiceCatalogCache[LANG_MAP[currentLang]] || [];
-  const v = voices.find(x=>x.id===selectedVoiceId);
-  const label = v ? v.label : 'Loading…';
-  voiceNameDisplay.textContent = `${langName} · ${label}`;
-  voiceInfo.textContent = `Smallest.ai · ${label} · via Worker`;
-  voiceDot.className = 'voice-dot ok';
-  voiceDot2.className = 'voice-dot ok';
-}
+// ─── VOICE SELECTOR ──────────────────────────────────
 async function loadVoicesFor(lang){
   const langCode = LANG_MAP[lang];
   if(!voiceCatalogCache[langCode]){
@@ -969,6 +908,20 @@ voiceSelect.addEventListener('change', ()=>{
   toast('Switched host voice','success');
 });
 
+// ─── VOICE BADGE ──────────────────────────────────────
+function updateVoiceBadge() {
+  const langName = { en: 'English', hi: 'Hindi', te: 'Telugu' }[currentLang] || currentLang;
+  const voices = voiceCatalogCache[LANG_MAP[currentLang]] || [];
+  const v = voices.find(x=>x.id===selectedVoiceId);
+  const label = v ? v.label : 'Loading…';
+  voiceNameDisplay.textContent = `${langName} · ${label}`;
+  voiceInfo.textContent = `Smallest.ai · ${label} · via Worker`;
+  voiceDot.className = 'voice-dot ok';
+  voiceDot2.className = 'voice-dot ok';
+}
+function initVoices(){ voicesLoaded = true; loadVoicesFor(currentLang); }
+setTimeout(initVoices, 500);
+
 // ─── CHANNELS ─────────────────────────────────────────
 function applyChannelTheme(lang){
   document.body.classList.remove('lang-en','lang-hi','lang-te');
@@ -984,6 +937,15 @@ function setChannel(lang){
   if(lang===currentLang&&voicesLoaded)return; hardStop(); currentLang=lang; chBtns.forEach(b=>b.classList.toggle('active',b.dataset.lang===lang)); store('sensy_lang',lang); applyChannelTheme(lang); loadVoicesFor(lang); const names={en:'English',hi:'Hindi',te:'Telugu'}; setSubtitle('Channel: '+names[lang]+' — Hit GO ON AIR',true,true);
 }
 chBtns.forEach(b=>b.addEventListener('click',()=>setChannel(b.dataset.lang)));
+
+// ─── AUTO-LISTEN TOGGLE ──────────────────────────────
+liveChatToggle.addEventListener('click', ()=>{
+  autoListenMode = !autoListenMode;
+  liveChatToggle.textContent = autoListenMode ? '🔁 Auto-Listen: On' : '🔁 Auto-Listen: Off';
+  liveChatToggle.classList.toggle('glow-signal', autoListenMode);
+  toast(autoListenMode ? 'Live conversation mode on — mic reopens after Sensy replies' : 'Auto-listen off','info');
+  if(!autoListenMode && recognition && isListening) recognition.stop();
+});
 
 // ─── FALLBACK SCRIPTS ────────────────────────────────
 const FALLBACKS = {
@@ -1105,7 +1067,6 @@ async function speakOne(text) {
   return new Promise(async (resolve) => {
     try {
       const langCode = LANG_MAP[currentLang] || 'en-US';
-
       const response = await fetch(`${WORKER_URL}/api/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1302,7 +1263,7 @@ function createYTPlayer(videoId){
             queueIdx++;
             playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);
           } else {
-            // No more queued songs — host comes back with a transition line
+            // ─── SONG END → HOST TRANSITION ──────────────────
             if(isBroadcasting && isPaused){
               const lines = SONG_TRANSITIONS[currentLang] || SONG_TRANSITIONS.en;
               const line = lines[Math.floor(Math.random()*lines.length)];
@@ -1329,6 +1290,7 @@ function showSearchResults(results){ searchResults.innerHTML=''; results.forEach
 async function nextSong(){ if(queueIdx<songQueue.length-1){queueIdx++;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);stats.songs++;updateStatsDisplay();return{success:true,title:songQueue[queueIdx].title};} try{const results=await searchYT('popular anime OST',3); if(results.length){results.forEach(r=>{if(!songQueue.some(s=>s.id===r.id))songQueue.push(r);});queueIdx=songQueue.length-results.length;playById(songQueue[queueIdx].id,songQueue[queueIdx].title,songQueue[queueIdx].channel);stats.songs++;updateStatsDisplay();return{success:true,title:songQueue[queueIdx].title};}}catch(e){} return{success:false,msg:'Queue empty'}; }
 mPlayPause.addEventListener('click',()=>{ if(!ytPlayer||!ytReady){musicWarn.textContent='No track loaded.';return;} if(musicPlaying){ytPlayer.pauseVideo();}else{ytPlayer.playVideo();} });
 mStop.addEventListener('click',()=>{ stopFunFacts(); if(ytPlayer&&ytReady){try{ytPlayer.stopVideo();}catch(e){}} musicPlaying=false; mPlayPause.textContent='▶ Play'; vinylDisc.classList.remove('spinning'); trackName.textContent='Nothing playing'; trackTime.textContent='0:00'; trackChannel.textContent='—'; if(progressTick){clearInterval(progressTick);progressTick=null;} ytVideoPanel.classList.remove('open'); ytToggleBtn.classList.remove('open'); ytToggleBtn.querySelector('span:first-child').textContent='🎬 Show Video'; ytPlayerContainer.innerHTML=''; if(ytPlayer){try{ytPlayer.destroy();}catch(e){}ytPlayer=null;ytReady=false;}
+  // ─── STOP → HOST TAKES BACK ──────────────────────────
   if(isBroadcasting&&isPaused){
     const lines = SONG_TRANSITIONS[currentLang] || SONG_TRANSITIONS.en;
     const line = lines[Math.floor(Math.random()*lines.length)];
@@ -1343,9 +1305,8 @@ mNext.addEventListener('click',async()=>{ const r=await nextSong(); if(r.success
 let userChatCount=0; let userLocation='';
 async function speakOneOff(text){ const wasOnAir=isBroadcasting&&!isPaused; if(wasOnAir){isPaused=true;} addMsg('host',text); await speakOne(text); if(wasOnAir){isPaused=false;setStatus('ON AIR','live');setSpeaking(true);setAvatarStatus('Broadcasting live…');} }
 
-async function handleUserInput(msg, viaVoice){
+async function handleUserInput(msg, viaVoice) {
   msg=msg.trim(); if(!msg)return; userInput.value=''; addMsg('user',msg); stats.msgs++; updateStatsDisplay();
-  lastInputWasVoice = !!viaVoice;
   const wasBroadcasting=isBroadcasting&&!isPaused;
   if(wasBroadcasting){ isPaused=true; setStatus('PAUSED',''); setSpeaking(false); setAvatarStatus('Listening…'); }
   setStatus('Thinking…','thinking'); setThinking(true); setSubtitle('Sensy is thinking…',true,true);
@@ -1386,26 +1347,66 @@ No asterisks, no stage directions in your response.`);
   addMsg('host',reply); setStatus('Speaking…','live'); setThinking(false); setAvatarStatus('Responding…'); await speakOne(reply);
   if(wasBroadcasting&&isBroadcasting){ isPaused=false; setStatus('ON AIR','live'); setSpeaking(true); setAvatarStatus('Broadcasting live…'); setSubtitle('Resuming broadcast…',false,true); addMsg('system','Resuming…'); }
   else { setStatus('READY'); setSpeaking(false); setAvatarStatus('Ready'); setSubtitle('Ask me anything, or hit GO ON AIR.',true,true); }
-  // Live conversation loop: if Auto-Listen is on and this turn came from voice, re-open the mic
-  if(autoListenMode && SR && !isListening){
+
+  // ─── AUTO-LISTEN RE-ARM ──────────────────────────────
+  if(autoListenMode && viaVoice && SR && !isListening){
     setTimeout(()=>{
-      try{ recognition.lang = currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US'; recognition.start(); }catch(e){}
+      try {
+        recognition.lang = currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US';
+        recognition.start();
+      } catch(e) { /* ignore */ }
     }, 500);
   }
 }
 sendBtn.addEventListener('click',()=>handleUserInput(userInput.value,false));
 userInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendBtn.click();});
 
-liveChatToggle.addEventListener('click', ()=>{
-  autoListenMode = !autoListenMode;
-  liveChatToggle.textContent = autoListenMode ? '🔁 Auto-Listen: On' : '🔁 Auto-Listen: Off';
-  liveChatToggle.classList.toggle('glow-signal', autoListenMode);
-  toast(autoListenMode ? 'Live conversation mode on — mic reopens after Sensy replies' : 'Auto-listen off','info');
-  if(!autoListenMode && recognition && isListening) recognition.stop();
-});
-
 // ─── SPEECH RECOGNITION ──────────────────────────────
-if(SR){ recognition=new SR(); recognition.continuous=false; recognition.interimResults=true; recognition.onstart=()=>{ isListening=true; micBtn.classList.add('live'); micBtn.textContent='🔴'; transcriptRow.className='transcript-row listening'; transcriptRow.textContent='Listening…'; if(isBroadcasting&&!isPaused){isPaused=true;} window._oscSetAmp&&window._oscSetAmp(0.4,'var(--accent3)'); }; recognition.onresult=(e)=>{ let interim='',final=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal)final+=t;else interim+=t; } if(final){transcriptRow.className='transcript-row final';transcriptRow.textContent='✓ '+final;userInput.value=final;setTimeout(()=>handleUserInput(final,true),300);}else if(interim){transcriptRow.textContent='🎤 '+interim;} }; recognition.onerror=(e)=>{ const msgs={'not-allowed':'Mic access denied.','no-speech':'Nothing heard.','network':'Network issue.','audio-capture':'No mic found.'}; transcriptRow.className='transcript-row'; transcriptRow.textContent=msgs[e.error]||'Error: '+e.error; micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; }; recognition.onend=()=>{ micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false; if(!transcriptRow.textContent.startsWith('✓')&&!transcriptRow.textContent.includes('denied')){transcriptRow.className='transcript-row';transcriptRow.textContent='Mic off — type or click 🎤';} }; micBtn.addEventListener('click',()=>{ if(isListening){recognition.stop();return;} recognition.lang=currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US'; try{recognition.start();}catch(e){transcriptRow.textContent='Could not start mic.';} }); } else { micBtn.disabled=true; liveChatToggle.disabled=true; transcriptRow.textContent='Speech recognition not available — please type.'; }
+if(SR){
+  recognition=new SR(); recognition.continuous=false; recognition.interimResults=true;
+  recognition.onstart=()=>{
+    isListening=true; micBtn.classList.add('live'); micBtn.textContent='🔴';
+    transcriptRow.className='transcript-row listening'; transcriptRow.textContent='Listening…';
+    if(isBroadcasting&&!isPaused){isPaused=true;}
+    window._oscSetAmp&&window._oscSetAmp(0.4,'var(--accent3)');
+  };
+  recognition.onresult=(e)=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal) final+=t; else interim+=t;
+    }
+    if(final){
+      transcriptRow.className='transcript-row final';
+      transcriptRow.textContent='✓ '+final;
+      userInput.value=final;
+      setTimeout(()=>handleUserInput(final,true),300);
+    } else if(interim){
+      transcriptRow.textContent='🎤 '+interim;
+    }
+  };
+  recognition.onerror=(e)=>{
+    const msgs={'not-allowed':'Mic access denied.','no-speech':'Nothing heard.','network':'Network issue.','audio-capture':'No mic found.'};
+    transcriptRow.className='transcript-row';
+    transcriptRow.textContent=msgs[e.error]||'Error: '+e.error;
+    micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false;
+  };
+  recognition.onend=()=>{
+    micBtn.classList.remove('live');micBtn.textContent='🎤';isListening=false;
+    if(!transcriptRow.textContent.startsWith('✓')&&!transcriptRow.textContent.includes('denied')){
+      transcriptRow.className='transcript-row';
+      transcriptRow.textContent='Mic off — type or click 🎤';
+    }
+  };
+  micBtn.addEventListener('click',()=>{
+    if(isListening){recognition.stop();return;}
+    recognition.lang=currentLang==='hi'?'hi-IN':currentLang==='te'?'te-IN':'en-US';
+    try{recognition.start();}catch(e){transcriptRow.textContent='Could not start mic.';}
+  });
+} else {
+  micBtn.disabled=true; liveChatToggle.disabled=true;
+  transcriptRow.textContent='Speech recognition not available — please type.';
+}
 
 // ─── THEME TOGGLE ─────────────────────────────────────
 themeToggle.addEventListener('click',()=>{ document.body.classList.toggle('light'); toast('Theme toggled','info'); });
